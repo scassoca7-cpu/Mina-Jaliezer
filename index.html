@@ -3,12 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ERP - Mina Jaliezer (Online)</title>
+<title>ERP - Mina Jaliezer</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- BIBLIOTECA DO SUPABASE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg-dark:#0a0a0a;--bg-panel:rgba(20,20,20,0.95);--primary:#d4af37;--text-main:#e0e6ed;--text-muted:#8b9bb4;--border-light:1px solid rgba(212,175,55,0.3);--success:#00ff88;--danger:#ff006e;--warning:#ffc300;--info:#17a2b8;--sidebar-w:260px}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Rajdhani',sans-serif}
@@ -63,6 +61,101 @@ th{color:var(--primary);font-size:.75rem;text-transform:uppercase;background:rgb
 .stock-card{background:rgba(0,180,216,.05);border:1px solid rgba(0,180,216,.2);padding:15px;border-radius:8px;text-align:center}
 .alert-box{background:rgba(255,0,110,.1);border:1px solid var(--danger);color:var(--danger);padding:15px;border-radius:8px;margin-bottom:15px;display:flex;align-items:center;gap:10px}
 @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}#menuToggle{display:inline-flex!important}.form-row{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr 1fr}.header{padding:10px 15px}}
+
+/* ====== ESTILOS PARA RELATÓRIOS EM PDF ====== */
+.pdf-report {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #2c3e50;
+    padding: 30px;
+    background: #fff;
+}
+.pdf-report .pdf-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid #d4af37;
+}
+.pdf-report .pdf-header h2 {
+    color: #1a1a1a;
+    margin: 0 0 5px 0;
+    font-size: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.pdf-report .pdf-header p {
+    margin: 2px 0;
+    font-size: 12px;
+    color: #555;
+}
+.pdf-report h3 {
+    color: #1a1a1a;
+    font-size: 18px;
+    margin: 25px 0 15px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+}
+.pdf-report h4 {
+    color: #444;
+    font-size: 14px;
+    margin: 20px 0 10px 0;
+    text-transform: uppercase;
+}
+.pdf-report table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 12px;
+}
+.pdf-report th {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+.pdf-report td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+.pdf-report tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+.pdf-report tbody tr:hover {
+    background-color: #e9ecef;
+}
+.pdf-report .text-right { text-align: right; }
+.pdf-report .text-center { text-align: center; }
+.pdf-report .text-danger { color: #c0392b; font-weight: bold; }
+.pdf-report .text-success { color: #27ae60; font-weight: bold; }
+.pdf-report .summary-box {
+    background: #f4f4f4;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+.pdf-report .total-row td {
+    background-color: #d4af37;
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+    border: 2px solid #1a1a1a;
+}
+.pdf-report .signatures {
+    margin-top: 60px;
+    display: flex;
+    justify-content: space-between;
+}
+.pdf-report .sign-line {
+    border-top: 1px solid #000;
+    width: 200px;
+    text-align: center;
+    padding-top: 5px;
+    font-size: 11px;
+    color: #555;
+}
 </style>
 </head>
 <body>
@@ -93,48 +186,17 @@ th{color:var(--primary);font-size:.75rem;text-transform:uppercase;background:rgb
             <span id="currentUserName" style="font-size:.9rem;color:var(--text-muted)">Administrador</span>
         </div>
     </header>
-    <div class="content" id="appContent"><h2 style="text-align:center;color:var(--primary);margin-top:50px">A carregar dados do servidor...</h2></div>
+    <div class="content" id="appContent"></div>
 </main>
 
 <script>
-/* ==================== SUPABASE CONFIG ==================== */
-const SUPABASE_URL = 'https://esssyqhezmtysrneosim.supabase.co';
-const SUPABASE_KEY = '67T1ezgRWrxZvrPZ0xWcpDzytIS3UjtEr+MA70gkyE0yiCBbVbq34IxwG6m+NeWOnVmO/W2XKL+IOhfLUuk34g==';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/* ==================== DATABASE ADAPTER (SUPABASE) ==================== */
+/* ==================== LOCAL DATABASE ==================== */
 var DB = {
-    get: async function(t) { 
-        const { data, error } = await sb.from('jaliezer_data').select('record').eq('table_name', t);
-        if (error) { console.error('DB Get Error:', error); return []; }
-        return data ? data.map(item => item.record) : []; 
-    },
-    save: async function(t, dataArr) { 
-        await sb.from('jaliezer_data').delete().eq('table_name', t);
-        if(dataArr.length === 0) return;
-        const insertData = dataArr.map(r => ({ id: r.id, table_name: t, record: r }));
-        const { error } = await sb.from('jaliezer_data').insert(insertData);
-        if (error) console.error('DB Save Error:', error);
-    },
-    insert: async function(t, r) { 
-        const { error } = await sb.from('jaliezer_data').insert({ id: r.id, table_name: t, record: r });
-        if (error) console.error('DB Insert Error:', error);
-        return r; 
-    },
-    update: async function(t, id, newData) { 
-        const { data: existing } = await sb.from('jaliezer_data').select('record').eq('id', id).single();
-        if (existing && existing.record) {
-            const updatedRecord = Object.assign({}, existing.record, newData);
-            const { error } = await sb.from('jaliezer_data').update({ record: updatedRecord }).eq('id', id);
-            if (error) console.error('DB Update Error:', error);
-            return updatedRecord;
-        }
-        return null; 
-    },
-    del: async function(t, id) { 
-        const { error } = await sb.from('jaliezer_data').delete().eq('id', id).eq('table_name', t);
-        if (error) console.error('DB Delete Error:', error);
-    }
+    get: function(t) { var data = localStorage.getItem('jaliezer_'+t); return data ? JSON.parse(data) : []; },
+    save: function(t, data) { localStorage.setItem('jaliezer_'+t, JSON.stringify(data)); },
+    insert: function(t, r) { var data = this.get(t); data.push(r); this.save(t, data); return r; },
+    update: function(t, id, newData) { var data = this.get(t); var i = data.findIndex(function(x){ return x.id === id; }); if(i >= 0) { data[i] = Object.assign({}, data[i], newData); this.save(t, data); return data[i]; } return null; },
+    del: function(t, id) { var data = this.get(t); data = data.filter(function(x){ return x.id !== id; }); this.save(t, data); }
 };
 
 /* ==================== HELPERS ==================== */
@@ -158,6 +220,7 @@ function closeModal() { document.getElementById('modalGeneric').classList.remove
 function parseDate(s) { if(!s) return null; var p = s.split('/'); if(p.length === 3) return new Date(p[2], p[1]-1, p[0]); return new Date(s); }
 function getMonthName(mIdx) { var m=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; return m[mIdx]; }
 
+/* Cálculo Progressivo IRT Angola 2023+ */
 function calcIRT(salario) {
     if (salario <= 70000) return 0;
     if (salario <= 100000) return (salario - 70000) * 0.10;
@@ -181,9 +244,11 @@ function hashPass(pass) {
     return 'h_' + Math.abs(hash).toString(16);
 }
 
-async function logAction(action, detail) {
+function logAction(action, detail) {
     if(!currentUser) return;
-    await DB.insert('audit_logs', { id:'log'+Date.now(), user: currentUser.name, role: currentUser.role, action: action, detail: detail, date: new Date().toLocaleString('pt-AO') });
+    var logs = DB.get('audit_logs');
+    logs.push({ id:'log'+Date.now(), user: currentUser.name, role: currentUser.role, action: action, detail: detail, date: new Date().toLocaleString('pt-AO') });
+    DB.save('audit_logs', logs);
 }
 
 function handleFileUpload(inputId, callback) {
@@ -204,15 +269,15 @@ var menuPermissions = {
     'secretaria': ['dashboard', 'provisions', 'equipment', 'suppliers']
 };
 
-async function login() {
+function login() {
     var u = val('loginUser'), p = val('loginPass');
-    var users = await DB.get('users');
+    var users = DB.get('users');
     var found = users.find(function(x){ return x.user === u && x.pass === hashPass(p); });
     if (found) {
         currentUser = found;
         localStorage.setItem('jaliezer_session', found.id);
         document.getElementById('loginOverlay').style.display = 'none';
-        await logAction('Login', 'Entrou no sistema');
+        logAction('Login', 'Entrou no sistema');
         initApp();
     } else {
         showToast('Credenciais inválidas!', 'danger');
@@ -221,75 +286,66 @@ async function login() {
 function logout() { logAction('Logout', 'Saiu do sistema'); currentUser = null; localStorage.removeItem('jaliezer_session'); location.reload(); }
 
 /* ==================== DADOS INICIAIS ==================== */
-async function seedData() {
-    var users = await DB.get('users');
-    if(users.length === 0) {
-        await DB.save('users', [
+function seedData() {
+    if(!localStorage.getItem('jaliezer_users')) {
+        DB.save('users', [
             {id:'u1', name:'Gerente Geral', user:'admin', pass:hashPass('1234'), role:'admin'},
             {id:'u2', name:'Maria Secretária', user:'secretaria', pass:hashPass('1234'), role:'secretaria'},
             {id:'u3', name:'Carlos Contabilista', user:'contabilista', pass:hashPass('1234'), role:'contabilista'},
             {id:'u4', name:'Ana Diretora de RH', user:'rh', pass:hashPass('1234'), role:'rh'}
         ]);
     }
-    var config = await DB.get('company_config');
-    if(config.length === 0) {
-        await DB.save('company_config', [{id:'c1', name:'Mina Jaliezer, Lda', nif:'5412345678', address:'Lunda Sul, Angola', ivaRate:14, bank:'BFA - 1234-5678-9'}]);
+    if(!localStorage.getItem('jaliezer_company_config')) {
+        DB.save('company_config', [{id:'c1', name:'Mina Jaliezer, Lda', nif:'5412345678', address:'Lunda Sul, Angola', ivaRate:14, bank:'BFA - 1234-5678-9'}]);
     }
-    var suppliers = await DB.get('suppliers');
-    if(suppliers.length === 0) {
-        await DB.save('suppliers', [
+    if(!localStorage.getItem('jaliezer_suppliers')) {
+        DB.save('suppliers', [
             {id:'sup1', name:'Sonangol Distribuidora', nif:'NIF-Sonangol', contact:'923456789', account:'BFA 1234'},
             {id:'sup2', name:'Ferragens Luanda', nif:'NIF-Ferragens', contact:'912345678', account:'BIC 5678'}
         ]);
     }
+    if(!localStorage.getItem('jaliezer_maintenance_logs')) { DB.save('maintenance_logs', []); }
     
-    var prod = await DB.get('production_logs');
-    if(prod.length === 0) {
-        await DB.save('production_logs', [
+    if(!localStorage.getItem('jaliezer_production_logs')) {
+        DB.save('production_logs', [
             {id:'prod1', date:'04/07/2026', time:'10:00', well:'Poço 1 (Jaliezer)', material:'Diamantes', qty:'15.5 Quilates', responsible:'Carlos Mendes'},
             {id:'prod2', date:'05/07/2026', time:'11:30', well:'Poço 2 (Secundário)', material:'Terra/Matriz', qty:'500 m³', responsible:'João Silva'}
         ]);
     }
-    var fuel = await DB.get('fuel_logs');
-    if(fuel.length === 0) {
-        await DB.save('fuel_logs', [
+    if(!localStorage.getItem('jaliezer_fuel_logs')) {
+        DB.save('fuel_logs', [
             {id:'fl1', date:'04/07/2026', time:'09:00', type:'Entrada', fuelType:'Gasóleo', litros:1000, equipment:'Tankagem Geral', brand:'', plate:'', empName:'Gerente Geral', val:420000},
             {id:'fl2', date:'06/07/2026', time:'14:30', type:'Saída', fuelType:'Gasóleo', litros:50, equipment:'Camião Renault 350', brand:'Renault', plate:'LD-60-89-CB', empName:'João Silva', val:21000}
         ]);
     }
-    var emp = await DB.get('employees');
-    if(emp.length === 0) {
-        await DB.save('employees', [
+    if(!localStorage.getItem('jaliezer_employees')) {
+        DB.save('employees', [
             {id:'e1', name:'João Silva', role:'Motorista', salary:150000, vehicle:'Camião Renault 350', color:'Vermelho', plate:'LD-60-89-CB'},
             {id:'e2', name:'Carlos Mendes', role:'Mineiro', salary:120000, vehicle:'', color:'', plate:''},
             {id:'e3', name:'Pedro Beto', role:'Segurança', salary:90000, vehicle:'', color:'', plate:''}
         ]);
     }
-    var prov = await DB.get('provisions_logs');
-    if(prov.length === 0) {
-        await DB.save('provisions_logs', [
+    if(!localStorage.getItem('jaliezer_provisions_logs')) {
+        DB.save('provisions_logs', [
             {id:'p1', date:'05/07/2026', type:'Entrada', item:'Arroz', qty:'20 Sacos', cost:80000, responsible:'Maria Secretária'},
             {id:'p2', date:'10/07/2026', type:'Saída', item:'Arroz', qty:'2 Sacos', cost:0, responsible:'Cozinheira Ana'}
         ]);
     }
-    var eq = await DB.get('equipment');
-    if(eq.length === 0) {
-        await DB.save('equipment', [
+    if(!localStorage.getItem('jaliezer_equipment')) {
+        DB.save('equipment', [
             {id:'eq1', name:'Gerador Denyo Sound 300SP', brand:'Denyo', type:'Energia', plate:'', buyPrice:1500000, sellPrice:0, status:'Em Inventário'},
             {id:'eq2', name:'Camião Renault 350', brand:'Renault', type:'Veículo', plate:'LD-60-89-CB', buyPrice:5000000, sellPrice:0, status:'Em Inventário'},
             {id:'eq3', name:'Pick-up Toyota', brand:'Toyota', type:'Veículo', plate:'LD-12-34-AB', buyPrice:3000000, sellPrice:0, status:'Em Inventário'}
         ]);
     }
-    var fin = await DB.get('finance_logs');
-    if(fin.length === 0) {
-        await DB.save('finance_logs', [
+    if(!localStorage.getItem('jaliezer_finance_logs')) {
+        DB.save('finance_logs', [
             {id:'fin1', date:'01/07/2026', type:'Entrada', cat:'Venda de Diamantes', val:5000000, iva:0, desc:'Lote 1 - Julho', account:'Banco', supplier:'', status:'Pago', dueDate:'', docBase64:''},
             {id:'fin2', date:'05/07/2026', type:'Saída', cat:'Ferramentas', val:130000, iva:18200, desc:'Compra de picaretas (Fatura 123)', account:'Caixa', supplier:'sup2', status:'Pago', dueDate:'', docBase64:''}
         ]);
     }
-    var pat = await DB.get('patrimony_logs');
-    if(pat.length === 0) {
-        await DB.save('patrimony_logs', [
+    if(!localStorage.getItem('jaliezer_patrimony_logs')) {
+        DB.save('patrimony_logs', [
             {id:'pat1', date:'02/07/2026', time:'09:30', type:'Entrada', cat:'Equipamento', item:'Escavadora CAT 320', qty:'1 Unidade', val:15000000, acquiredBy:'Gerente Geral', paymentMethod:'Transferência Bancária', notes:'Compra de ativo fixo', status:'Em Inventário', docBase64:''}
         ]);
     }
@@ -301,7 +357,6 @@ function initApp() {
     document.getElementById('currentUserRole').innerText = currentUser.role;
     var select = document.getElementById('dashMonthFilter');
     var today = new Date();
-    select.innerHTML = '';
     for(var i=0; i<12; i++) {
         var d = new Date(today.getFullYear(), today.getMonth() - i, 1);
         select.innerHTML += '<option value="'+d.getMonth()+'-'+d.getFullYear()+'">'+getMonthName(d.getMonth())+' '+d.getFullYear()+'</option>';
@@ -337,22 +392,20 @@ function navigate(id) {
     var a = document.querySelector('.sidebar nav a[onclick*="' + id + '"]'); if (a) a.classList.add('active');
     var titles = { dashboard:'Dashboard', production:'Produção', fuel:'Combustível', provisions:'Alimentação', employees:'Recursos Humanos', equipment:'Equipamentos', finance:'Financeiro', patrimony:'Património', suppliers:'Fornecedores', reports:'Relatórios', config:'Configurações', users:'Gestão de Acessos', audit:'Auditoria' };
     document.getElementById('pageTitle').innerText = titles[id] || id;
-    document.getElementById('appContent').innerHTML = '<h2 style="text-align:center;color:var(--primary);margin-top:50px">A carregar...</h2>';
-    
     var actions = { dashboard: loadDashboard, production: loadProduction, fuel: loadFuel, provisions: loadProvisions, employees: loadEmployees, equipment: loadEquipment, finance: loadFinance, patrimony: loadPatrimony, suppliers: loadSuppliers, reports: loadReports, config: loadConfig, users: loadUsers, audit: loadAudit };
-    if (actions[id]) actions[id](); 
-    document.getElementById('mainSidebar').classList.remove('open');
+    if (actions[id]) actions[id](); document.getElementById('mainSidebar').classList.remove('open');
 }
 
-/* ==================== DASHBOARD ==================== */
+/* ==================== DASHBOARD (COM ALERTAS) ==================== */
 var dashChart = null;
-async function loadDashboard() {
+function loadDashboard() {
     var filterVal = document.getElementById('dashMonthFilter').value;
     var fParts = filterVal.split('-'); var fMonth = parseInt(fParts[0]); var fYear = parseInt(fParts[1]);
     var isInFilterMonth = function(dateStr) { var d = parseDate(dateStr); return d && d.getMonth() === fMonth && d.getFullYear() === fYear; };
     
-    var fuel = await DB.get('fuel_logs'), prov = await DB.get('provisions_logs'), emp = await DB.get('employees'), fin = await DB.get('finance_logs'), pat = await DB.get('patrimony_logs');
+    var fuel = DB.get('fuel_logs'), prov = DB.get('provisions_logs'), emp = DB.get('employees'), fin = DB.get('finance_logs'), pat = DB.get('patrimony_logs');
     
+    // Alertas de Stock
     var fuelStock = fuel.reduce(function(a,b){return a + (b.type==='Entrada' ? b.litros : -b.litros);},0);
     var provStock = {}; 
     prov.forEach(function(p) {
@@ -409,8 +462,8 @@ function renderDashChart(fuel, prov, sal, fin, pat) {
 }
 
 /* ==================== PRODUÇÃO ==================== */
-async function loadProduction() {
-    var data = await DB.get('production_logs');
+function loadProduction() {
+    var data = DB.get('production_logs');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>⛏️ Produção e Extração</h2><button class="btn btn-primary btn-sm" onclick="openModalProd()">➕ Registar Extração</button></div><div class="card"><table id="tblProd"><thead><tr><th>Data/Hora</th><th>Poço/Local</th><th>Material</th><th>Quantidade</th><th>Responsável</th><th>Ações</th></tr></thead><tbody>';
     data.reverse().forEach(function(p) { 
         html += '<tr><td>'+p.date+'<br><small>'+p.time+'</small></td><td><strong>'+p.well+'</strong></td><td>'+p.material+'</td><td>'+p.qty+'</td><td>'+p.responsible+'</td><td style="white-space:nowrap"><button class="btn btn-danger btn-sm" onclick="delProd(\''+p.id+'\')">🗑️</button></td></tr>'; 
@@ -420,13 +473,13 @@ async function loadProduction() {
 }
 function openModalProd() {
     modal('Registar Extração', '<div class="form-row"><div><label>Data *</label><input type="text" id="prDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Hora *</label><input type="time" id="prTime" value="'+new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'})+'"></div></div><div class="form-row"><div><label>Poço / Local *</label><input id="prWell" placeholder="Ex: Poço 1 Jaliezer"></div><div><label>Material Extraído *</label><select id="prMat"><option>Diamantes</option><option>Subprodutos</option><option>Terra/Matriz</option></select></div></div><div class="form-row"><div><label>Quantidade *</label><input id="prQty" placeholder="Ex: 15.5 Quilates, 500 m³"></div><div><label>Responsável *</label><input id="prResp" value="'+currentUser.name+'"></div></div>',
-    async function() { var obj = {date:val('prDate'),time:val('prTime'),well:val('prWell'),material:val('prMat'),qty:val('prQty'),responsible:val('prResp')}; if(!obj.well||!obj.qty) return showToast('Local e Qtd obrigatórios','danger'); obj.id='prod'+Date.now(); await DB.insert('production_logs', obj); await logAction('Registar', 'Produção: '+obj.qty+' '+obj.material+' em '+obj.well); showToast('Extração Registada!'); closeModal(); loadProduction(); },'Salvar','btn-primary');
+    function() { var obj = {date:val('prDate'),time:val('prTime'),well:val('prWell'),material:val('prMat'),qty:val('prQty'),responsible:val('prResp')}; if(!obj.well||!obj.qty) return showToast('Local e Qtd obrigatórios','danger'); obj.id='prod'+Date.now(); DB.insert('production_logs', obj); logAction('Registar', 'Produção: '+obj.qty+' '+obj.material+' em '+obj.well); showToast('Extração Registada!'); closeModal(); loadProduction(); },'Salvar','btn-primary');
 }
-async function delProd(id) { await DB.del('production_logs', id); await logAction('Apagar', 'Produção removida'); showToast('Eliminado!','danger'); loadProduction(); }
+function delProd(id) { DB.del('production_logs', id); logAction('Apagar', 'Produção removida'); showToast('Eliminado!','danger'); loadProduction(); }
 
 /* ==================== COMBUSTÍVEL ==================== */
-async function loadFuel() {
-    var data = await DB.get('fuel_logs');
+function loadFuel() {
+    var data = DB.get('fuel_logs');
     var totLitros = data.reduce(function(a,b){return a + (b.type==='Entrada' ? b.litros : -b.litros);},0);
     var totGasto = data.filter(function(f){return f.type==='Entrada';}).reduce(function(a,b){return a+(b.val||0);},0);
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>⛽ Gestão de Combustível</h2><button class="btn btn-primary btn-sm" onclick="openModalFuel()">➕ Novo Movimento</button></div>';
@@ -442,10 +495,10 @@ async function loadFuel() {
     if(!data.length) html += '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Nenhum registo.</td></tr>';
     html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
 }
-async function openModalFuel(id) {
-    var data = await DB.get('fuel_logs'); 
+function openModalFuel(id) {
+    var data = DB.get('fuel_logs'); 
     var f = id ? data.find(function(x){return x.id===id;}) : {date:getTodayStr(), time:new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'}), type:'Saída', fuelType:'Gasóleo', litros:0, equipment:'', brand:'', plate:'', empName:'', val:0};
-    var vehicles = await DB.get('equipment');
+    var vehicles = DB.get('equipment').filter(function(e){return e.type==='Veículo' || e.type==='Energia';});
     var vehOptions = vehicles.map(function(v){ return '<option value="'+v.name+'|'+v.brand+'|'+v.plate+'" '+(f.equipment===v.name?'selected':'')+'>'+v.name+' ('+(v.plate||'Sem Mat.')+')</option>'; }).join('');
     modal(id?'Editar Registo':'Novo Movimento', 
     '<div class="form-row"><div><label>Data *</label><input type="text" id="fDate" value="'+f.date+'" placeholder="DD/MM/AAAA"></div><div><label>Hora *</label><input type="time" id="fTime" value="'+f.time+'"></div></div>'+
@@ -453,20 +506,20 @@ async function openModalFuel(id) {
     '<div class="form-row"><div><label>Litros *</label><input type="number" id="fLitros" value="'+f.litros+'"></div><div><label>Equipamento / Veículo *</label><select id="fEquip" onchange="autoFillVehicle()"><option value="">-- Selecionar --</option>'+vehOptions+'</select></div></div>'+
     '<div class="form-row" id="vehicleInfoBox"><div><label>Marca</label><input id="fBrand" value="'+f.brand+'" readonly></div><div><label>Matrícula</label><input id="fPlate" value="'+f.plate+'" readonly></div></div>'+
     '<div class="form-row"><div><label>Funcionário Responsável *</label><input id="fEmp" value="'+f.empName+'" placeholder="Nome de quem abasteceu"></div><div><label>Valor (Kz) *</label><input type="number" id="fVal" value="'+f.val+'"></div></div>',
-    async function() { 
+    function() { 
         var obj = {date:val('fDate'),time:val('fTime'),type:val('fType'),fuelType:val('fFuelType'),litros:parseFloat(val('fLitros'))||0,equipment:val('fEquip').split('|')[0],brand:val('fBrand'),plate:val('fPlate'),empName:val('fEmp'),val:parseFloat(val('fVal'))||0}; 
         if(!obj.equipment||!obj.empName) return showToast('Veículo e Funcionário obrigatórios','danger'); 
-        if(id) { await DB.update('fuel_logs', id, obj); await logAction('Editar', 'Combustível: '+obj.equipment); showToast('Atualizado!'); } 
-        else { obj.id='fl'+Date.now(); await DB.insert('fuel_logs', obj); await logAction('Registar', 'Combustível: '+obj.type+' '+obj.litros+'L'); showToast('Registado!'); } 
+        if(id) { DB.update('fuel_logs', id, obj); logAction('Editar', 'Combustível: '+obj.equipment); showToast('Atualizado!'); } 
+        else { obj.id='fl'+Date.now(); DB.insert('fuel_logs', obj); logAction('Registar', 'Combustível: '+obj.type+' '+obj.litros+'L'); showToast('Registado!'); } 
         closeModal(); loadFuel(); 
     },'Salvar','btn-primary');
 }
 function autoFillVehicle() { var parts = val('fEquip').split('|'); document.getElementById('fBrand').value = parts[1] || ''; document.getElementById('fPlate').value = parts[2] || ''; }
-async function delFuel(id) { var f = (await DB.get('fuel_logs')).find(x=>x.id===id); await DB.del('fuel_logs', id); await logAction('Apagar', 'Combustível: '+(f?f.equipment:'')); showToast('Eliminado!','danger'); loadFuel(); }
+function delFuel(id) { var f = DB.get('fuel_logs').find(x=>x.id===id); DB.del('fuel_logs', id); logAction('Apagar', 'Combustível: '+(f?f.equipment:'')); showToast('Eliminado!','danger'); loadFuel(); }
 
 /* ==================== ALIMENTAÇÃO ==================== */
-async function loadProvisions() {
-    var data = await DB.get('provisions_logs');
+function loadProvisions() {
+    var data = DB.get('provisions_logs');
     var stock = {}; var unities = {};
     data.forEach(function(p) {
         var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim();
@@ -485,14 +538,14 @@ async function loadProvisions() {
 }
 function openModalProv() {
     modal('Novo Movimento de Stock', '<div class="form-row"><div><label>Data *</label><input type="text" id="pDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Tipo *</label><select id="pType" onchange="toggleProvCost()"><option value="Entrada">Compra (Entrada)</option><option value="Saída">Consumo (Saída)</option></select></div></div><div class="form-row"><div><label>Item *</label><input id="pItem" placeholder="Arroz, Água, Gás"></div><div><label>Quantidade *</label><input id="pQty" placeholder="10 Sacos"></div></div><div class="form-row"><div><label>Responsável *</label><input id="pResp" value="'+currentUser.name+'" placeholder="Quem levou/registou"></div><div class="form-row" id="costBox"><div><label>Custo Compra (Kz)</label><input type="number" id="pCost" value="0"></div></div></div>',
-    async function() { var obj = {date:val('pDate'),type:val('pType'),item:val('pItem'),qty:val('pQty'),responsible:val('pResp'),cost:parseFloat(val('pCost'))||0}; if(!obj.item||!obj.qty||!obj.responsible) return showToast('Item, Qtd e Responsável obrigatórios','danger'); obj.id='p'+Date.now(); await DB.insert('provisions_logs', obj); await logAction('Registar', 'Alimentação: '+obj.type+' '+obj.qty+' '+obj.item); showToast('Registado!'); closeModal(); loadProvisions(); },'Salvar','btn-primary');
+    function() { var obj = {date:val('pDate'),type:val('pType'),item:val('pItem'),qty:val('pQty'),responsible:val('pResp'),cost:parseFloat(val('pCost'))||0}; if(!obj.item||!obj.qty||!obj.responsible) return showToast('Item, Qtd e Responsável obrigatórios','danger'); obj.id='p'+Date.now(); DB.insert('provisions_logs', obj); logAction('Registar', 'Alimentação: '+obj.type+' '+obj.qty+' '+obj.item); showToast('Registado!'); closeModal(); loadProvisions(); },'Salvar','btn-primary');
 }
 function toggleProvCost() { document.getElementById('costBox').style.display = val('pType') === 'Entrada' ? 'block' : 'none'; }
-async function delProv(id) { var p = (await DB.get('provisions_logs')).find(x=>x.id===id); await DB.del('provisions_logs', id); await logAction('Apagar', 'Alimentação: '+(p?p.item:'')); showToast('Eliminado!','danger'); loadProvisions(); }
+function delProv(id) { var p = DB.get('provisions_logs').find(x=>x.id===id); DB.del('provisions_logs', id); logAction('Apagar', 'Alimentação: '+(p?p.item:'')); showToast('Eliminado!','danger'); loadProvisions(); }
 
-/* ==================== RECURSOS HUMANOS ==================== */
-async function loadEmployees() {
-    var data = await DB.get('employees');
+/* ==================== RECURSOS HUMANOS (COM IRT REAL) ==================== */
+function loadEmployees() {
+    var data = DB.get('employees');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>👷 Recursos Humanos</h2><div style="display:flex;gap:10px"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="filterTable(this,\'tblEmp\')"><button class="btn btn-primary btn-sm" onclick="openModalEmp()">➕ Novo Funcionário</button></div></div><div class="card"><table id="tblEmp"><thead><tr><th>Nome</th><th>Cargo</th><th>Salário (Kz)</th><th>Veículo Atribuído</th><th>Ações</th></tr></thead><tbody>';
     data.forEach(function(e) { 
         var veh = e.role === 'Motorista' ? (e.vehicle+' | '+e.color+' | '+e.plate) : '-'; 
@@ -501,40 +554,56 @@ async function loadEmployees() {
     if(!data.length) html += '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhum funcionário.</td></tr>';
     html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
 }
-async function openModalEmp(id) {
-    var data = await DB.get('employees'); var e = id ? data.find(function(x){return x.id===id;}) : {name:'',role:'Mineiro',salary:0,vehicle:'',color:'',plate:''};
+function openModalEmp(id) {
+    var data = DB.get('employees'); var e = id ? data.find(function(x){return x.id===id;}) : {name:'',role:'Mineiro',salary:0,vehicle:'',color:'',plate:''};
     modal(id?'Editar Funcionário':'Novo Funcionário', '<div class="form-row"><div><label>Nome *</label><input id="eName" value="'+e.name+'"></div><div><label>Cargo *</label><select id="eRole" onchange="toggleDriverFields()"><option '+(e.role==='Mineiro'?'selected':'')+'>Mineiro</option><option '+(e.role==='Motorista'?'selected':'')+'>Motorista</option><option '+(e.role==='Segurança'?'selected':'')+'>Segurança</option><option '+(e.role==='Técnico'?'selected':'')+'>Técnico</option><option '+(e.role==='Administrador'?'selected':'')+'>Administrador</option></select></div></div><div class="form-row"><div><label>Salário (Kz) *</label><input type="number" id="eSalary" value="'+e.salary+'"></div></div><div id="driverBox" style="display:'+(e.role==='Motorista'?'block':'none')+'"><hr><h4 style="color:var(--primary);margin-bottom:10px">Veículo Atribuído</h4><div class="form-row"><div><label>Veículo</label><input id="eVehicle" value="'+e.vehicle+'" placeholder="Toyota Hilux"></div><div><label>Cor</label><input id="eColor" value="'+e.color+'" placeholder="Branco"></div><div><label>Matrícula</label><input id="ePlate" value="'+e.plate+'" placeholder="LD-12-34-AB"></div></div></div>',
-    async function() { var obj = {name:val('eName'),role:val('eRole'),salary:parseFloat(val('eSalary'))||0,vehicle:val('eVehicle'),color:val('eColor'),plate:val('ePlate')}; if(!obj.name) return showToast('Nome obrigatório','danger'); if(id) { await DB.update('employees', id, obj); await logAction('Editar', 'RH: '+obj.name); showToast('Atualizado!'); } else { obj.id='e'+Date.now(); await DB.insert('employees', obj); await logAction('Adicionar', 'RH: '+obj.name); showToast('Adicionado!'); } closeModal(); loadEmployees(); },'Salvar','btn-primary');
+    function() { var obj = {name:val('eName'),role:val('eRole'),salary:parseFloat(val('eSalary'))||0,vehicle:val('eVehicle'),color:val('eColor'),plate:val('ePlate')}; if(!obj.name) return showToast('Nome obrigatório','danger'); if(id) { DB.update('employees', id, obj); logAction('Editar', 'RH: '+obj.name); showToast('Atualizado!'); } else { obj.id='e'+Date.now(); DB.insert('employees', obj); logAction('Adicionar', 'RH: '+obj.name); showToast('Adicionado!'); } closeModal(); loadEmployees(); },'Salvar','btn-primary');
 }
 function toggleDriverFields() { document.getElementById('driverBox').style.display = val('eRole') === 'Motorista' ? 'block' : 'none'; }
-async function delEmp(id) { var e = (await DB.get('employees')).find(x=>x.id===id); await DB.del('employees', id); await logAction('Apagar', 'RH: '+(e?e.name:'')); showToast('Eliminado!','danger'); loadEmployees(); }
+function delEmp(id) { var e = DB.get('employees').find(x=>x.id===id); DB.del('employees', id); logAction('Apagar', 'RH: '+(e?e.name:'')); showToast('Eliminado!','danger'); loadEmployees(); }
 
-async function genPaycheck(id) {
-    var emp = (await DB.get('employees')).find(function(x){return x.id===id;});
-    var config = (await DB.get('company_config'))[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
+function genPaycheck(id) {
+    var emp = DB.get('employees').find(function(x){return x.id===id;});
+    var config = DB.get('company_config')[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
     var irt = calcIRT(emp.salary); 
     var seg = (emp.salary * 0.03); 
     var liquido = emp.salary - irt - seg;
-    var html = '<div id="payPrint" style="padding:20px;background:#fff;color:#000;width:210mm;margin:auto;font-family:Arial">'+
-        '<div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:20px"><h2 style="margin:0">'+config.name+'</h2><p style="margin:0">NIF: '+config.nif+' | '+config.address+'</p></div>'+
-        '<h3 style="text-align:center;text-decoration:underline;margin-bottom:20px">RECIBO DE VENCIMENTO - '+getTodayStr()+'</h3>'+
-        '<table style="width:100%;font-size:1.1rem;margin-bottom:20px"><tr><td><strong>Funcionário:</strong> '+emp.name+'</td><td><strong>Cargo:</strong> '+emp.role+'</td></tr></table>'+
-        '<table style="width:100%;border-collapse:collapse"><tr style="background:#f0f0f0"><th style="border:1px solid #ccc;padding:8px;text-align:left">Descrição</th><th style="border:1px solid #ccc;padding:8px;text-align:right">Valor (Kz)</th></tr>'+
-        '<tr><td style="border:1px solid #ccc;padding:8px">Vencimento Base</td><td style="border:1px solid #ccc;padding:8px;text-align:right">'+fmt(emp.salary)+'</td></tr>'+
-        '<tr><td style="border:1px solid #ccc;padding:8px;color:red">(-) Retenção IRT (Tabela Progressiva)</td><td style="border:1px solid #ccc;padding:8px;text-align:right;color:red">'+fmt(irt)+'</td></tr>'+
-        '<tr><td style="border:1px solid #ccc;padding:8px;color:red">(-) Segurança Social (3%)</td><td style="border:1px solid #ccc;padding:8px;text-align:right;color:red">'+fmt(seg)+'</td></tr>'+
-        '<tr style="background:#d4af37;font-weight:bold;font-size:1.2rem"><td style="border:1px solid #ccc;padding:10px">Valor Líquido a Receber</td><td style="border:1px solid #ccc;padding:10px;text-align:right">'+fmt(liquido)+'</td></tr></table>'+
-        '<p style="margin-top:40px;font-size:.9rem">Declaro ter recebido a importância acima descrita, pelo que dou plena e geral quitação.</p>'+
-        '<div style="display:flex;justify-content:space-between;margin-top:60px"><div style="text-align:center"><div style="border-top:1px solid #000;width:200px;padding-top:5px">Assinatura do Funcionário</div></div><div style="text-align:center"><div style="border-top:1px solid #000;width:200px;padding-top:5px">Pela Empresa</div></div></div></div>';
+    
+    var html = '<div id="payPrint" class="pdf-report" style="width:210mm;margin:auto">'+
+        '<div class="pdf-header"><h2>'+config.name+'</h2><p>NIF: '+config.nif+' | '+config.address+'</p></div>'+
+        '<h3 style="text-align:center; border:none; margin-bottom:20px;">RECIBO DE VENCIMENTO - '+getTodayStr()+'</h3>'+
+        '<div class="summary-box" style="display:flex; justify-content:space-between; font-size:1.1rem; margin-bottom:20px;">'+
+            '<div><strong>Funcionário:</strong> '+emp.name+'</div>'+
+            '<div><strong>Cargo:</strong> '+emp.role+'</div>'+
+        '</div>'+
+        '<table><thead><tr><th>Descrição</th><th class="text-right">Valor (Kz)</th></tr></thead><tbody>'+
+        '<tr><td>Vencimento Base</td><td class="text-right">'+fmt(emp.salary)+'</td></tr>'+
+        '<tr><td class="text-danger">(-) Retenção IRT (Tabela Progressiva)</td><td class="text-right text-danger">'+fmt(irt)+'</td></tr>'+
+        '<tr><td class="text-danger">(-) Segurança Social (3%)</td><td class="text-right text-danger">'+fmt(seg)+'</td></tr>'+
+        '<tr class="total-row"><td>Valor Líquido a Receber</td><td class="text-right">'+fmt(liquido)+'</td></tr></tbody></table>'+
+        '<p style="margin-top:40px;font-size:.9rem;color:#555;">Declaro ter recebido a importância acima descrita, pelo que dou plena e geral quitação.</p>'+
+        '<div class="signatures">'+
+            '<div class="sign-line">Assinatura do Funcionário</div>'+
+            '<div class="sign-line">Pela Empresa</div>'+
+        '</div>'+
+    '</div>';
+    
     var printArea = document.createElement('div'); printArea.innerHTML = html; document.body.appendChild(printArea);
-    var opt = { margin: 0, filename: 'Recibo_'+emp.name.replace(/ /g,'_')+'.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-    showToast('A gerar PDF...','info'); html2pdf().set(opt).from(printArea.firstChild).save().then(function(){ printArea.remove(); });
+    var opt = { 
+        margin: 5, 
+        filename: 'Recibo_'+emp.name.replace(/ /g,'_')+'.pdf', 
+        image: { type: 'jpeg', quality: 0.98 }, 
+        html2canvas: { scale: 3, useCORS: true }, // Escala 3 para nitidez máxima
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+    };
+    showToast('A gerar PDF...','info'); 
+    html2pdf().set(opt).from(printArea.firstChild).save().then(function(){ printArea.remove(); });
 }
 
-/* ==================== EQUIPAMENTOS ==================== */
-async function loadEquipment() {
-    var data = await DB.get('equipment');
-    var maint = await DB.get('maintenance_logs');
+/* ==================== EQUIPAMENTOS (COM MANUTENÇÃO) ==================== */
+function loadEquipment() {
+    var data = DB.get('equipment');
+    var maint = DB.get('maintenance_logs');
     var totBuy = data.reduce(function(a,b){return a+(b.buyPrice||0);},0);
     var totMaint = maint.reduce(function(a,b){return a+(b.cost||0);},0);
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🚜 Equipamentos e Ativos</h2><button class="btn btn-primary btn-sm" onclick="openModalEq()">➕ Novo Bem</button></div>';
@@ -550,32 +619,32 @@ async function loadEquipment() {
     if(!data.length) html += '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Nenhum equipamento.</td></tr>';
     html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
 }
-async function openModalEq(id) {
-    var data = await DB.get('equipment'); var e = id ? data.find(function(x){return x.id===id;}) : {name:'',brand:'',type:'Veículo',plate:'',buyPrice:0,sellPrice:0,status:'Em Inventário'};
+function openModalEq(id) {
+    var data = DB.get('equipment'); var e = id ? data.find(function(x){return x.id===id;}) : {name:'',brand:'',type:'Veículo',plate:'',buyPrice:0,sellPrice:0,status:'Em Inventário'};
     modal(id?'Editar Bem':'Novo Bem / Equipamento', '<div class="form-row"><div><label>Nome / Modelo *</label><input id="eqName" value="'+e.name+'" placeholder="Gerador X, Pick-up Y"></div><div><label>Marca *</label><input id="eqBrand" value="'+e.brand+'" placeholder="Toyota, CAT"></div></div><div class="form-row"><div><label>Tipo *</label><select id="eqType" onchange="togglePlateField()"><option '+(e.type==='Veículo'?'selected':'')+'>Veículo</option><option '+(e.type==='Mineração'?'selected':'')+'>Mineração</option><option '+(e.type==='Energia'?'selected':'')+'>Energia</option><option '+(e.type==='Outro'?'selected':'')+'>Outro</option></select></div><div id="plateBox" style="display:'+(e.type==='Veículo'?'block':'none')+'"><label>Matrícula</label><input id="eqPlate" value="'+e.plate+'" placeholder="LD-12-34-AB"></div></div><div class="form-row"><div><label>Preço de Compra (Kz) *</label><input type="number" id="eqBuy" value="'+e.buyPrice+'"></div><div><label>Preço de Venda (Kz)</label><input type="number" id="eqSell" value="'+e.sellPrice+'" placeholder="0 se não foi vendido"></div></div><div class="form-row"><div><label>Estado *</label><select id="eqStatus"><option '+(e.status==='Em Inventário'?'selected':'')+'>Em Inventário</option><option '+(e.status==='Vendido'?'selected':'')+'>Vendido</option><option '+(e.status==='Avariado'?'selected':'')+'>Avariado</option></select></div></div>',
-    async function() { var obj = {name:val('eqName'),brand:val('eqBrand'),type:val('eqType'),plate:val('eqPlate'),buyPrice:parseFloat(val('eqBuy'))||0,sellPrice:parseFloat(val('eqSell'))||0,status:val('eqStatus')}; if(!obj.name) return showToast('Nome obrigatório','danger'); if(id) { await DB.update('equipment', id, obj); await logAction('Editar', 'Equipamento: '+obj.name); showToast('Atualizado!'); } else { obj.id='eq'+Date.now(); await DB.insert('equipment', obj); await logAction('Adicionar', 'Equipamento: '+obj.name); showToast('Adicionado!'); } closeModal(); loadEquipment(); },'Salvar','btn-primary');
+    function() { var obj = {name:val('eqName'),brand:val('eqBrand'),type:val('eqType'),plate:val('eqPlate'),buyPrice:parseFloat(val('eqBuy'))||0,sellPrice:parseFloat(val('eqSell'))||0,status:val('eqStatus')}; if(!obj.name) return showToast('Nome obrigatório','danger'); if(id) { DB.update('equipment', id, obj); logAction('Editar', 'Equipamento: '+obj.name); showToast('Atualizado!'); } else { obj.id='eq'+Date.now(); DB.insert('equipment', obj); logAction('Adicionar', 'Equipamento: '+obj.name); showToast('Adicionado!'); } closeModal(); loadEquipment(); },'Salvar','btn-primary');
 }
 function togglePlateField() { document.getElementById('plateBox').style.display = val('eqType') === 'Veículo' ? 'block' : 'none'; }
-async function delEq(id) { var e = (await DB.get('equipment')).find(x=>x.id===id); await DB.del('equipment', id); await logAction('Apagar', 'Equipamento: '+(e?e.name:'')); showToast('Eliminado!','danger'); loadEquipment(); }
+function delEq(id) { var e = DB.get('equipment').find(x=>x.id===id); DB.del('equipment', id); logAction('Apagar', 'Equipamento: '+(e?e.name:'')); showToast('Eliminado!','danger'); loadEquipment(); }
 
-async function openModalMaint(eqId) {
-    var eq = (await DB.get('equipment')).find(function(x){return x.id===eqId;});
-    var history = (await DB.get('maintenance_logs')).filter(function(m){return m.eqId===eqId;});
+function openModalMaint(eqId) {
+    var eq = DB.get('equipment').find(function(x){return x.id===eqId;});
+    var history = DB.get('maintenance_logs').filter(function(m){return m.eqId===eqId;});
     var histHtml = history.length ? '<ul style="font-size:.85rem;margin:10px 0 15px;padding-left:20px">'+history.map(function(m){ return '<li>'+m.date+' - '+m.desc+' ('+fmt(m.cost)+' Kz)</li>'; }).join('')+'</ul>' : '<p style="font-size:.85rem;color:var(--text-muted);margin:10px 0">Sem manutenções registadas.</p>';
     
     modal('🔧 Manutenção: '+eq.name, histHtml + '<div class="form-row"><div><label>Data *</label><input type="text" id="mDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Custo (Kz) *</label><input type="number" id="mCost" value="0"></div></div><div class="form-row"><div><label>Horómetro/Km Atual</label><input id="mHours" value="" placeholder="Ex: 1550h"></div></div><div><label>Descrição da Manutenção *</label><input id="mDesc" placeholder="Ex: Mudança de óleo, reparação de motor"></div>',
-    async function() { 
+    function() { 
         var obj = {eqId:eqId, date:val('mDate'), cost:parseFloat(val('mCost'))||0, hours:val('mHours'), desc:val('mDesc')}; 
         if(!obj.desc) return showToast('Descrição obrigatória','danger'); 
-        obj.id='maint'+Date.now(); await DB.insert('maintenance_logs', obj); 
-        await DB.update('equipment', eqId, {status:'Operacional'}); 
-        await logAction('Manutenção', eq.name+': '+obj.desc); showToast('Manutenção Registada!'); closeModal(); loadEquipment(); 
+        obj.id='maint'+Date.now(); DB.insert('maintenance_logs', obj); 
+        DB.update('equipment', eqId, {status:'Operacional'}); // Assumir que após manutenção está operacional
+        logAction('Manutenção', eq.name+': '+obj.desc); showToast('Manutenção Registada!'); closeModal(); loadEquipment(); 
     },'Registar Manutenção','btn-info');
 }
 
-/* ==================== FINANCEIRO ==================== */
-async function loadFinance() {
-    var data = await DB.get('finance_logs');
+/* ==================== FINANCEIRO (COM IVA, CRÉDITOS E ANEXOS) ==================== */
+function loadFinance() {
+    var data = DB.get('finance_logs');
     var totCaixaEnt = data.filter(function(f){return f.account==='Caixa' && f.type==='Entrada' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
     var totCaixaSai = data.filter(function(f){return f.account==='Caixa' && f.type==='Saída' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
     var totBancoEnt = data.filter(function(f){return f.account==='Banco' && f.type==='Entrada' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
@@ -602,26 +671,26 @@ async function loadFinance() {
     if(!data.length) html += '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">Nenhum movimento.</td></tr>';
     html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
 }
-async function openModalFin() {
-    var suppliers = await DB.get('suppliers');
+function openModalFin() {
+    var suppliers = DB.get('suppliers');
     var supOptions = suppliers.map(function(s){ return '<option value="'+s.id+'">'+s.name+'</option>'; }).join('');
     modal('Novo Lançamento', '<div class="form-row"><div><label>Data *</label><input type="text" id="finDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Conta *</label><select id="finAccount"><option>Caixa</option><option>Banco</option><option>Crédito (A pagar/receber)</option></select></div></div><div class="form-row"><div><label>Tipo *</label><select id="finType"><option value="Entrada">Entrada (Receita/Venda)</option><option value="Saída">Saída (Despesa/Compra)</option></select></div><div><label>Categoria *</label><select id="finCat"><option>Venda de Diamantes</option><option>Ferramentas</option><option>Manutenção</option><option>Impostos</option><option>Fornecedores</option><option>Outros</option></select></div></div><div class="form-row"><div><label>Fornecedor (se aplicável)</label><select id="finSupplier"><option value="">-- Nenhum --</option>'+supOptions+'</select></div><div><label>Valor Base (Kz) *</label><input type="number" id="finVal" value="0" oninput="calcIVA()"></div></div><div class="form-row"><div><label>IVA (14%)</label><input type="number" id="finIva" value="0" readonly></div><div><label>Estado *</label><select id="finStatus"><option value="Pago">Pago (Dinheiro saiu/entrou)</option><option value="Pendente">Pendente (A Crédito/Dívida)</option></select></div></div><div><label>Descrição *</label><input id="finDesc" placeholder="Ex: Venda do lote, Nº Fatura"></div><div style="margin-top:15px"><label>Anexar Fatura (Max 1MB)</label><input type="file" id="finDoc" accept="image/*,application/pdf"></div>',
     function() { 
         if(!val('finDesc')) return showToast('Descrição obrigatória','danger'); 
-        handleFileUpload('finDoc', async function(base64) {
+        handleFileUpload('finDoc', function(base64) {
             var isCredit = val('finAccount') === 'Crédito (A pagar/receber)';
             var obj = {date:val('finDate'),type:val('finType'),cat:val('finCat'),val:parseFloat(val('finVal'))||0,iva:parseFloat(val('finIva'))||0,desc:val('finDesc'),account:isCredit?'Crédito':val('finAccount'),supplier:val('finSupplier'),status:val('finStatus'),docBase64:base64}; 
-            obj.id='fin'+Date.now(); await DB.insert('finance_logs', obj); await logAction('Lançar', 'Finanças: '+obj.type+' '+obj.val+' - '+obj.desc); showToast('Lançado!'); closeModal(); loadFinance(); 
+            obj.id='fin'+Date.now(); DB.insert('finance_logs', obj); logAction('Lançar', 'Finanças: '+obj.type+' '+obj.val+' - '+obj.desc); showToast('Lançado!'); closeModal(); loadFinance(); 
         });
     },'Salvar','btn-primary');
 }
 function calcIVA() { var v = parseFloat(val('finVal'))||0; document.getElementById('finIva').value = (v * 0.14).toFixed(2); }
-async function settleFin(id) { await DB.update('finance_logs', id, {status:'Pago', account:'Caixa'}); await logAction('Quitar', 'Finança quitada: '+id); showToast('Movimento quitado!'); loadFinance(); }
-async function delFin(id) { var f = (await DB.get('finance_logs')).find(x=>x.id===id); await DB.del('finance_logs', id); await logAction('Apagar', 'Finanças: '+(f?f.desc:'')); showToast('Eliminado!','danger'); loadFinance(); }
+function settleFin(id) { DB.update('finance_logs', id, {status:'Pago', account:'Caixa'}); logAction('Quitar', 'Finança quitada: '+id); showToast('Movimento quitado!'); loadFinance(); }
+function delFin(id) { var f = DB.get('finance_logs').find(x=>x.id===id); DB.del('finance_logs', id); logAction('Apagar', 'Finanças: '+(f?f.desc:'')); showToast('Eliminado!','danger'); loadFinance(); }
 
-/* ==================== PATRIMÓNIO ==================== */
-async function loadPatrimony() {
-    var data = await DB.get('patrimony_logs');
+/* ==================== PATRIMÓNIO (COM ANEXOS) ==================== */
+function loadPatrimony() {
+    var data = DB.get('patrimony_logs');
     var totIn = data.filter(function(x){return x.type==='Entrada';}).reduce(function(a,b){return a+(b.val||0);},0);
     var totOut = data.filter(function(x){return x.type==='Saída';}).reduce(function(a,b){return a+(b.val||0);},0);
     var ativosFixos = data.filter(function(x){return x.status==='Em Inventário';}).length;
@@ -644,24 +713,24 @@ function filterPatrimony() {
     var filter = document.getElementById('patFilter').value; var rows = document.getElementById('tblPat').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
     for (var i = 0; i < rows.length; i++) { var type = rows[i].getAttribute('data-type'); if (filter === '' || type === filter) { rows[i].style.display = ''; } else { rows[i].style.display = 'none'; } }
 }
-async function openModalPatrimony(id) {
-    var data = await DB.get('patrimony_logs'); var p = id ? data.find(function(x){return x.id===id;}) : {date:getTodayStr(), time:new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'}), type:'Entrada', cat:'Equipamento', item:'', qty:'1 Unidade', val:0, acquiredBy:currentUser.name, paymentMethod:'Transferência', notes:'', status:'Em Inventário', docBase64:''};
+function openModalPatrimony(id) {
+    var data = DB.get('patrimony_logs'); var p = id ? data.find(function(x){return x.id===id;}) : {date:getTodayStr(), time:new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'}), type:'Entrada', cat:'Equipamento', item:'', qty:'1 Unidade', val:0, acquiredBy:currentUser.name, paymentMethod:'Transferência', notes:'', status:'Em Inventário', docBase64:''};
     modal(id?'Editar Registo':'Novo Movimento Patrimonial', '<div class="form-row"><div><label>Data *</label><input type="text" id="pDate" value="'+p.date+'" placeholder="DD/MM/AAAA"></div><div><label>Hora *</label><input type="time" id="pTime" value="'+p.time+'"></div></div><div class="form-row"><div><label>Tipo de Movimento *</label><select id="pType"><option '+(p.type==='Entrada'?'selected':'')+'>Entrada</option><option '+(p.type==='Saída'?'selected':'')+'>Saída</option></select></div><div><label>Categoria *</label><select id="pCat"><option '+(p.cat==='Equipamento'?'selected':'')+'>Equipamento</option><option '+(p.cat==='Veículo'?'selected':'')+'>Veículo</option><option '+(p.cat==='Combustível'?'selected':'')+'>Combustível</option><option '+(p.cat==='Material'?'selected':'')+'>Material</option></select></div></div><div class="form-row"><div><label>Item / Descrição *</label><input id="pItem" value="'+p.item+'" placeholder="Ex: Escavadora CAT, Gasóleo, Pick-up"></div><div><label>Quantidade *</label><input id="pQty" value="'+p.qty+'" placeholder="Ex: 1 Unidade, 500 Litros"></div></div><div class="form-row"><div><label>Valor (Kz) *</label><input type="number" id="pVal" value="'+p.val+'"></div><div><label>Estado do Bem *</label><select id="pStatus"><option '+(p.status==='Em Inventário'?'selected':'')+'>Em Inventário</option><option '+(p.status==='Consumido'?'selected':'')+'>Consumido</option><option '+(p.status==='Vendido'?'selected':'')+'>Vendido</option></select></div></div><div class="form-row"><div><label>Adquirido / Vendido por *</label><input id="pAcq" value="'+p.acquiredBy+'"></div><div><label>Meio de Pagamento *</label><select id="pPay"><option '+(p.paymentMethod==='Transferência Bancária'?'selected':'')+'>Transferência Bancária</option><option '+(p.paymentMethod==='Numerário'?'selected':'')+'>Numerário</option><option '+(p.paymentMethod==='Cartão Corporate'?'selected':'')+'>Cartão Corporate</option><option '+(p.paymentMethod==='Cheque'?'selected':'')+'>Cheque</option></select></div></div><div><label>Notas / Nº Fatura</label><input id="pNotes" value="'+p.notes+'" placeholder="Referência de documento"></div><div style="margin-top:15px"><label>Anexar Documento (Max 1MB)</label><input type="file" id="pDoc" accept="image/*,application/pdf"></div>',
     function() { 
         var obj = {date:val('pDate'),time:val('pTime'),type:val('pType'),cat:val('pCat'),item:val('pItem'),qty:val('pQty'),val:parseFloat(val('pVal'))||0,acquiredBy:val('pAcq'),paymentMethod:val('pPay'),notes:val('pNotes'),status:val('pStatus')}; 
         if(!obj.item||!obj.date) return showToast('Item e Data obrigatórios','danger'); 
         
-        handleFileUpload('pDoc', async function(base64) {
+        handleFileUpload('pDoc', function(base64) {
             obj.docBase64 = base64;
             if(id) { 
-                await DB.update('patrimony_logs', id, obj); await logAction('Editar', 'Património: '+obj.item); showToast('Atualizado!'); 
+                DB.update('patrimony_logs', id, obj); logAction('Editar', 'Património: '+obj.item); showToast('Atualizado!'); 
             } else { 
                 obj.id='pat'+Date.now(); 
-                await DB.insert('patrimony_logs', obj); 
-                await logAction('Registar', 'Património: '+obj.type+' '+obj.item); 
+                DB.insert('patrimony_logs', obj); 
+                logAction('Registar', 'Património: '+obj.type+' '+obj.item); 
                 if(obj.cat === 'Combustível' && obj.type === 'Entrada') {
                     var litrosMatch = obj.qty.match(/\d+/); var litrosNum = litrosMatch ? parseInt(litrosMatch[0]) : 0;
-                    await DB.insert('fuel_logs', {id: 'fl'+Date.now(), date: obj.date, time: obj.time, type: 'Entrada', fuelType: obj.item, litros: litrosNum, equipment: 'Tankagem Geral', brand: '', plate: '', empName: obj.acquiredBy, val: obj.val});
+                    DB.insert('fuel_logs', {id: 'fl'+Date.now(), date: obj.date, time: obj.time, type: 'Entrada', fuelType: obj.item, litros: litrosNum, equipment: 'Tankagem Geral', brand: '', plate: '', empName: obj.acquiredBy, val: obj.val});
                     showToast('Combustível adicionado automaticamente!','info');
                 }
             } 
@@ -669,26 +738,26 @@ async function openModalPatrimony(id) {
         });
     },'Salvar','btn-primary');
 }
-async function delPatrimony(id) { var p = (await DB.get('patrimony_logs')).find(x=>x.id===id); await DB.del('patrimony_logs', id); await logAction('Apagar', 'Património: '+(p?p.item:'')); showToast('Eliminado!','danger'); loadPatrimony(); }
+function delPatrimony(id) { var p = DB.get('patrimony_logs').find(x=>x.id===id); DB.del('patrimony_logs', id); logAction('Apagar', 'Património: '+(p?p.item:'')); showToast('Eliminado!','danger'); loadPatrimony(); }
 
 /* ==================== FORNECEDORES ==================== */
-async function loadSuppliers() {
-    var data = await DB.get('suppliers');
+function loadSuppliers() {
+    var data = DB.get('suppliers');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🚚 Fornecedores e Entidades</h2><button class="btn btn-primary btn-sm" onclick="openModalSup()">➕ Novo Fornecedor</button></div><div class="card"><table id="tblSup"><thead><tr><th>Nome / Empresa</th><th>NIF</th><th>Contato</th><th>Conta Bancária</th><th>Ações</th></tr></thead><tbody>';
     data.forEach(function(s) { html += '<tr><td><strong>'+s.name+'</strong></td><td>'+s.nif+'</td><td>'+s.contact+'</td><td>'+(s.account||'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalSup(\''+s.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delSup(\''+s.id+'\')">🗑️</button></td></tr>'; });
     if(!data.length) html += '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhum fornecedor registado.</td></tr>';
     html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
 }
-async function openModalSup(id) {
-    var data = await DB.get('suppliers'); var s = id ? data.find(function(x){return x.id===id;}) : {name:'',nif:'',contact:'',account:''};
+function openModalSup(id) {
+    var data = DB.get('suppliers'); var s = id ? data.find(function(x){return x.id===id;}) : {name:'',nif:'',contact:'',account:''};
     modal(id?'Editar Fornecedor':'Novo Fornecedor', '<div class="form-row"><div><label>Nome / Empresa *</label><input id="sName" value="'+s.name+'"></div><div><label>NIF *</label><input id="sNif" value="'+s.nif+'" placeholder="NIF para AGT"></div></div><div class="form-row"><div><label>Contato (Tel/Email)</label><input id="sContact" value="'+s.contact+'"></div><div><label>Conta Bancária</label><input id="sAccount" value="'+s.account+'"></div></div>',
-    async function() { var obj = {name:val('sName'),nif:val('sNif'),contact:val('sContact'),account:val('sAccount')}; if(!obj.name||!obj.nif) return showToast('Nome e NIF obrigatórios (AGT)','danger'); if(id) { await DB.update('suppliers', id, obj); await logAction('Editar', 'Fornecedor: '+obj.name); showToast('Atualizado!'); } else { obj.id='sup'+Date.now(); await DB.insert('suppliers', obj); await logAction('Criar', 'Fornecedor: '+obj.name); showToast('Adicionado!'); } closeModal(); loadSuppliers(); },'Salvar','btn-primary');
+    function() { var obj = {name:val('sName'),nif:val('sNif'),contact:val('sContact'),account:val('sAccount')}; if(!obj.name||!obj.nif) return showToast('Nome e NIF obrigatórios (AGT)','danger'); if(id) { DB.update('suppliers', id, obj); logAction('Editar', 'Fornecedor: '+obj.name); showToast('Atualizado!'); } else { obj.id='sup'+Date.now(); DB.insert('suppliers', obj); logAction('Criar', 'Fornecedor: '+obj.name); showToast('Adicionado!'); } closeModal(); loadSuppliers(); },'Salvar','btn-primary');
 }
-async function delSup(id) { await DB.del('suppliers', id); await logAction('Apagar', 'Fornecedor removido'); showToast('Eliminado!','danger'); loadSuppliers(); }
+function delSup(id) { DB.del('suppliers', id); logAction('Apagar', 'Fornecedor removido'); showToast('Eliminado!','danger'); loadSuppliers(); }
 
 /* ==================== CONFIGURAÇÕES E BACKUP ==================== */
-async function loadConfig() {
-    var c = (await DB.get('company_config'))[0] || {id:'c1', name:'', nif:'', address:'', ivaRate:14, bank:''};
+function loadConfig() {
+    var c = DB.get('company_config')[0] || {id:'c1', name:'', nif:'', address:'', ivaRate:14, bank:''};
     var html = '<h2>⚙️ Configurações do Sistema</h2>'+
     '<div class="card"><h3>Dados da Empresa (Para Faturas e Relatórios)</h3>'+
     '<div class="form-row"><div><label>Nome da Empresa *</label><input id="cName" value="'+c.name+'"></div><div><label>NIF *</label><input id="cNif" value="'+c.nif+'"></div></div>'+
@@ -699,37 +768,28 @@ async function loadConfig() {
     '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-info" onclick="exportBackup()">⬇️ Descarregar Backup (JSON)</button><label class="btn btn-warning" style="cursor:pointer">⬆️ Carregar Backup<input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)"></label></div></div>';
     document.getElementById('appContent').innerHTML = html;
 }
-async function saveConfig() {
-    var c = await DB.get('company_config'); var obj = {id:'c1', name:val('cName'), nif:val('cNif'), address:val('cAddr'), ivaRate:parseFloat(val('cIva'))||14, bank:val('cBank')};
-    if(c.length > 0) await DB.update('company_config', 'c1', obj); else await DB.insert('company_config', obj);
-    await logAction('Config', 'Atualizou dados da empresa'); showToast('Configurações salvas!');
+function saveConfig() {
+    var c = DB.get('company_config'); var obj = {id:'c1', name:val('cName'), nif:val('cNif'), address:val('cAddr'), ivaRate:parseFloat(val('cIva'))||14, bank:val('cBank')};
+    if(c.length > 0) DB.update('company_config', 'c1', obj); else DB.insert('company_config', obj);
+    logAction('Config', 'Atualizou dados da empresa'); showToast('Configurações salvas!');
 }
-async function exportBackup() {
+function exportBackup() {
     var tables = ['users','fuel_logs','provisions_logs','employees','equipment','finance_logs','patrimony_logs','audit_logs','suppliers','production_logs','company_config','maintenance_logs'];
-    var backup = {}; 
-    for(var i=0; i<tables.length; i++) { backup[tables[i]] = await DB.get(tables[i]); }
+    var backup = {}; tables.forEach(function(t){ backup[t] = DB.get(t); });
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
     var link = document.createElement('a'); link.href = dataStr; link.download = "Backup_Mina_Jaliezer_"+getTodayStr().replace(/\//g,'-')+".json";
     document.body.appendChild(link); link.click(); link.remove(); showToast('Backup descarregado!','info');
 }
-async function importBackup(event) {
+function importBackup(event) {
     var file = event.target.files[0]; if(!file) return; var reader = new FileReader();
-    reader.onload = async function(e) {
-        try { 
-            var data = JSON.parse(e.target.result); 
-            if(confirm('ATENÇÃO: Isto vai APAGAR todos os dados atuais e substituir pelos dados do ficheiro. Continuar?')) { 
-                for(var table in data) { await DB.save(table, data[table]); } 
-                showToast('Backup restaurado! O sistema vai recarregar...','success'); 
-                setTimeout(function(){ location.reload(); }, 2000); 
-            } 
-        } catch(err) { showToast('Erro: Ficheiro inválido.','danger'); }
-    }; 
-    reader.readAsText(file);
+    reader.onload = function(e) {
+        try { var data = JSON.parse(e.target.result); if(confirm('ATENÇÃO: Isto vai APAGAR todos os dados atuais e substituir pelos dados do ficheiro. Continuar?')) { for(var table in data) { DB.save(table, data[table]); } showToast('Backup restaurado! O sistema vai recarregar...','success'); setTimeout(function(){ location.reload(); }, 2000); } } catch(err) { showToast('Erro: Ficheiro inválido.','danger'); }
+    }; reader.readAsText(file);
 }
 
 /* ==================== GESTÃO DE UTILIZADORES ==================== */
-async function loadUsers() {
-    var data = await DB.get('users');
+function loadUsers() {
+    var data = DB.get('users');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>👤 Gestão de Acessos</h2><button class="btn btn-primary btn-sm" onclick="openModalUser()">➕ Novo Utilizador</button></div><div class="card"><table id="tblUsers"><thead><tr><th>Nome</th><th>Utilizador (Login)</th><th>Perfil de Acesso</th><th>Ações</th></tr></thead><tbody>';
     data.forEach(function(u) {
         var roleClass = u.role==='admin' ? 'bg-danger' : u.role==='contabilista' ? 'bg-info' : u.role==='rh' ? 'bg-warning' : 'bg-success';
@@ -738,97 +798,119 @@ async function loadUsers() {
     });
     html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
 }
-async function openModalUser(id) {
-    var data = await DB.get('users'); var u = id ? data.find(function(x){return x.id===id;}) : {name:'',user:'',pass:'',role:'secretaria'};
+function openModalUser(id) {
+    var data = DB.get('users'); var u = id ? data.find(function(x){return x.id===id;}) : {name:'',user:'',pass:'',role:'secretaria'};
     modal(id?'Editar Utilizador':'Novo Utilizador', '<div class="form-row"><div><label>Nome Completo *</label><input id="uName" value="'+u.name+'"></div><div><label>Utilizador (Login) *</label><input id="uUser" value="'+u.user+'" placeholder="Ex: maria"></div></div><div class="form-row"><div><label>Senha *</label><input type="text" id="uPass" value="" placeholder="'+(id?'Deixe vazio para manter':'Nova senha')+'"></div><div><label>Perfil de Acesso *</label><select id="uRole"><option value="admin" '+(u.role==='admin'?'selected':'')+'>Administrador</option><option value="contabilista" '+(u.role==='contabilista'?'selected':'')+'>Contabilista</option><option value="rh" '+(u.role==='rh'?'selected':'')+'>Recursos Humanos</option><option value="secretaria" '+(u.role==='secretaria'?'selected':'')+'>Secretária</option></select></div></div>',
-    async function() { var obj = {name:val('uName'),user:val('uUser'),role:val('uRole')}; var passVal=val('uPass'); if(!obj.name||!obj.user) return showToast('Preencha os campos obrigatórios','danger'); if(passVal) obj.pass = hashPass(passVal); if(id) { await DB.update('users', id, obj); await logAction('Editar', 'Utilizador: '+obj.name); showToast('Utilizador atualizado!'); } else { if(!passVal) return showToast('Senha obrigatória','danger'); obj.id='u'+Date.now(); await DB.insert('users', obj); await logAction('Criar', 'Utilizador: '+obj.name); showToast('Utilizador criado!'); } closeModal(); loadUsers(); },'Salvar','btn-primary');
+    function() { var obj = {name:val('uName'),user:val('uUser'),role:val('uRole')}; var passVal=val('uPass'); if(!obj.name||!obj.user) return showToast('Preencha os campos obrigatórios','danger'); if(passVal) obj.pass = hashPass(passVal); if(id) { DB.update('users', id, obj); logAction('Editar', 'Utilizador: '+obj.name); showToast('Utilizador atualizado!'); } else { if(!passVal) return showToast('Senha obrigatória','danger'); obj.id='u'+Date.now(); DB.insert('users', obj); logAction('Criar', 'Utilizador: '+obj.name); showToast('Utilizador criado!'); } closeModal(); loadUsers(); },'Salvar','btn-primary');
 }
-async function delUser(id) { var u = (await DB.get('users')).find(x=>x.id===id); await DB.del('users', id); await logAction('Apagar', 'Utilizador: '+(u?u.name:'')); showToast('Eliminado!','danger'); loadUsers(); }
+function delUser(id) { var u = DB.get('users').find(x=>x.id===id); DB.del('users', id); logAction('Apagar', 'Utilizador: '+(u?u.name:'')); showToast('Eliminado!','danger'); loadUsers(); }
 
 /* ==================== AUDITORIA ==================== */
-async function loadAudit() {
-    var data = await DB.get('audit_logs');
+function loadAudit() {
+    var data = DB.get('audit_logs');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🛡️ Registo de Auditoria</h2><button class="btn btn-danger btn-sm" onclick="clearAudit()">🗑️ Limpar Histórico</button></div><div class="card"><table id="tblAudit"><thead><tr><th>Data e Hora</th><th>Utilizador</th><th>Perfil</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody>';
     data.reverse().forEach(function(l) { html += '<tr><td>'+l.date+'</td><td><strong>'+l.user+'</strong></td><td>'+l.role+'</td><td><span class="badge bg-info">'+l.action+'</span></td><td>'+l.detail+'</td></tr>'; });
     if(!data.length) html += '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhum registo de auditoria.</td></tr>';
     html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
 }
-async function clearAudit() { if(confirm('Limpar todo o histórico?')) { await DB.save('audit_logs', []); showToast('Histórico limpo!','danger'); loadAudit(); } }
+function clearAudit() { if(confirm('Limpar todo o histórico?')) { DB.save('audit_logs', []); showToast('Histórico limpo!','danger'); loadAudit(); } }
 
-/* ==================== RELATÓRIOS ==================== */
+/* ==================== RELATÓRIOS SEPARADOS ==================== */
 function loadReports() {
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📈 Central de Relatórios</h2><div style="display:flex;gap:10px"><button class="btn btn-success btn-sm" onclick="exportPDF()">📄 Gerar PDF</button><button class="btn btn-info btn-sm" onclick="exportCSV()">📊 Exportar Excel</button></div></div>';
     html += '<div class="card"><h3>Selecionar Relatório</h3><div class="form-row"><div><label>Tipo de Relatório *</label><select id="reportType" onchange="generateReport()"><option value="">-- Escolha um Relatório --</option><option value="fuel">Relatório de Combustível</option><option value="provisions">Relatório de Alimentação</option><option value="equipment">Relatório de Equipamentos (Ativos)</option><option value="finance">Relatório Financeiro (Caixa/Banco)</option><option value="production">Relatório de Produção</option><option value="general">Relatório Geral e Auditoria</option></select></div></div></div>';
     html += '<div id="reportPrintArea" class="card" style="background:#fff;color:#000;display:none"></div>';
     document.getElementById('appContent').innerHTML = html;
 }
-async function generateReport() {
+function generateReport() {
     var type = val('reportType');
     var printArea = document.getElementById('reportPrintArea');
-    var config = (await DB.get('company_config'))[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
-    var header = '<div style="text-align:center;margin-bottom:20px;border-bottom:2px solid #000;padding-bottom:10px"><h2 style="color:#000">'+config.name.toUpperCase()+'</h2><p>NIF: '+config.nif+' | '+config.address+'</p><p style="font-size:.8rem">Gerado em: '+getTodayStr()+'</p></div>';
-    var html = header;
+    var config = DB.get('company_config')[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
+    
+    var header = '<div class="pdf-header">'+
+                    '<h2>'+config.name.toUpperCase()+'</h2>'+
+                    '<p>NIF: '+config.nif+' | '+config.address+'</p>'+
+                    '<p style="margin-top:5px; font-size:11px; color:#888;">Relatório Gerado em: '+getTodayStr()+'</p>'+
+                 '</div>';
+
+    var html = '<div class="pdf-report">' + header;
 
     if(type === 'fuel') {
-        var data = await DB.get('fuel_logs');
+        var data = DB.get('fuel_logs');
         var entradas = data.filter(function(f){return f.type==='Entrada';});
         var saidas = data.filter(function(f){return f.type==='Saída';});
         var mediaPreco = entradas.length > 0 ? entradas.reduce(function(a,b){return a+b.val;},0) / entradas.reduce(function(a,b){return a+b.litros;},0) : 0;
 
-        html += '<h3 style="color:#000;margin-bottom:10px">Relatório de Combustível</h3>';
-        html += '<h4 style="color:#000;margin:15px 0 5px">1. Compras (Entradas em Stock)</h4><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr style="background:#f0f0f0"><th style="border:1px solid #ccc;padding:6px">Data</th><th style="border:1px solid #ccc;padding:6px">Combustível</th><th style="border:1px solid #ccc;padding:6px">Qtd (Litros)</th><th style="border:1px solid #ccc;padding:6px">Valor Compra (Kz)</th></tr></thead><tbody>';
-        entradas.forEach(function(f) { html += '<tr><td style="border:1px solid #ccc;padding:6px">'+f.date+'</td><td style="border:1px solid #ccc;padding:6px">'+f.fuelType+'</td><td style="border:1px solid #ccc;padding:6px">'+f.litros+' L</td><td style="border:1px solid #ccc;padding:6px">'+fmt(f.val)+'</td></tr>'; });
+        html += '<h3>Relatório de Combustível</h3>';
+        
+        html += '<h4>1. Compras (Entradas em Stock)</h4>';
+        html += '<table><thead><tr><th>Data</th><th>Combustível</th><th class="text-center">Qtd (Litros)</th><th class="text-right">Valor Compra (Kz)</th></tr></thead><tbody>';
+        entradas.forEach(function(f) { html += '<tr><td>'+f.date+'</td><td>'+f.fuelType+'</td><td class="text-center">'+f.litros+' L</td><td class="text-right">'+fmt(f.val)+'</td></tr>'; });
         html += '</tbody></table>';
-        html += '<h4 style="color:#000;margin:15px 0 5px">2. Consumos (Saídas para Equipamentos)</h4><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr style="background:#f0f0f0"><th style="border:1px solid #ccc;padding:6px">Data/Hora</th><th style="border:1px solid #ccc;padding:6px">Combustível</th><th style="border:1px solid #ccc;padding:6px">Litros</th><th style="border:1px solid #ccc;padding:6px">Equipamento</th><th style="border:1px solid #ccc;padding:6px">Marca</th><th style="border:1px solid #ccc;padding:6px">Matrícula</th><th style="border:1px solid #ccc;padding:6px">Funcionário</th><th style="border:1px solid #ccc;padding:6px">Valor (Kz)</th></tr></thead><tbody>';
+
+        html += '<h4>2. Consumos (Saídas para Equipamentos)</h4>';
+        html += '<table><thead><tr><th>Data/Hora</th><th>Equipamento</th><th>Matrícula</th><th>Funcionário</th><th class="text-center">Litros</th><th class="text-right">Valor (Kz)</th></tr></thead><tbody>';
         saidas.forEach(function(f) { 
             var valSaida = f.val > 0 ? f.val : (f.litros * mediaPreco);
-            html += '<tr><td style="border:1px solid #ccc;padding:6px">'+f.date+' '+f.time+'</td><td style="border:1px solid #ccc;padding:6px">'+f.fuelType+'</td><td style="border:1px solid #ccc;padding:6px">'+f.litros+'</td><td style="border:1px solid #ccc;padding:6px">'+f.equipment+'</td><td style="border:1px solid #ccc;padding:6px">'+(f.brand||'-')+'</td><td style="border:1px solid #ccc;padding:6px">'+(f.plate||'-')+'</td><td style="border:1px solid #ccc;padding:6px">'+f.empName+'</td><td style="border:1px solid #ccc;padding:6px">'+fmt(valSaida)+'</td></tr>'; 
+            html += '<tr><td>'+f.date+' '+f.time+'</td><td>'+f.equipment+'</td><td>'+(f.plate||'-')+'</td><td>'+f.empName+'</td><td class="text-center">'+f.litros+'</td><td class="text-right">'+fmt(valSaida)+'</td></tr>'; 
         });
         html += '</tbody></table>';
     } 
     else if(type === 'provisions') {
-        var data = await DB.get('provisions_logs');
-        html += '<h3 style="color:#000;margin-bottom:10px">Relatório de Alimentação e Stock</h3><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr style="background:#f0f0f0"><th style="border:1px solid #ccc;padding:6px">Data</th><th style="border:1px solid #ccc;padding:6px">Tipo</th><th style="border:1px solid #ccc;padding:6px">Item</th><th style="border:1px solid #ccc;padding:6px">Qtd</th><th style="border:1px solid #ccc;padding:6px">Responsável</th><th style="border:1px solid #ccc;padding:6px">Custo (Kz)</th></tr></thead><tbody>';
-        data.forEach(function(p) { html += '<tr><td style="border:1px solid #ccc;padding:6px">'+p.date+'</td><td style="border:1px solid #ccc;padding:6px">'+p.type+'</td><td style="border:1px solid #ccc;padding:6px">'+p.item+'</td><td style="border:1px solid #ccc;padding:6px">'+p.qty+'</td><td style="border:1px solid #ccc;padding:6px">'+(p.responsible||'-')+'</td><td style="border:1px solid #ccc;padding:6px">'+(p.type==='Entrada'?fmt(p.cost):'-')+'</td></tr>'; });
+        var data = DB.get('provisions_logs');
+        html += '<h3>Relatório de Alimentação e Stock</h3>';
+        html += '<table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th class="text-center">Qtd</th><th>Responsável</th><th class="text-right">Custo (Kz)</th></tr></thead><tbody>';
+        data.forEach(function(p) { html += '<tr><td>'+p.date+'</td><td>'+p.type+'</td><td>'+p.item+'</td><td class="text-center">'+p.qty+'</td><td>'+(p.responsible||'-')+'</td><td class="text-right">'+(p.type==='Entrada'?fmt(p.cost):'-')+'</td></tr>'; });
         html += '</tbody></table>';
     }
     else if(type === 'equipment') {
-        var data = await DB.get('equipment'); var maint = await DB.get('maintenance_logs');
-        html += '<h3 style="color:#000;margin-bottom:10px">Relatório de Equipamentos e Ativos</h3><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr style="background:#f0f0f0"><th style="border:1px solid #ccc;padding:6px">Nome</th><th style="border:1px solid #ccc;padding:6px">Marca</th><th style="border:1px solid #ccc;padding:6px">Tipo</th><th style="border:1px solid #ccc;padding:6px">Matrícula</th><th style="border:1px solid #ccc;padding:6px">V. Compra</th><th style="border:1px solid #ccc;padding:6px">Estado</th></tr></thead><tbody>';
-        data.forEach(function(e) { html += '<tr><td style="border:1px solid #ccc;padding:6px">'+e.name+'</td><td style="border:1px solid #ccc;padding:6px">'+e.brand+'</td><td style="border:1px solid #ccc;padding:6px">'+e.type+'</td><td style="border:1px solid #ccc;padding:6px">'+(e.plate||'-')+'</td><td style="border:1px solid #ccc;padding:6px">'+fmt(e.buyPrice)+'</td><td style="border:1px solid #ccc;padding:6px">'+e.status+'</td></tr>'; });
+        var data = DB.get('equipment'); var maint = DB.get('maintenance_logs');
+        html += '<h3>Relatório de Equipamentos e Ativos</h3>';
+        html += '<table><thead><tr><th>Nome</th><th>Marca</th><th>Tipo</th><th>Matrícula</th><th class="text-right">V. Compra</th><th>Estado</th></tr></thead><tbody>';
+        data.forEach(function(e) { html += '<tr><td>'+e.name+'</td><td>'+e.brand+'</td><td>'+e.type+'</td><td>'+(e.plate||'-')+'</td><td class="text-right">'+fmt(e.buyPrice)+'</td><td>'+e.status+'</td></tr>'; });
         html += '</tbody></table>';
         
-        html += '<h4 style="color:#000;margin:15px 0 5px">Histórico de Manutenções</h4><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr style="background:#f0f0f0"><th style="border:1px solid #ccc;padding:6px">Data</th><th style="border:1px solid #ccc;padding:6px">Equipamento</th><th style="border:1px solid #ccc;padding:6px">Descrição</th><th style="border:1px solid #ccc;padding:6px">Custo (Kz)</th></tr></thead><tbody>';
-        maint.forEach(function(m) { var eq = data.find(function(e){return e.id===m.eqId;}); html += '<tr><td style="border:1px solid #ccc;padding:6px">'+m.date+'</td><td style="border:1px solid #ccc;padding:6px">'+(eq?eq.name:'-')+'</td><td style="border:1px solid #ccc;padding:6px">'+m.desc+' ('+(m.hours||'-')+')</td><td style="border:1px solid #ccc;padding:6px">'+fmt(m.cost)+'</td></tr>'; });
+        html += '<h4>Histórico de Manutenções</h4>';
+        html += '<table><thead><tr><th>Data</th><th>Equipamento</th><th>Descrição</th><th class="text-right">Custo (Kz)</th></tr></thead><tbody>';
+        maint.forEach(function(m) { var eq = data.find(function(e){return e.id===m.eqId;}); html += '<tr><td>'+m.date+'</td><td>'+(eq?eq.name:'-')+'</td><td>'+m.desc+' ('+(m.hours||'-')+')</td><td class="text-right">'+fmt(m.cost)+'</td></tr>'; });
         html += '</tbody></table>';
     }
     else if(type === 'finance') {
-        var data = await DB.get('finance_logs');
-        html += '<h3 style="color:#000;margin-bottom:10px">Relatório Financeiro (Caixa, Banco e Créditos)</h3><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr style="background:#f0f0f0"><th style="border:1px solid #ccc;padding:6px">Data</th><th style="border:1px solid #ccc;padding:6px">Descrição</th><th style="border:1px solid #ccc;padding:6px">Conta</th><th style="border:1px solid #ccc;padding:6px">Tipo</th><th style="border:1px solid #ccc;padding:6px">Valor (Kz)</th><th style="border:1px solid #ccc;padding:6px">IVA</th><th style="border:1px solid #ccc;padding:6px">Estado</th></tr></thead><tbody>';
-        data.forEach(function(f) { html += '<tr><td style="border:1px solid #ccc;padding:6px">'+f.date+'</td><td style="border:1px solid #ccc;padding:6px">'+f.desc+'</td><td style="border:1px solid #ccc;padding:6px">'+f.account+'</td><td style="border:1px solid #ccc;padding:6px">'+f.type+'</td><td style="border:1px solid #ccc;padding:6px">'+fmt(f.val)+'</td><td style="border:1px solid #ccc;padding:6px">'+fmt(f.iva)+'</td><td style="border:1px solid #ccc;padding:6px">'+f.status+'</td></tr>'; });
+        var data = DB.get('finance_logs');
+        html += '<h3>Relatório Financeiro (Caixa, Banco e Créditos)</h3>';
+        html += '<table><thead><tr><th>Data</th><th>Descrição</th><th>Conta</th><th>Tipo</th><th class="text-right">Valor (Kz)</th><th class="text-right">IVA</th><th>Estado</th></tr></thead><tbody>';
+        data.forEach(function(f) { 
+            var valClass = f.type==='Entrada' ? 'text-success' : 'text-danger';
+            var valHtml = (f.type==='Entrada'?'+':'-') + ' ' + fmt(f.val);
+            html += '<tr><td>'+f.date+'</td><td>'+f.desc+'</td><td>'+f.account+'</td><td>'+f.type+'</td><td class="text-right '+valClass+'">'+valHtml+'</td><td class="text-right">'+fmt(f.iva)+'</td><td>'+f.status+'</td></tr>'; 
+        });
         html += '</tbody></table>';
     }
     else if(type === 'production') {
-        var data = await DB.get('production_logs');
-        html += '<h3 style="color:#000;margin-bottom:10px">Relatório de Produção (Extração)</h3><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr style="background:#f0f0f0"><th style="border:1px solid #ccc;padding:6px">Data/Hora</th><th style="border:1px solid #ccc;padding:6px">Poço</th><th style="border:1px solid #ccc;padding:6px">Material</th><th style="border:1px solid #ccc;padding:6px">Qtd</th><th style="border:1px solid #ccc;padding:6px">Responsável</th></tr></thead><tbody>';
-        data.forEach(function(p) { html += '<tr><td style="border:1px solid #ccc;padding:6px">'+p.date+' '+p.time+'</td><td style="border:1px solid #ccc;padding:6px">'+p.well+'</td><td style="border:1px solid #ccc;padding:6px">'+p.material+'</td><td style="border:1px solid #ccc;padding:6px">'+p.qty+'</td><td style="border:1px solid #ccc;padding:6px">'+p.responsible+'</td></tr>'; });
+        var data = DB.get('production_logs');
+        html += '<h3>Relatório de Produção (Extração)</h3>';
+        html += '<table><thead><tr><th>Data/Hora</th><th>Poço</th><th>Material</th><th class="text-center">Qtd</th><th>Responsável</th></tr></thead><tbody>';
+        data.forEach(function(p) { html += '<tr><td>'+p.date+' '+p.time+'</td><td>'+p.well+'</td><td>'+p.material+'</td><td class="text-center">'+p.qty+'</td><td>'+p.responsible+'</td></tr>'; });
         html += '</tbody></table>';
     }
     else if(type === 'general') {
-        var fuel = await DB.get('fuel_logs'), emp = await DB.get('employees'), fin = await DB.get('finance_logs');
+        var fuel = DB.get('fuel_logs'), emp = DB.get('employees'), fin = DB.get('finance_logs');
         var totFuel = fuel.filter(function(f){return f.type==='Entrada';}).reduce(function(a,b){return a+b.val;},0);
         var totSal = emp.reduce(function(a,b){return a+b.salary;},0);
         var totFinEnt = fin.filter(function(f){return f.type==='Entrada' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
         var totFinSai = fin.filter(function(f){return f.type==='Saída' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
         var lucro = totFinEnt - (totFuel + totSal + totFinSai);
         
-        html += '<h3 style="color:#000;margin-bottom:10px">1. Resumo Financeiro Geral</h3><table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr style="background:#f0f0f0"><th style="border:1px solid #ccc;padding:8px;text-align:left">Categoria</th><th style="border:1px solid #ccc;padding:8px;text-align:right">Valor (Kz)</th></tr></thead><tbody>'+
-        '<tr><td style="border:1px solid #ccc;padding:8px">Receitas Financeiras</td><td style="border:1px solid #ccc;padding:8px;text-align:right;color:green">'+fmt(totFinEnt)+'</td></tr>'+
-        '<tr><td style="border:1px solid #ccc;padding:8px">(-) Combustível</td><td style="border:1px solid #ccc;padding:8px;text-align:right;color:red">'+fmt(totFuel)+'</td></tr>'+
-        '<tr><td style="border:1px solid #ccc;padding:8px">(-) Salários</td><td style="border:1px solid #ccc;padding:8px;text-align:right;color:red">'+fmt(totSal)+'</td></tr>'+
-        '<tr><td style="border:1px solid #ccc;padding:8px">(-) Outras Despesas</td><td style="border:1px solid #ccc;padding:8px;text-align:right;color:red">'+fmt(totFinSai)+'</td></tr>'+
-        '<tr style="background:#d4af37"><td style="border:1px solid #ccc;padding:8px"><strong>LUCRO / PREJUÍZO</strong></td><td style="border:1px solid #ccc;padding:8px;text-align:right;font-size:1.2rem"><strong>'+fmt(lucro)+'</strong></td></tr></tbody></table>';
+        html += '<h3>Resumo Financeiro Geral</h3>';
+        html += '<table><thead><tr><th>Categoria</th><th class="text-right">Valor (Kz)</th></tr></thead><tbody>'+
+        '<tr><td>Receitas Financeiras</td><td class="text-right text-success">'+fmt(totFinEnt)+'</td></tr>'+
+        '<tr><td>(-) Combustível</td><td class="text-right text-danger">'+fmt(totFuel)+'</td></tr>'+
+        '<tr><td>(-) Salários</td><td class="text-right text-danger">'+fmt(totSal)+'</td></tr>'+
+        '<tr><td>(-) Outras Despesas</td><td class="text-right text-danger">'+fmt(totFinSai)+'</td></tr>'+
+        '<tr class="total-row"><td>LUCRO / PREJUÍZO</td><td class="text-right">'+fmt(lucro)+'</td></tr></tbody></table>';
     }
+
+    html += '</div>'; // Fecha pdf-report
 
     if(type) { printArea.style.display = 'block'; printArea.innerHTML = html; } else { printArea.style.display = 'none'; printArea.innerHTML = ''; }
 }
@@ -836,22 +918,37 @@ async function generateReport() {
 function exportPDF() {
     if(!val('reportType')) return showToast('Selecione um relatório primeiro','danger');
     var element = document.getElementById('reportPrintArea');
-    var opt = { margin: 10, filename: 'Relatorio_Mina_Jaliezer.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-    showToast('A gerar PDF...','info'); html2pdf().set(opt).from(element).save();
+    
+    // Configuração otimizada para PDF (Nítido e sem cortes feios)
+    var opt = { 
+        margin: [10, 10, 10, 10], // Margens em mm (Top, Left, Bottom, Right)
+        filename: 'Relatorio_Mina_Jaliezer.pdf', 
+        image: { type: 'jpeg', quality: 0.98 }, 
+        html2canvas: { 
+            scale: 3, // Aumenta a escala para deixar a fonte super nítida
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        }, 
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // Evita cortar tabelas no meio
+    };
+    
+    showToast('A gerar PDF... Aguarde.','info'); 
+    html2pdf().set(opt).from(element).save();
 }
-async function exportCSV() {
+function exportCSV() {
     var type = val('reportType'); if(!type) return showToast('Selecione um relatório primeiro','danger');
     var rows = [["Relatorio Mina Jaliezer - " + getTodayStr()]]; var data = [];
     if(type==='fuel'){ 
         rows.push(["--- COMPRAS (ENTRADAS) ---"]); rows.push(["Data","Combustivel","Litros","Custo"]); 
-        (await DB.get('fuel_logs')).filter(function(f){return f.type==='Entrada';}).forEach(function(f){rows.push([f.date,f.fuelType,f.litros,f.val]);}); 
+        DB.get('fuel_logs').filter(function(f){return f.type==='Entrada';}).forEach(function(f){rows.push([f.date,f.fuelType,f.litros,f.val]);}); 
         rows.push(["--- CONSUMOS (SAIDAS) ---"]); rows.push(["Data","Hora","Combustivel","Litros","Equipamento","Marca","Matricula","Funcionario","Valor"]); 
-        (await DB.get('fuel_logs')).filter(function(f){return f.type==='Saída';}).forEach(function(f){rows.push([f.date,f.time,f.fuelType,f.litros,f.equipment,f.brand,f.plate,f.empName,f.val]);}); 
+        DB.get('fuel_logs').filter(function(f){return f.type==='Saída';}).forEach(function(f){rows.push([f.date,f.time,f.fuelType,f.litros,f.equipment,f.brand,f.plate,f.empName,f.val]);}); 
     }
-    else if(type==='provisions'){ rows.push(["Data","Tipo","Item","Qtd","Responsavel","Custo"]); data = await DB.get('provisions_logs'); data.forEach(function(p){rows.push([p.date,p.type,p.item,p.qty,p.responsible,p.cost]);}); }
-    else if(type==='equipment'){ rows.push(["Nome","Marca","Tipo","Matricula","V. Compra","Estado"]); data = await DB.get('equipment'); data.forEach(function(e){rows.push([e.name,e.brand,e.type,e.plate,e.buyPrice,e.status]);}); }
-    else if(type==='finance'){ rows.push(["Data","Desc","Conta","Tipo","Valor","IVA","Estado"]); data = await DB.get('finance_logs'); data.forEach(function(f){rows.push([f.date,f.desc,f.account,f.type,f.val,f.iva,f.status]);}); }
-    else if(type==='production'){ rows.push(["Data","Hora","Poco","Material","Qtd","Responsavel"]); data = await DB.get('production_logs'); data.forEach(function(p){rows.push([p.date,p.time,p.well,p.material,p.qty,p.responsible]);}); }
+    else if(type==='provisions'){ rows.push(["Data","Tipo","Item","Qtd","Responsavel","Custo"]); data = DB.get('provisions_logs'); data.forEach(function(p){rows.push([p.date,p.type,p.item,p.qty,p.responsible,p.cost]);}); }
+    else if(type==='equipment'){ rows.push(["Nome","Marca","Tipo","Matricula","V. Compra","Estado"]); data = DB.get('equipment'); data.forEach(function(e){rows.push([e.name,e.brand,e.type,e.plate,e.buyPrice,e.status]);}); }
+    else if(type==='finance'){ rows.push(["Data","Desc","Conta","Tipo","Valor","IVA","Estado"]); data = DB.get('finance_logs'); data.forEach(function(f){rows.push([f.date,f.desc,f.account,f.type,f.val,f.iva,f.status]);}); }
+    else if(type==='production'){ rows.push(["Data","Hora","Poco","Material","Qtd","Responsavel"]); data = DB.get('production_logs'); data.forEach(function(p){rows.push([p.date,p.time,p.well,p.material,p.qty,p.responsible]);}); }
     else { rows.push(["Acesse o menu especifico para exportar detalhes do geral."]); }
 
     var csvContent = "data:text/csv;charset=utf-8," + rows.map(function(e) { return e.map(function(cell) { var c = String(cell || ""); if (c.indexOf(";") > -1 || c.indexOf('"') > -1) { c = '"' + c.replace(/"/g, '""') + '"'; } return c; }).join(";"); }).join("\n");
@@ -859,24 +956,12 @@ async function exportCSV() {
 }
 
 /* ==================== INICIALIZAÇÃO ==================== */
-window.onload = async function() {
-    // Mostra o ecrã de login imediatamente enquanto a base de dados carrega
+window.onload = function() {
+    seedData(); 
+    var sessionId = localStorage.getItem('jaliezer_session');
+    if(sessionId) { var users = DB.get('users'); var found = users.find(function(x){ return x.id === sessionId; }); if(found) { currentUser = found; initApp(); return; } }
     var loginHtml = '<div id="loginOverlay"><div class="login-box"><h1 style="font-family:Orbitron;color:var(--primary);margin-bottom:10px">MINA JALIEZER</h1><p style="color:var(--text-muted);margin-bottom:30px">Controlo Operacional</p><input type="text" id="loginUser" placeholder="Utilizador (admin)" style="margin-bottom:15px"><input type="password" id="loginPass" placeholder="Senha (1234)" style="margin-bottom:20px"><button class="btn btn-primary" style="width:100%" onclick="login()">Entrar</button></div></div>';
     document.body.insertAdjacentHTML('beforeend', loginHtml);
-
-    // Inicializa a base de dados e dados de exemplo
-    await seedData(); 
-    
-    var sessionId = localStorage.getItem('jaliezer_session');
-    if(sessionId) { 
-        var users = await DB.get('users'); 
-        var found = users.find(function(x){ return x.id === sessionId; }); 
-        if(found) { 
-            currentUser = found; 
-            document.getElementById('loginOverlay').style.display = 'none';
-            initApp(); 
-        } 
-    }
 };
 </script>
 </body>
