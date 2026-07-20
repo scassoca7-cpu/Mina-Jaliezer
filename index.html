@@ -55,30 +55,30 @@ th{color:var(--primary);font-size:.75rem;text-transform:uppercase;background:rgb
 .modal-header{padding:15px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center}
 .modal-body{padding:20px;max-height:70vh;overflow-y:auto}.modal-footer{padding:15px 20px;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .search-box input{max-width:400px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3)}
-.report-print-area{padding:20px;background:#fff;color:#000}
 #loginOverlay{position:fixed;inset:0;background:linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);display:flex;align-items:center;justify-content:center;z-index:9999}
 .login-box{background:var(--bg-panel);padding:40px;border-radius:8px;border:1px solid var(--primary);width:350px;text-align:center}
 .stock-card{background:rgba(0,180,216,.05);border:1px solid rgba(0,180,216,.2);padding:15px;border-radius:8px;text-align:center}
 .alert-box{background:rgba(255,0,110,.1);border:1px solid var(--danger);color:var(--danger);padding:15px;border-radius:8px;margin-bottom:15px;display:flex;align-items:center;gap:10px}
 @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}#menuToggle{display:inline-flex!important}.form-row{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr 1fr}.header{padding:10px 15px}}
 
-.pdf-report { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2c3e50; padding: 30px; background: #fff; }
-.pdf-report .pdf-header { text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid #d4af37; }
-.pdf-report .pdf-header h2 { color: #1a1a1a; margin: 0 0 5px 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
-.pdf-report .pdf-header p { margin: 2px 0; font-size: 12px; color: #555; }
-.pdf-report h3 { color: #1a1a1a; font-size: 18px; margin: 25px 0 15px 0; padding-bottom: 5px; border-bottom: 1px solid #ddd; }
-.pdf-report h4 { color: #444; font-size: 14px; margin: 20px 0 10px 0; text-transform: uppercase; }
-.pdf-report table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
-.pdf-report th { background-color: #1a1a1a; color: #fff; padding: 10px 8px; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 11px; }
-.pdf-report td { padding: 8px; border-bottom: 1px solid #ddd; vertical-align: middle; }
-.pdf-report tbody tr:nth-child(even) { background-color: #f8f9fa; }
-.pdf-report tbody tr:hover { background-color: #e9ecef; }
+/* ====== ESTILOS PARA RELATÓRIOS EM PDF (ALTA RESOLUÇÃO) ====== */
+.pdf-report { font-family: 'Arial', Helvetica, sans-serif; color: #000000; padding: 30px; background: #ffffff; }
+.pdf-report .pdf-header { text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid #000000; }
+.pdf-report .pdf-header h2 { color: #000000; margin: 0 0 5px 0; font-size: 26px; text-transform: uppercase; letter-spacing: 1px; }
+.pdf-report .pdf-header p { margin: 2px 0; font-size: 13px; color: #333333; }
+.pdf-report h3 { color: #000000; font-size: 20px; margin: 25px 0 15px 0; padding-bottom: 5px; border-bottom: 2px solid #000000; }
+.pdf-report h4 { color: #000000; font-size: 16px; margin: 20px 0 10px 0; text-transform: uppercase; }
+.pdf-report h5 { color: #000000; font-size: 14px; background: #e6e6e6; padding: 10px; border-left: 4px solid #000000; }
+.pdf-report table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+.pdf-report th { background-color: #000000 !important; color: #ffffff !important; padding: 12px 8px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 12px; border: 1px solid #000000; }
+.pdf-report td { padding: 10px 8px; border: 1px solid #555555; vertical-align: middle; color: #000000; }
+.pdf-report tbody tr:nth-child(even) { background-color: #f2f2f2; }
 .pdf-report .text-right { text-align: right; } .pdf-report .text-center { text-align: center; }
-.pdf-report .text-danger { color: #c0392b; font-weight: bold; } .pdf-report .text-success { color: #27ae60; font-weight: bold; }
-.pdf-report .summary-box { background: #f4f4f4; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-.pdf-report .total-row td { background-color: #d4af37; color: #000; font-weight: bold; font-size: 14px; border: 2px solid #1a1a1a; }
+.pdf-report .text-danger { color: #cc0000; font-weight: bold; } .pdf-report .text-success { color: #008000; font-weight: bold; }
+.pdf-report .summary-box { background: #e6e6e6; padding: 15px; border: 1px solid #000000; margin-bottom: 20px; }
+.pdf-report .total-row td { background-color: #d4af37 !important; color: #000000 !important; font-weight: bold; font-size: 15px; border: 2px solid #000000; }
 .pdf-report .signatures { margin-top: 60px; display: flex; justify-content: space-between; }
-.pdf-report .sign-line { border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px; font-size: 11px; color: #555; }
+.pdf-report .sign-line { border-top: 2px solid #000000; width: 200px; text-align: center; padding-top: 5px; font-size: 12px; color: #000000; }
 </style>
 </head>
 <body>
@@ -207,14 +207,15 @@ function login() {
 }
 function logout() { logAction('Logout', 'Saiu do sistema'); currentUser = null; localStorage.removeItem('jaliezerv2_session'); location.reload(); }
 
-/* ==================== DADOS INICIAIS (DADOS DO UTILIZADOR) ==================== */
+/* ==================== DADOS INICIAIS ==================== */
 function seedData() {
     if(!localStorage.getItem('jaliezerv2_users')) {
+        // Senha padrão para todos: 1234 (h_1709c2)
         DB.save('users', [
-            {"id":"u1","name":"Gerente Geral","user":"admin","pass":"h_170842","role":"admin"},
-            {"id":"u2","name":"Maria Secretária","user":"secretaria","pass":"h_170842","role":"secretaria"},
-            {"id":"u3","name":"Carlos Contabilista","user":"contabilista","pass":"h_170842","role":"contabilista"},
-            {"id":"u4","name":"Ana Diretora de RH","user":"rh","pass":"h_170842","role":"rh"}
+            {"id":"u1","name":"Gerente Geral","user":"admin","pass":"h_1709c2","role":"admin"},
+            {"id":"u2","name":"Maria Secretária","user":"secretaria","pass":"h_1709c2","role":"secretaria"},
+            {"id":"u3","name":"Carlos Contabilista","user":"contabilista","pass":"h_1709c2","role":"contabilista"},
+            {"id":"u4","name":"Ana Diretora de RH","user":"rh","pass":"h_1709c2","role":"rh"}
         ]);
     }
     if(!localStorage.getItem('jaliezerv2_company_config')) {
@@ -238,40 +239,40 @@ function seedData() {
     
     if(!localStorage.getItem('jaliezerv2_fuel_logs')) {
         DB.save('fuel_logs', [
-            {"date":"19/07/2026","time":"20:07","type":"Entrada","fuelType":"Gasóleo","litros":3500,"equipment":"Gerador Denyo Sound 300SP","brand":"undefined","plate":"undefined","empName":"Ilota Santos","val":147000,"id":"fl1784480916766"},
-            {"date":"05/07/2026","time":"20:09","type":"Entrada","fuelType":"Gasóleo","litros":3012,"equipment":"Gerador Denyo Sound 300SP","brand":"undefined","plate":"undefined","empName":"Ilota Santos","val":1265040,"id":"fl1784480996342"},
-            {"date":"04/07/2026","time":"20:10","type":"Saída","fuelType":"Gasóleo","litros":488,"equipment":"Maquina","brand":"Maquina Shantui SO 32","plate":"SHANTUI SO 32","empName":"Ilota Santos","val":204960,"id":"fl1784481159189"},
-            {"date":"05/07/2026","time":"16:40","type":"Saída","fuelType":"Gasóleo","litros":39,"equipment":"Toyota Protocolar","brand":"Land Cruiser","plate":"LD-26-48-HN","empName":"Motorista","val":16380,"id":"fl1784483866701"},
-            {"date":"08/07/2026","time":"21:27","type":"Saída","fuelType":"Gasóleo","litros":61,"equipment":"Toyota Protocolar","brand":"Land Cruiser","plate":"LD-26-48-HN","empName":"Motorista","val":25662,"id":"fl1784485786707"},
-            {"date":"10/07/2026","time":"21:29","type":"Saída","fuelType":"Gasóleo","litros":47,"equipment":"Toyota Protocolar","brand":"Land Cruiser","plate":"LD-26-48-HN","empName":"Motorista","val":19740,"id":"fl1784485850507"},
-            {"date":"12/07/2026","time":"21:31","type":"Saída","fuelType":"Gasóleo","litros":30,"equipment":"Toyota de Apoio","brand":"Land Cruiser","plate":"LDT - 37-12","empName":"Motorista","val":12600,"id":"fl1784485951691"},
-            {"date":"05/07/2026","time":"21:32","type":"Saída","fuelType":"Gasóleo","litros":41,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motorista","val":17220,"id":"fl1784486021659"},
-            {"date":"08/07/2026","time":"21:34","type":"Saída","fuelType":"Gasóleo","litros":42,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motorista","val":17640,"id":"fl1784486075971"},
-            {"date":"12/07/2026","time":"21:35","type":"Saída","fuelType":"Gasóleo","litros":30,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motorista","val":12600,"id":"fl1784486154427"},
-            {"date":"13/07/2026","time":"21:35","type":"Saída","fuelType":"Gasóleo","litros":10,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motoista","val":4200,"id":"fl1784486184386"},
-            {"date":"14/07/2026","time":"21:36","type":"Saída","fuelType":"Gasóleo","litros":25,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motorista","val":10500,"id":"fl1784486221498"},
-            {"date":"06/07/2026","time":"21:38","type":"Saída","fuelType":"Gasóleo","litros":32,"equipment":"Nissan","brand":"Navara","plate":"LD- 59-87 HV","empName":"Motorista","val":13440,"id":"fl1784486347858"},
-            {"date":"08/07/2026","time":"21:39","type":"Saída","fuelType":"Gasóleo","litros":26,"equipment":"Nissan","brand":"Navara","plate":"LD- 59-87 HV","empName":"Motorista","val":10920,"id":"fl1784486381025"},
-            {"date":"09/07/2026","time":"21:39","type":"Saída","fuelType":"Gasóleo","litros":28,"equipment":"Nissan","brand":"Navara","plate":"LD- 59-87 HV","empName":"Motrista","val":11760,"id":"fl1784486435067"},
-            {"date":"09/07/2026","time":"21:40","type":"Saída","fuelType":"Gasóleo","litros":90,"equipment":"Toyota","brand":"Land Cruiser V8","plate":"LD- 78-50 AU","empName":"Motorista","val":37800,"id":"fl1784486500627"},
-            {"date":"10/07/2026","time":"21:41","type":"Saída","fuelType":"Gasóleo","litros":50,"equipment":"Toyota","brand":"Land Cruiser V8","plate":"LD-64-92 HI","empName":"Motorista","val":21000,"id":"fl1784486563178"},
-            {"date":"07/07/2026","time":"21:43","type":"Saída","fuelType":"Gasóleo","litros":167.9,"equipment":"Sino Truk Pesado","brand":"Sino-Truk","plate":"LD-28-13 DY","empName":"Motorista","val":70518,"id":"fl1784486667915"},
-            {"date":"07/07/2026","time":"21:44","type":"Saída","fuelType":"Gasóleo","litros":120,"equipment":"Renaut / Camião 350","brand":"Renault","plate":"LD- 60-89 CB","empName":"Motorista","val":50400,"id":"fl1784486778625"},
-            {"date":"06/07/2026","time":"21:46","type":"Saída","fuelType":"Gasóleo","litros":40,"equipment":"Maquina","brand":"Maquina Cat","plate":"CAT 340","empName":"Motorista","val":16800,"id":"fl1784486817482"},
-            {"date":"08/07/2026","time":"21:47","type":"Saída","fuelType":"Gasóleo","litros":60,"equipment":"Maquina","brand":"Maquina Cat","plate":"CAT 340","empName":"Motorista","val":25200,"id":"fl1784486893506"},
-            {"date":"06/07/2026","time":"21:48","type":"Saída","fuelType":"Gasóleo","litros":100,"equipment":"Maquina","brand":"Maquina Shantui SO 32","plate":"SHANTUI SO 32","empName":"Motorista","val":42000,"id":"fl1784486966483"},
-            {"date":"13/07/2026","time":"21:49","type":"Saída","fuelType":"Gasóleo","litros":40,"equipment":"Maquina/ BORDOZE","brand":"Maquina SR Lourenço","plate":"BORDOZE","empName":"Motorista","val":16800,"id":"fl1784487043476"},
-            {"date":"15/07/2026","time":"21:50","type":"Saída","fuelType":"Gasóleo","litros":45,"equipment":"Maquina SLDM","brand":"Pá Carregadeira SLDM","plate":"SLDM","empName":"Motorista","val":18900,"id":"fl1784487095458"},
-            {"date":"05/07/2026","time":"21:51","type":"Saída","fuelType":"Gasóleo","litros":225,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":94500,"id":"fl1784487137410"},
-            {"date":"09/07/2026","time":"21:52","type":"Saída","fuelType":"Gasóleo","litros":150,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":63000,"id":"fl1784487183250"},
-            {"date":"11/07/2026","time":"21:53","type":"Saída","fuelType":"Gasóleo","litros":145,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":60900,"id":"fl1784487243682"},
-            {"date":"13/07/2026","time":"21:54","type":"Saída","fuelType":"Gasóleo","litros":220,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":92400,"id":"fl1784487277115"},
-            {"date":"15/07/2026","time":"21:55","type":"Saída","fuelType":"Gasóleo","litros":53,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":22260,"id":"fl1784487385962"},
-            {"date":"13/07/2026","time":"21:56","type":"Saída","fuelType":"Gasóleo","litros":53,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":42000,"id":"fl1784487430073"},
-            {"date":"06/07/2026","time":"21:57","type":"Saída","fuelType":"Gasóleo","litros":21,"equipment":"Gerador Azul","brand":"SDM","plate":"AZUL SDM","empName":"Motorista","val":8820,"id":"fl1784487477561"},
-            {"date":"08/07/2026","time":"21:58","type":"Saída","fuelType":"Gasóleo","litros":20,"equipment":"Gerador Azul","brand":"SDM","plate":"AZUL SDM","empName":"Motorista","val":8400,"id":"fl1784487510707"},
-            {"date":"07/07/2026","time":"21:58","type":"Saída","fuelType":"Gasóleo","litros":300,"equipment":"Gerador Denyo","brand":"Denyo Sound 300 SP","plate":"Denyo Sound 300 SP","empName":"Motorista","val":126000,"id":"fl1784487565018"},
-            {"date":"16/07/2026","time":"21:59","type":"Saída","fuelType":"Gasóleo","litros":200,"equipment":"Gerador Denyo","brand":"Denyo Sound 300 SP","plate":"Denyo Sound 300 SP","empName":"Motorista","val":84000,"id":"fl1784487596026"}
+            {"date":"19/07/2026","time":"20:07","type":"Entrada","fuelType":"Gasóleo","litros":3500,"equipment":"Gerador Denyo Sound 300SP","brand":"","plate":"","empName":"Ilota Santos","val":147000,"id":"fl1"},
+            {"date":"05/07/2026","time":"20:09","type":"Entrada","fuelType":"Gasóleo","litros":3012,"equipment":"Gerador Denyo Sound 300SP","brand":"","plate":"","empName":"Ilota Santos","val":1265040,"id":"fl2"},
+            {"date":"04/07/2026","time":"20:10","type":"Saída","fuelType":"Gasóleo","litros":488,"equipment":"Maquina","brand":"Maquina Shantui SO 32","plate":"SHANTUI SO 32","empName":"Ilota Santos","val":204960,"id":"fl3"},
+            {"date":"05/07/2026","time":"16:40","type":"Saída","fuelType":"Gasóleo","litros":39,"equipment":"Toyota Protocolar","brand":"Land Cruiser","plate":"LD-26-48-HN","empName":"Motorista","val":16380,"id":"fl4"},
+            {"date":"08/07/2026","time":"21:27","type":"Saída","fuelType":"Gasóleo","litros":61,"equipment":"Toyota Protocolar","brand":"Land Cruiser","plate":"LD-26-48-HN","empName":"Motorista","val":25662,"id":"fl5"},
+            {"date":"10/07/2026","time":"21:29","type":"Saída","fuelType":"Gasóleo","litros":47,"equipment":"Toyota Protocolar","brand":"Land Cruiser","plate":"LD-26-48-HN","empName":"Motorista","val":19740,"id":"fl6"},
+            {"date":"12/07/2026","time":"21:31","type":"Saída","fuelType":"Gasóleo","litros":30,"equipment":"Toyota de Apoio","brand":"Land Cruiser","plate":"LDT - 37-12","empName":"Motorista","val":12600,"id":"fl7"},
+            {"date":"05/07/2026","time":"21:32","type":"Saída","fuelType":"Gasóleo","litros":41,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motorista","val":17220,"id":"fl8"},
+            {"date":"08/07/2026","time":"21:34","type":"Saída","fuelType":"Gasóleo","litros":42,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motorista","val":17640,"id":"fl9"},
+            {"date":"12/07/2026","time":"21:35","type":"Saída","fuelType":"Gasóleo","litros":30,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motorista","val":12600,"id":"fl10"},
+            {"date":"13/07/2026","time":"21:35","type":"Saída","fuelType":"Gasóleo","litros":10,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motoista","val":4200,"id":"fl11"},
+            {"date":"14/07/2026","time":"21:36","type":"Saída","fuelType":"Gasóleo","litros":25,"equipment":"Toyota Do Pessoal","brand":"Land Cruiser","plate":"LD-09-83 HI","empName":"Motorista","val":10500,"id":"fl12"},
+            {"date":"06/07/2026","time":"21:38","type":"Saída","fuelType":"Gasóleo","litros":32,"equipment":"Nissan","brand":"Navara","plate":"LD- 59-87 HV","empName":"Motorista","val":13440,"id":"fl13"},
+            {"date":"08/07/2026","time":"21:39","type":"Saída","fuelType":"Gasóleo","litros":26,"equipment":"Nissan","brand":"Navara","plate":"LD- 59-87 HV","empName":"Motorista","val":10920,"id":"fl14"},
+            {"date":"09/07/2026","time":"21:39","type":"Saída","fuelType":"Gasóleo","litros":28,"equipment":"Nissan","brand":"Navara","plate":"LD- 59-87 HV","empName":"Motrista","val":11760,"id":"fl15"},
+            {"date":"09/07/2026","time":"21:40","type":"Saída","fuelType":"Gasóleo","litros":90,"equipment":"Toyota","brand":"Land Cruiser V8","plate":"LD- 78-50 AU","empName":"Motorista","val":37800,"id":"fl16"},
+            {"date":"10/07/2026","time":"21:41","type":"Saída","fuelType":"Gasóleo","litros":50,"equipment":"Toyota","brand":"Land Cruiser V8","plate":"LD-64-92 HI","empName":"Motorista","val":21000,"id":"fl17"},
+            {"date":"07/07/2026","time":"21:43","type":"Saída","fuelType":"Gasóleo","litros":167.9,"equipment":"Sino Truk Pesado","brand":"Sino-Truk","plate":"LD-28-13 DY","empName":"Motorista","val":70518,"id":"fl18"},
+            {"date":"07/07/2026","time":"21:44","type":"Saída","fuelType":"Gasóleo","litros":120,"equipment":"Renaut / Camião 350","brand":"Renault","plate":"LD- 60-89 CB","empName":"Motorista","val":50400,"id":"fl19"},
+            {"date":"06/07/2026","time":"21:46","type":"Saída","fuelType":"Gasóleo","litros":40,"equipment":"Maquina","brand":"Maquina Cat","plate":"CAT 340","empName":"Motorista","val":16800,"id":"fl20"},
+            {"date":"08/07/2026","time":"21:47","type":"Saída","fuelType":"Gasóleo","litros":60,"equipment":"Maquina","brand":"Maquina Cat","plate":"CAT 340","empName":"Motorista","val":25200,"id":"fl21"},
+            {"date":"06/07/2026","time":"21:48","type":"Saída","fuelType":"Gasóleo","litros":100,"equipment":"Maquina","brand":"Maquina Shantui SO 32","plate":"SHANTUI SO 32","empName":"Motorista","val":42000,"id":"fl22"},
+            {"date":"13/07/2026","time":"21:49","type":"Saída","fuelType":"Gasóleo","litros":40,"equipment":"Maquina/ BORDOZE","brand":"Maquina SR Lourenço","plate":"BORDOZE","empName":"Motorista","val":16800,"id":"fl23"},
+            {"date":"15/07/2026","time":"21:50","type":"Saída","fuelType":"Gasóleo","litros":45,"equipment":"Maquina SLDM","brand":"Pá Carregadeira SLDM","plate":"SLDM","empName":"Motorista","val":18900,"id":"fl24"},
+            {"date":"05/07/2026","time":"21:51","type":"Saída","fuelType":"Gasóleo","litros":225,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":94500,"id":"fl25"},
+            {"date":"09/07/2026","time":"21:52","type":"Saída","fuelType":"Gasóleo","litros":150,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":63000,"id":"fl26"},
+            {"date":"11/07/2026","time":"21:53","type":"Saída","fuelType":"Gasóleo","litros":145,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":60900,"id":"fl27"},
+            {"date":"13/07/2026","time":"21:54","type":"Saída","fuelType":"Gasóleo","litros":220,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":92400,"id":"fl28"},
+            {"date":"15/07/2026","time":"21:55","type":"Saída","fuelType":"Gasóleo","litros":53,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":22260,"id":"fl29"},
+            {"date":"13/07/2026","time":"21:56","type":"Saída","fuelType":"Gasóleo","litros":53,"equipment":"Gerador","brand":"Perkins Amarelo","plate":"PERKINS AMARELO","empName":"Motorista","val":42000,"id":"fl30"},
+            {"date":"06/07/2026","time":"21:57","type":"Saída","fuelType":"Gasóleo","litros":21,"equipment":"Gerador Azul","brand":"SDM","plate":"AZUL SDM","empName":"Motorista","val":8820,"id":"fl31"},
+            {"date":"08/07/2026","time":"21:58","type":"Saída","fuelType":"Gasóleo","litros":20,"equipment":"Gerador Azul","brand":"SDM","plate":"AZUL SDM","empName":"Motorista","val":8400,"id":"fl32"},
+            {"date":"07/07/2026","time":"21:58","type":"Saída","fuelType":"Gasóleo","litros":300,"equipment":"Gerador Denyo","brand":"Denyo Sound 300 SP","plate":"Denyo Sound 300 SP","empName":"Motorista","val":126000,"id":"fl33"},
+            {"date":"16/07/2026","time":"21:59","type":"Saída","fuelType":"Gasóleo","litros":200,"equipment":"Gerador Denyo","brand":"Denyo Sound 300 SP","plate":"Denyo Sound 300 SP","empName":"Motorista","val":84000,"id":"fl34"}
         ]);
     }
     
@@ -290,7 +291,7 @@ function seedData() {
             {"id":"p3","date":"06/07/2026","type":"Entrada","item":"Gás de Cozinha","qty":"5 Botijas","cost":25000},
             {"id":"p4","date":"10/07/2026","type":"Saída","item":"Arroz","qty":"2 Sacos","cost":0},
             {"id":"p5","date":"12/07/2026","type":"Saída","item":"Feijão","qty":"1 Sacos","cost":0},
-            {"date":"19/07/2026","type":"Entrada","item":"Frango","qty":"10","cost":1000000,"id":"p1784418253011"}
+            {"id":"p6","date":"19/07/2026","type":"Entrada","item":"Frango","qty":"10","cost":1000000}
         ]);
     }
     
@@ -299,21 +300,21 @@ function seedData() {
             {"id":"eq1","name":"Gerador Denyo Sound 300SP","type":"Energia","status":"Operacional","hours":"1500h"},
             {"id":"eq2","name":"Camião Renault 350","type":"Transporte","status":"Operacional","hours":"80000km"},
             {"id":"eq3","name":"Escavadora CAT 320","type":"Mineração","status":"Manutenção","hours":"3200h"},
-            {"name":"Toyota Protocolar","brand":"Land Cruiser","type":"Veículo","plate":"LD-26-48-HN","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481413541"},
-            {"name":"Toyota de Apoio","brand":"Land Cruiser","type":"Veículo","plate":"LDT - 37-12","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481495789"},
-            {"name":"Toyota Do Pessoal","brand":"Land Cruiser","type":"Veículo","plate":"LD-09-83 HI","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481563981"},
-            {"name":"Nissan","brand":"Navara","type":"Veículo","plate":"LD- 59-87 HV","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481607292"},
-            {"name":"Toyota","brand":"Land Cruiser V8","type":"Veículo","plate":"LD- 78-50 AU","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481665532"},
-            {"name":"Toyota","brand":"Land Cruiser V8","type":"Veículo","plate":"LD-64-92 HI","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481709469"},
-            {"name":"Sino Truk Pesado","brand":"Sino-Truk","type":"Veículo","plate":"LD-28-13 DY","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481775557"},
-            {"name":"Renaut / Camião 350","brand":"Renault","type":"Veículo","plate":"LD- 60-89 CB","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481845588"},
-            {"name":"Maquina","brand":"Maquina Cat","type":"Veículo","plate":"CAT 340","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481884669"},
-            {"name":"Maquina","brand":"Maquina Shantui SO 32","type":"Veículo","plate":"SHANTUI SO 32","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784481935589"},
-            {"name":"Maquina/ BORDOZE","brand":"Maquina SR Lourenço","type":"Veículo","plate":"BORDOZE","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784482008157"},
-            {"name":"Maquina SLDM","brand":"Pá Carregadeira SLDM","type":"Veículo","plate":"SLDM","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784482072741"},
-            {"name":"Gerador","brand":"Perkins Amarelo","type":"Veículo","plate":"PERKINS AMARELO","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784482138540"},
-            {"name":"Gerador Azul","brand":"SDM","type":"Veículo","plate":"AZUL SDM","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784482647308"},
-            {"name":"Gerador Denyo","brand":"Denyo Sound 300 SP","type":"Veículo","plate":"Denyo Sound 300 SP","buyPrice":0,"sellPrice":0,"status":"Em Inventário","id":"eq1784482714500"}
+            {"id":"eq4","name":"Toyota Protocolar","brand":"Land Cruiser","type":"Veículo","plate":"LD-26-48-HN","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq5","name":"Toyota de Apoio","brand":"Land Cruiser","type":"Veículo","plate":"LDT - 37-12","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq6","name":"Toyota Do Pessoal","brand":"Land Cruiser","type":"Veículo","plate":"LD-09-83 HI","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq7","name":"Nissan","brand":"Navara","type":"Veículo","plate":"LD- 59-87 HV","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq8","name":"Toyota","brand":"Land Cruiser V8","type":"Veículo","plate":"LD- 78-50 AU","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq9","name":"Toyota","brand":"Land Cruiser V8","type":"Veículo","plate":"LD-64-92 HI","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq10","name":"Sino Truk Pesado","brand":"Sino-Truk","type":"Veículo","plate":"LD-28-13 DY","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq11","name":"Renaut / Camião 350","brand":"Renault","type":"Veículo","plate":"LD- 60-89 CB","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq12","name":"Maquina","brand":"Maquina Cat","type":"Veículo","plate":"CAT 340","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq13","name":"Maquina","brand":"Maquina Shantui SO 32","type":"Veículo","plate":"SHANTUI SO 32","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq14","name":"Maquina/ BORDOZE","brand":"Maquina SR Lourenço","type":"Veículo","plate":"BORDOZE","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq15","name":"Maquina SLDM","brand":"Pá Carregadeira SLDM","type":"Veículo","plate":"SLDM","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq16","name":"Gerador","brand":"Perkins Amarelo","type":"Veículo","plate":"PERKINS AMARELO","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq17","name":"Gerador Azul","brand":"SDM","type":"Veículo","plate":"AZUL SDM","buyPrice":0,"sellPrice":0,"status":"Em Inventário"},
+            {"id":"eq18","name":"Gerador Denyo","brand":"Denyo Sound 300 SP","type":"Veículo","plate":"Denyo Sound 300 SP","buyPrice":0,"sellPrice":0,"status":"Em Inventário"}
         ]);
     }
     
@@ -327,85 +328,8 @@ function seedData() {
     
     if(!localStorage.getItem('jaliezerv2_audit_logs')) {
         DB.save('audit_logs', [
-            {"id":"log1784418136372","user":"Gerente Geral","role":"admin","action":"Login","detail":"Entrou no sistema","date":"19/07/2026, 02:42:16"},
-            {"id":"log1784418253011","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Alimentação: Entrada 10 Frango","date":"19/07/2026, 02:44:13"},
-            {"id":"log1784418274379","user":"Gerente Geral","role":"admin","action":"Logout","detail":"Saiu do sistema","date":"19/07/2026, 02:44:34"},
-            {"id":"log1784418562219","user":"Gerente Geral","role":"admin","action":"Login","detail":"Entrou no sistema","date":"19/07/2026, 02:49:22"},
-            {"id":"log1784477796311","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Gerador","date":"19/07/2026, 19:16:36"},
-            {"id":"log1784477813392","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Combustível: Pick-up Toyota","date":"19/07/2026, 19:16:53"},
-            {"id":"log1784477815630","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Combustível: Gerador AZUL SDM","date":"19/07/2026, 19:16:55"},
-            {"id":"log1784477816366","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Combustível: Camião Renault 350","date":"19/07/2026, 19:16:56"},
-            {"id":"log1784477824366","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Combustível: Gerador AZUL SDM","date":"19/07/2026, 19:17:04"},
-            {"id":"log1784479287774","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Património: Entrada COMPRA DE GASÓLEO","date":"19/07/2026, 19:41:27"},
-            {"id":"log1784479977615","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Património: Entrada GASÓLEO","date":"19/07/2026, 19:52:57"},
-            {"id":"log1784480019678","user":"Gerente Geral","role":"admin","action":"Editar","detail":"Património: COMPRA DE GASÓLEO","date":"19/07/2026, 19:53:39"},
-            {"id":"log1784480030726","user":"Gerente Geral","role":"admin","action":"Editar","detail":"Património: GASÓLEO","date":"19/07/2026, 19:53:50"},
-            {"id":"log1784480196533","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Património: Saída GASÓLEO","date":"19/07/2026, 19:56:36"},
-            {"id":"log1784480212134","user":"Gerente Geral","role":"admin","action":"Editar","detail":"Património: GASÓLEO","date":"19/07/2026, 19:56:52"},
-            {"id":"log1784480259381","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Património: Pick-up Toyota Usada","date":"19/07/2026, 19:57:39"},
-            {"id":"log1784480735741","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Património: GASÓLEO","date":"19/07/2026, 20:05:35"},
-            {"id":"log1784480737493","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Património: GASÓLEO","date":"19/07/2026, 20:05:37"},
-            {"id":"log1784480740749","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Património: COMPRA DE GASÓLEO","date":"19/07/2026, 20:05:40"},
-            {"id":"log1784480741365","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Património: Gasóleo","date":"19/07/2026, 20:05:41"},
-            {"id":"log1784480742214","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Património: Escavadora CAT 320","date":"19/07/2026, 20:05:42"},
-            {"id":"log1784480916766","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Entrada 3500L","date":"19/07/2026, 20:08:36"},
-            {"id":"log1784480938077","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Combustível: Gerador","date":"19/07/2026, 20:08:58"},
-            {"id":"log1784480939300","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Combustível: Gerador Denyo Sound 300SP","date":"19/07/2026, 20:08:59"},
-            {"id":"log1784480940166","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Combustível: Gerador Denyo Sound 300SP","date":"19/07/2026, 20:09:00"},
-            {"id":"log1784480996342","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Entrada 3012L","date":"19/07/2026, 20:09:56"},
-            {"id":"log1784481159189","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 488L","date":"19/07/2026, 20:12:39"},
-            {"id":"log1784481413542","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Toyota Protocolar","date":"19/07/2026, 20:16:53"},
-            {"id":"log1784481495789","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Toyota de Apoio","date":"19/07/2026, 20:18:15"},
-            {"id":"log1784481563981","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Toyota Do Pessoal","date":"19/07/2026, 20:19:23"},
-            {"id":"log1784481607293","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Nissan","date":"19/07/2026, 20:20:07"},
-            {"id":"log1784481665533","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Toyota","date":"19/07/2026, 20:21:05"},
-            {"id":"log1784481709470","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Toyota","date":"19/07/2026, 20:21:49"},
-            {"id":"log1784481775558","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Sino Truk Pesado","date":"19/07/2026, 20:22:55"},
-            {"id":"log1784481845589","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Renaut / Camião 350","date":"19/07/2026, 20:24:05"},
-            {"id":"log1784481884669","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Maquina","date":"19/07/2026, 20:24:44"},
-            {"id":"log1784481935589","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Maquina","date":"19/07/2026, 20:25:35"},
-            {"id":"log1784482008157","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Maquina/ BORDOZE","date":"19/07/2026, 20:26:48"},
-            {"id":"log1784482072741","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Maquina SLDM","date":"19/07/2026, 20:27:52"},
-            {"id":"log1784482138540","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Gerador","date":"19/07/2026, 20:28:58"},
-            {"id":"log1784482647308","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Gerador Azul","date":"19/07/2026, 20:37:27"},
-            {"id":"log1784482714501","user":"Gerente Geral","role":"admin","action":"Adicionar","detail":"Equipamento: Gerador Denyo","date":"19/07/2026, 20:38:34"},
-            {"id":"log1784482815484","user":"Gerente Geral","role":"admin","action":"Editar","detail":"Combustível: Maquina","date":"19/07/2026, 20:40:15"},
-            {"id":"log1784482847789","user":"Gerente Geral","role":"admin","action":"Editar","detail":"Combustível: Maquina","date":"19/07/2026, 20:40:47"},
-            {"id":"log1784483866701","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 39L","date":"19/07/2026, 20:57:46"},
-            {"id":"log1784485786707","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 61L","date":"19/07/2026, 21:29:46"},
-            {"id":"log1784485850507","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 47L","date":"19/07/2026, 21:30:50"},
-            {"id":"log1784485873045","user":"Gerente Geral","role":"admin","action":"Editar","detail":"Combustível: Toyota Protocolar","date":"19/07/2026, 21:31:13"},
-            {"id":"log1784485951691","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 30L","date":"19/07/2026, 21:32:31"},
-            {"id":"log1784486021659","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 41L","date":"19/07/2026, 21:33:41"},
-            {"id":"log1784486075971","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 42L","date":"19/07/2026, 21:34:35"},
-            {"id":"log1784486154428","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 30L","date":"19/07/2026, 21:35:54"},
-            {"id":"log1784486184386","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 10L","date":"19/07/2026, 21:36:24"},
-            {"id":"log1784486221499","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 25L","date":"19/07/2026, 21:37:01"},
-            {"id":"log1784486347859","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 32L","date":"19/07/2026, 21:39:07"},
-            {"id":"log1784486381026","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 26L","date":"19/07/2026, 21:39:41"},
-            {"id":"log1784486435067","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 28L","date":"19/07/2026, 21:40:35"},
-            {"id":"log1784486500627","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 90L","date":"19/07/2026, 21:41:40"},
-            {"id":"log1784486563179","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 50L","date":"19/07/2026, 21:42:43"},
-            {"id":"log1784486667915","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 167.9L","date":"19/07/2026, 21:44:27"},
-            {"id":"log1784486778625","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 120L","date":"19/07/2026, 21:46:18"},
-            {"id":"log1784486817482","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 40L","date":"19/07/2026, 21:46:57"},
-            {"id":"log1784486893506","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 60L","date":"19/07/2026, 21:48:13"},
-            {"id":"log1784486966483","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 100L","date":"19/07/2026, 21:49:26"},
-            {"id":"log1784487043477","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 40L","date":"19/07/2026, 21:50:43"},
-            {"id":"log1784487095459","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 45L","date":"19/07/2026, 21:51:35"},
-            {"id":"log1784487137410","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 225L","date":"19/07/2026, 21:52:17"},
-            {"id":"log1784487183250","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 150L","date":"19/07/2026, 21:53:03"},
-            {"id":"log1784487243682","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 145L","date":"19/07/2026, 21:54:03"},
-            {"id":"log1784487277116","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 220L","date":"19/07/2026, 21:54:37"},
-            {"id":"log1784487333113","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 100L","date":"19/07/2026, 21:55:33"},
-            {"id":"log1784487385962","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 53L","date":"19/07/2026, 21:56:25"},
-            {"id":"log1784487391834","user":"Gerente Geral","role":"admin","action":"Apagar","detail":"Combustível: Gerador","date":"19/07/2026, 21:56:31"},
-            {"id":"log1784487430074","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 53L","date":"19/07/2026, 21:57:10"},
-            {"id":"log1784487477562","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 21L","date":"19/07/2026, 21:57:57"},
-            {"id":"log1784487510707","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 20L","date":"19/07/2026, 21:58:30"},
-            {"id":"log1784487565018","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 300L","date":"19/07/2026, 21:59:25"},
-            {"id":"log1784487596026","user":"Gerente Geral","role":"admin","action":"Registar","detail":"Combustível: Saída 200L","date":"19/07/2026, 21:59:56"},
-            {"id":"log1784487665641","user":"Gerente Geral","role":"admin","action":"Config","detail":"Atualizou dados da empresa","date":"19/07/2026, 22:01:05"}
+            {"id":"log1","user":"Gerente Geral","role":"admin","action":"Login","detail":"Entrou no sistema","date":"19/07/2026, 02:42:16"},
+            {"id":"log2","user":"Gerente Geral","role":"admin","action":"Config","detail":"Atualizou dados da empresa","date":"19/07/2026, 22:01:05"}
         ]);
     }
 }
@@ -639,7 +563,7 @@ function genPaycheck(id) {
         '<tr><td class="text-danger">(-) Retenção IRT (Tabela Progressiva)</td><td class="text-right text-danger">'+fmt(irt)+'</td></tr>'+
         '<tr><td class="text-danger">(-) Segurança Social (3%)</td><td class="text-right text-danger">'+fmt(seg)+'</td></tr>'+
         '<tr class="total-row"><td>Valor Líquido a Receber</td><td class="text-right">'+fmt(liquido)+'</td></tr></tbody></table>'+
-        '<p style="margin-top:40px;font-size:.9rem;color:#555;">Declaro ter recebido a importância acima descrita, pelo que dou plena e geral quitação.</p>'+
+        '<p style="margin-top:40px;font-size:.9rem;color:#000;">Declaro ter recebido a importância acima descrita, pelo que dou plena e geral quitação.</p>'+
         '<div class="signatures">'+
             '<div class="sign-line">Assinatura do Funcionário</div>'+
             '<div class="sign-line">Pela Empresa</div>'+
@@ -647,13 +571,7 @@ function genPaycheck(id) {
     '</div>';
     
     var printArea = document.createElement('div'); printArea.innerHTML = html; document.body.appendChild(printArea);
-    var opt = { 
-        margin: 5, 
-        filename: 'Recibo_'+emp.name.replace(/ /g,'_')+'.pdf', 
-        image: { type: 'jpeg', quality: 0.98 }, 
-        html2canvas: { scale: 3, useCORS: true }, 
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
-    };
+    var opt = { margin: 5, filename: 'Recibo_'+emp.name.replace(/ /g,'_')+'.pdf', image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 4, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: false } };
     showToast('A gerar PDF...','info'); 
     html2pdf().set(opt).from(printArea.firstChild).save().then(function(){ printArea.remove(); });
 }
@@ -873,44 +791,78 @@ function loadAudit() {
 }
 function clearAudit() { if(confirm('Limpar todo o histórico?')) { DB.save('audit_logs', []); showToast('Histórico limpo!','danger'); loadAudit(); } }
 
-/* ==================== RELATÓRIOS SEPARADOS ==================== */
+/* ==================== RELATÓRIOS ==================== */
 function loadReports() {
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📈 Central de Relatórios</h2><div style="display:flex;gap:10px"><button class="btn btn-success btn-sm" onclick="exportPDF()">📄 Gerar PDF</button><button class="btn btn-info btn-sm" onclick="exportCSV()">📊 Exportar Excel</button></div></div>';
-    html += '<div class="card"><h3>Selecionar Relatório</h3><div class="form-row"><div><label>Tipo de Relatório *</label><select id="reportType" onchange="generateReport()"><option value="">-- Escolha um Relatório --</option><option value="fuel">Relatório de Combustível</option><option value="provisions">Relatório de Alimentação</option><option value="equipment">Relatório de Equipamentos (Ativos)</option><option value="finance">Relatório Financeiro (Caixa/Banco)</option><option value="production">Relatório de Produção</option><option value="general">Relatório Geral e Auditoria</option></select></div></div></div>';
+    html += '<div class="card"><h3>Selecionar Relatório</h3><div class="form-row"><div><label>Tipo de Relatório *</label><select id="reportType" onchange="generateReport()"><option value="">-- Escolha um Relatório --</option><option value="fuel">Relatório de Combustível (Por Veículo)</option><option value="provisions">Relatório de Alimentação</option><option value="equipment">Relatório de Equipamentos (Ativos)</option><option value="finance">Relatório Financeiro (Caixa/Banco)</option><option value="production">Relatório de Produção</option><option value="general">Relatório Geral e Auditoria</option></select></div></div></div>';
     html += '<div id="reportPrintArea" class="card" style="background:#fff;color:#000;display:none"></div>';
     document.getElementById('appContent').innerHTML = html;
 }
+
 function generateReport() {
     var type = val('reportType');
     var printArea = document.getElementById('reportPrintArea');
     var config = DB.get('company_config')[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
     
-    var header = '<div class="pdf-header">'+
-                    '<h2>'+config.name.toUpperCase()+'</h2>'+
-                    '<p>NIF: '+config.nif+' | '+config.address+'</p>'+
-                    '<p style="margin-top:5px; font-size:11px; color:#888;">Relatório Gerado em: '+getTodayStr()+'</p>'+
-                 '</div>';
-
+    var header = '<div class="pdf-header"><h2>'+config.name.toUpperCase()+'</h2><p>NIF: '+config.nif+' | '+config.address+'</p><p style="margin-top:5px; font-size:11px; color:#888;">Relatório Gerado em: '+getTodayStr()+'</p></div>';
     var html = '<div class="pdf-report">' + header;
 
     if(type === 'fuel') {
         var data = DB.get('fuel_logs');
         var entradas = data.filter(function(f){return f.type==='Entrada';});
         var saidas = data.filter(function(f){return f.type==='Saída';});
-        var mediaPreco = entradas.length > 0 ? entradas.reduce(function(a,b){return a+b.val;},0) / entradas.reduce(function(a,b){return a+b.litros;},0) : 0;
+        var PRECO_LITRO_COMBUSTIVEL = 420; 
 
         html += '<h3>Relatório de Combustível</h3>';
         html += '<h4>1. Compras (Entradas em Stock)</h4>';
         html += '<table><thead><tr><th>Data</th><th>Combustível</th><th class="text-center">Qtd (Litros)</th><th class="text-right">Valor Compra (Kz)</th></tr></thead><tbody>';
         entradas.forEach(function(f) { html += '<tr><td>'+f.date+'</td><td>'+f.fuelType+'</td><td class="text-center">'+f.litros+' L</td><td class="text-right">'+fmt(f.val)+'</td></tr>'; });
         html += '</tbody></table>';
-        html += '<h4>2. Consumos (Saídas para Equipamentos)</h4>';
-        html += '<table><thead><tr><th>Data/Hora</th><th>Equipamento</th><th>Matrícula</th><th>Funcionário</th><th class="text-center">Litros</th><th class="text-right">Valor (Kz)</th></tr></thead><tbody>';
-        saidas.forEach(function(f) { 
-            var valSaida = f.val > 0 ? f.val : (f.litros * mediaPreco);
-            html += '<tr><td>'+f.date+' '+f.time+'</td><td>'+f.equipment+'</td><td>'+(f.plate||'-')+'</td><td>'+f.empName+'</td><td class="text-center">'+f.litros+'</td><td class="text-right">'+fmt(valSaida)+'</td></tr>'; 
+
+        html += '<h4>2. Consumos por Veículo / Equipamento <span style="font-size:12px; font-weight:normal; color:#333;">(Avaliado a '+fmt(PRECO_LITRO_COMBUSTIVEL)+' Kz / Litro)</span></h4>';
+        
+        var groupedSaidas = {};
+        saidas.forEach(function(f) {
+            var eqName = f.equipment || 'Desconhecido';
+            if(!groupedSaidas[eqName]) groupedSaidas[eqName] = [];
+            groupedSaidas[eqName].push(f);
         });
-        html += '</tbody></table>';
+
+        var totalGeralLitros = 0;
+        var totalGeralValor = 0;
+
+        for(var eqName in groupedSaidas) {
+            var eqEntries = groupedSaidas[eqName];
+            var eqTotalLitros = 0;
+            var eqTotalValor = 0;
+            
+            eqEntries.sort(function(a,b) { 
+                var da = parseDate(a.date).getTime(); 
+                var db = parseDate(b.date).getTime(); 
+                return da - db; 
+            });
+
+            var startDate = eqEntries[0].date;
+            var endDate = eqEntries[eqEntries.length - 1].date;
+
+            html += '<h5 style="margin-top:15px; color:#000000; background:#e6e6e6; padding:10px; border-left:4px solid #000000;">🚗 <strong>' + eqName + '</strong> (Matrícula: ' + (eqEntries[0].plate || 'N/D') + ')<br><span style="font-size:11px; font-weight:normal;">Período de Consumo: ' + startDate + ' a ' + endDate + '</span></h5>';
+            html += '<table><thead><tr style="background:#e9ecef;"><th>Data/Hora</th><th>Funcionário</th><th class="text-center">Litros</th><th class="text-right">Valor Equivalente (Kz)</th></tr></thead><tbody>';
+            
+            eqEntries.forEach(function(f) { 
+                var valSaida = f.litros * PRECO_LITRO_COMBUSTIVEL;
+                eqTotalLitros += f.litros;
+                eqTotalValor += valSaida;
+                html += '<tr><td>'+f.date+' '+f.time+'</td><td>'+f.empName+'</td><td class="text-center">'+f.litros+'</td><td class="text-right">'+fmt(valSaida)+'</td></tr>'; 
+            });
+
+            html += '<tr class="total-row"><td colspan="2">TOTAL ' + eqName + '</td><td class="text-center">' + fmt(eqTotalLitros) + ' L</td><td class="text-right">' + fmt(eqTotalValor) + ' Kz</td></tr>';
+            html += '</tbody></table>';
+
+            totalGeralLitros += eqTotalLitros;
+            totalGeralValor += eqTotalValor;
+        }
+
+        html += '<div class="summary-box" style="text-align:right; font-weight:bold; font-size:14px; margin-top:10px;">TOTAL GERAL DE CONSUMOS: '+fmt(totalGeralLitros)+' Litros | '+fmt(totalGeralValor)+' Kz</div>';
     } 
     else if(type === 'provisions') {
         var data = DB.get('provisions_logs');
@@ -965,34 +917,142 @@ function generateReport() {
     }
 
     html += '</div>'; 
-
     if(type) { printArea.style.display = 'block'; printArea.innerHTML = html; } else { printArea.style.display = 'none'; printArea.innerHTML = ''; }
 }
 
 function exportPDF() {
     if(!val('reportType')) return showToast('Selecione um relatório primeiro','danger');
     var element = document.getElementById('reportPrintArea');
-    var opt = { margin: [10, 10, 10, 10], filename: 'Relatorio_Mina_Jaliezer.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 3, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } };
-    showToast('A gerar PDF... Aguarde.','info'); 
+    var opt = { 
+        margin: [10, 10, 10, 10], filename: 'Relatorio_Mina_Jaliezer.pdf', image: { type: 'jpeg', quality: 1.0 }, 
+        html2canvas: { scale: 4, useCORS: true, backgroundColor: '#ffffff', logging: false }, 
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: false }, 
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } 
+    };
+    showToast('A gerar PDF em Alta Resolução... Aguarde.','info'); 
     html2pdf().set(opt).from(element).save();
 }
-function exportCSV() {
-    var type = val('reportType'); if(!type) return showToast('Selecione um relatório primeiro','danger');
-    var rows = [["Relatorio Mina Jaliezer - " + getTodayStr()]]; var data = [];
-    if(type==='fuel'){ 
-        rows.push(["--- COMPRAS (ENTRADAS) ---"]); rows.push(["Data","Combustivel","Litros","Custo"]); 
-        DB.get('fuel_logs').filter(function(f){return f.type==='Entrada';}).forEach(function(f){rows.push([f.date,f.fuelType,f.litros,f.val]);}); 
-        rows.push(["--- CONSUMOS (SAIDAS) ---"]); rows.push(["Data","Hora","Combustivel","Litros","Equipamento","Marca","Matricula","Funcionario","Valor"]); 
-        DB.get('fuel_logs').filter(function(f){return f.type==='Saída';}).forEach(function(f){rows.push([f.date,f.time,f.fuelType,f.litros,f.equipment,f.brand,f.plate,f.empName,f.val]);}); 
-    }
-    else if(type==='provisions'){ rows.push(["Data","Tipo","Item","Qtd","Responsavel","Custo"]); data = DB.get('provisions_logs'); data.forEach(function(p){rows.push([p.date,p.type,p.item,p.qty,p.responsible,p.cost]);}); }
-    else if(type==='equipment'){ rows.push(["Nome","Marca","Tipo","Matricula","V. Compra","Estado"]); data = DB.get('equipment'); data.forEach(function(e){rows.push([e.name,e.brand,e.type,e.plate,e.buyPrice,e.status]);}); }
-    else if(type==='finance'){ rows.push(["Data","Desc","Conta","Tipo","Valor","IVA","Estado"]); data = DB.get('finance_logs'); data.forEach(function(f){rows.push([f.date,f.desc,f.account,f.type,f.val,f.iva,f.status]);}); }
-    else if(type==='production'){ rows.push(["Data","Hora","Poco","Material","Qtd","Responsavel"]); data = DB.get('production_logs'); data.forEach(function(p){rows.push([p.date,p.time,p.well,p.material,p.qty,p.responsible]);}); }
-    else { rows.push(["Acesse o menu especifico para exportar detalhes do geral."]); }
 
-    var csvContent = "data:text/csv;charset=utf-8," + rows.map(function(e) { return e.map(function(cell) { var c = String(cell || ""); if (c.indexOf(";") > -1 || c.indexOf('"') > -1) { c = '"' + c.replace(/"/g, '""') + '"'; } return c; }).join(";"); }).join("\n");
-    var encodedUri = encodeURI(csvContent); var link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "Relatorio_Mina_Jaliezer.csv"); document.body.appendChild(link); link.click(); showToast('Excel exportado!','success');
+function exportCSV() {
+    var type = val('reportType'); 
+    if(!type) return showToast('Selecione um relatório primeiro','danger');
+    
+    var config = DB.get('company_config')[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
+    var PRECO_LITRO_COMBUSTIVEL = 420; 
+    var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><style>td, th { vertical-align: middle; border: 1px solid #d4d4d4; } .header-table { border: none; }</style></head><body>';
+
+    html += '<table class="header-table" style="width:100%; border-collapse:collapse; font-family:Arial; border:none;">';
+    html += '<tr><td colspan="3" style="border:none; background-color:#1a1a1a; color:#ffffff; font-size:22px; text-align:center; padding:15px; font-weight:bold;">' + config.name.toUpperCase() + '</td></tr>';
+    html += '<tr><td colspan="3" style="border:none; background-color:#d4af37; color:#000000; font-size:14px; text-align:center; padding:8px; font-weight:bold;">DASHBOARD DE ' + type.toUpperCase() + '</td></tr>';
+    html += '<tr><td style="border:none; padding:5px; font-size:11px; color:#333;"><b>NIF:</b> ' + config.nif + '</td><td style="border:none; padding:5px; font-size:11px; color:#333; text-align:center;"><b>Emissão:</b> ' + getTodayStr() + '</td><td style="border:none; padding:5px; font-size:11px; color:#333; text-align:right;"><b>Endereço:</b> ' + config.address + '</td></tr>';
+    html += '</table><br>';
+
+    if(type==='fuel'){
+        var data = DB.get('fuel_logs');
+        var entradas = data.filter(f => f.type==='Entrada');
+        var saidas = data.filter(f => f.type==='Saída');
+        var totEntradasLitros = entradas.reduce((a,b) => a+b.litros, 0);
+        var totSaidasLitros = saidas.reduce((a,b) => a+b.litros, 0);
+        var totGeralValor = totSaidasLitros * PRECO_LITRO_COMBUSTIVEL;
+
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; margin-bottom:20px;"><tr>';
+        html += '<td style="background-color:#e6f7ff; text-align:center; padding:15px; width:33%;"><span style="font-size:11px; color:#666;">TOTAL COMPRADO (L)</span><br><span style="font-size:24px; color:#0056b3; font-weight:bold;">' + fmt(totEntradasLitros) + '</span></td>';
+        html += '<td style="background-color:#fff0f0; text-align:center; padding:15px; width:33%;"><span style="font-size:11px; color:#666;">TOTAL CONSUMIDO (L)</span><br><span style="font-size:24px; color:#cc0000; font-weight:bold;">' + fmt(totSaidasLitros) + '</span></td>';
+        html += '<td style="background-color:#fff9e6; text-align:center; padding:15px; width:33%;"><span style="font-size:11px; color:#666;">VALOR DO CONSUMO (Kz)</span><br><span style="font-size:24px; color:#b8860b; font-weight:bold;">' + fmt(totGeralValor) + '</span></td>';
+        html += '</tr></table><br>';
+
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;">';
+        html += '<tr><td colspan="4" style="background-color:#2c3e50; color:#ffffff; padding:8px; font-weight:bold; font-size:14px;">1. COMPRAS (ENTRADAS EM STOCK)</td></tr>';
+        html += '<tr style="background-color:#f2f2f2; font-weight:bold; text-align:center;"><td style="padding:8px;">Data</td><td>Combustível</td><td>Litros</td><td>Valor (Kz)</td></tr>';
+        entradas.forEach(f => { html += '<tr><td style="padding:5px;">'+f.date+'</td><td>'+f.fuelType+'</td><td style="text-align:center;">'+f.litros+' L</td><td style="text-align:right;">'+fmt(f.val)+'</td></tr>'; });
+        html += '</table><br>';
+
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;">';
+        html += '<tr><td colspan="4" style="background-color:#2c3e50; color:#ffffff; padding:8px; font-weight:bold; font-size:14px;">2. CONSUMOS POR VEÍCULO (Avaliado a '+fmt(PRECO_LITRO_COMBUSTIVEL)+' Kz/L)</td></tr>';
+
+        var groupedSaidas = {};
+        saidas.forEach(f => { var eqName = f.equipment || 'Desconhecido'; if(!groupedSaidas[eqName]) groupedSaidas[eqName] = []; groupedSaidas[eqName].push(f); });
+
+        for(var eqName in groupedSaidas) {
+            var eqEntries = groupedSaidas[eqName];
+            var eqTotalLitros = 0, eqTotalValor = 0;
+            html += '<tr><td colspan="4" style="background-color:#e9ecef; padding:8px; font-weight:bold; border-top:2px solid #000;">🚗 ' + eqName + ' (Matrícula: ' + (eqEntries[0].plate || 'N/D') + ')</td></tr>';
+            html += '<tr style="background-color:#f8f9fa; font-weight:bold; text-align:center;"><td style="padding:5px;">Data/Hora</td><td>Funcionário</td><td>Litros</td><td>Valor (Kz)</td></tr>';
+            eqEntries.forEach(f => { var valSaida = f.litros * PRECO_LITRO_COMBUSTIVEL; eqTotalLitros += f.litros; eqTotalValor += valSaida; html += '<tr><td style="padding:5px;">'+f.date+' '+f.time+'</td><td>'+f.empName+'</td><td style="text-align:center;">'+f.litros+'</td><td style="text-align:right;">'+fmt(valSaida)+'</td></tr>'; });
+            html += '<tr style="background-color:#d4af37; color:#000; font-weight:bold;"><td colspan="2" style="padding:5px;">TOTAL ' + eqName + '</td><td style="text-align:center;">'+fmt(eqTotalLitros)+' L</td><td style="text-align:right;">'+fmt(eqTotalValor)+'</td></tr>';
+        }
+        html += '<tr><td colspan="4" style="background-color:#1a1a1a; color:#fff; padding:10px; font-weight:bold; font-size:14px; text-align:right;">TOTAL GERAL DE CONSUMOS: &nbsp; ' + fmt(totSaidasLitros) + ' Litros &nbsp; | &nbsp; ' + fmt(totGeralValor) + ' Kz &nbsp;</td></tr>';
+        html += '</table>';
+    } 
+    else if(type==='provisions'){ 
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;">';
+        html += '<tr><td colspan="6" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold; font-size:14px;">RELATÓRIO DE ALIMENTAÇÃO E STOCK</td></tr>';
+        html += '<tr style="background-color:#f2f2f2; font-weight:bold; text-align:center;"><td style="padding:5px;">Data</td><td>Tipo</td><td>Item</td><td>Qtd</td><td>Responsável</td><td>Custo (Kz)</td></tr>';
+        DB.get('provisions_logs').forEach(p => { var valHtml = p.type === 'Entrada' ? fmt(p.cost) : '-'; html += '<tr><td style="padding:5px;">'+p.date+'</td><td style="text-align:center;">'+p.type+'</td><td>'+p.item+'</td><td style="text-align:center;">'+p.qty+'</td><td>'+(p.responsible||'-')+'</td><td style="text-align:right;">'+valHtml+'</td></tr>'; });
+        html += '</table>';
+    }
+    else if(type==='equipment'){ 
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;">';
+        html += '<tr><td colspan="6" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold; font-size:14px;">RELATÓRIO DE EQUIPAMENTOS E ATIVOS</td></tr>';
+        html += '<tr style="background-color:#f2f2f2; font-weight:bold; text-align:center;"><td style="padding:5px;">Nome</td><td>Marca</td><td>Tipo</td><td>Matrícula</td><td>V. Compra (Kz)</td><td>Estado</td></tr>';
+        var eqData = DB.get('equipment');
+        eqData.forEach(e => { html += '<tr><td style="padding:5px;">'+e.name+'</td><td>'+(e.brand||'-')+'</td><td>'+e.type+'</td><td>'+(e.plate||'-')+'</td><td style="text-align:right;">'+fmt(e.buyPrice)+'</td><td style="text-align:center;">'+e.status+'</td></tr>'; });
+        html += '</table><br>';
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;">';
+        html += '<tr><td colspan="5" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold; font-size:14px;">HISTÓRICO DE MANUTENÇÕES</td></tr>';
+        html += '<tr style="background-color:#f2f2f2; font-weight:bold; text-align:center;"><td style="padding:5px;">Data</td><td>Equipamento</td><td>Descrição</td><td>Horas/Km</td><td>Custo (Kz)</td></tr>';
+        DB.get('maintenance_logs').forEach(m => { var eq = eqData.find(e => e.id === m.eqId); html += '<tr><td style="padding:5px;">'+m.date+'</td><td>'+(eq?eq.name:'-')+'</td><td>'+m.desc+'</td><td>'+(m.hours||'-')+'</td><td style="text-align:right;">'+fmt(m.cost)+'</td></tr>'; });
+        html += '</table>';
+    }
+    else if(type==='finance'){ 
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;">';
+        html += '<tr><td colspan="7" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold; font-size:14px;">RELATÓRIO FINANCEIRO (CAIXA, BANCO E CRÉDITOS)</td></tr>';
+        html += '<tr style="background-color:#f2f2f2; font-weight:bold; text-align:center;"><td style="padding:5px;">Data</td><td>Descrição</td><td>Conta</td><td>Tipo</td><td>Valor (Kz)</td><td>IVA (Kz)</td><td>Estado</td></tr>';
+        DB.get('finance_logs').forEach(f => { var valColor = f.type === 'Entrada' ? '#008000' : '#cc0000'; var valStr = (f.type === 'Entrada' ? '+' : '-') + ' ' + fmt(f.val); html += '<tr><td style="padding:5px;">'+f.date+'</td><td>'+f.desc+'</td><td style="text-align:center;">'+f.account+'</td><td style="text-align:center;">'+f.type+'</td><td style="text-align:right; color:'+valColor+'; font-weight:bold;">'+valStr+'</td><td style="text-align:right;">'+fmt(f.iva)+'</td><td style="text-align:center;">'+f.status+'</td></tr>'; });
+        html += '</table>';
+    }
+    else if(type==='production'){ 
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;">';
+        html += '<tr><td colspan="5" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold; font-size:14px;">RELATÓRIO DE PRODUÇÃO (EXTRAÇÃO)</td></tr>';
+        html += '<tr style="background-color:#f2f2f2; font-weight:bold; text-align:center;"><td style="padding:5px;">Data/Hora</td><td>Poço</td><td>Material</td><td>Qtd</td><td>Responsável</td></tr>';
+        DB.get('production_logs').forEach(p => { html += '<tr><td style="padding:5px;">'+p.date+' '+p.time+'</td><td>'+p.well+'</td><td>'+p.material+'</td><td style="text-align:center;">'+p.qty+'</td><td>'+p.responsible+'</td></tr>'; });
+        html += '</table>';
+    }
+    else if(type==='general'){ 
+        var fuel = DB.get('fuel_logs'), emp = DB.get('employees'), fin = DB.get('finance_logs');
+        var totFuel = fuel.filter(f=>f.type==='Entrada').reduce((a,b)=>a+b.val,0);
+        var totSal = emp.reduce((a,b)=>a+b.salary,0);
+        var totFinEnt = fin.filter(f=>f.type==='Entrada' && f.status==='Pago').reduce((a,b)=>a+b.val,0);
+        var totFinSai = fin.filter(f=>f.type==='Saída' && f.status==='Pago').reduce((a,b)=>a+b.val,0);
+        var lucro = totFinEnt - (totFuel + totSal + totFinSai);
+        var corLucro = lucro >= 0 ? '#008000' : '#cc0000';
+
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; margin-bottom:20px;"><tr>';
+        html += '<td style="background-color:#e6f7ff; text-align:center; padding:15px; width:50%;"><span style="font-size:11px; color:#666;">RECEITAS (Kz)</span><br><span style="font-size:24px; color:#0056b3; font-weight:bold;">'+fmt(totFinEnt)+'</span></td>';
+        html += '<td style="background-color:#fff0f0; text-align:center; padding:15px; width:50%;"><span style="font-size:11px; color:#666;">DESPESAS (Kz)</span><br><span style="font-size:24px; color:#cc0000; font-weight:bold;">'+fmt(totFuel + totSal + totFinSai)+'</span></td>';
+        html += '</tr></table><br>';
+
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;">';
+        html += '<tr><td colspan="2" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold; font-size:14px;">RESUMO FINANCEIRO GERAL</td></tr>';
+        html += '<tr style="background-color:#f2f2f2; font-weight:bold;"><td style="padding:5px;">Categoria</td><td style="text-align:right;">Valor (Kz)</td></tr>';
+        html += '<tr><td style="padding:5px;">Receitas Financeiras</td><td style="text-align:right; color:#008000; font-weight:bold;">'+fmt(totFinEnt)+'</td></tr>';
+        html += '<tr><td style="padding:5px;">(-) Combustível</td><td style="text-align:right; color:#cc0000;">'+fmt(totFuel)+'</td></tr>';
+        html += '<tr><td style="padding:5px;">(-) Salários</td><td style="text-align:right; color:#cc0000;">'+fmt(totSal)+'</td></tr>';
+        html += '<tr><td style="padding:5px;">(-) Outras Despesas</td><td style="text-align:right; color:#cc0000;">'+fmt(totFinSai)+'</td></tr>';
+        html += '<tr style="background-color:#1a1a1a; color:#fff;"><td style="padding:10px; font-size:14px; font-weight:bold;">LUCRO / PREJUÍZO</td><td style="padding:10px; font-size:14px; font-weight:bold; text-align:right; color:'+corLucro+';">'+fmt(lucro)+'</td></tr>';
+        html += '</table>';
+    }
+
+    html += '</body></html>';
+    var blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    var link = document.createElement("a");
+    var url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute("download", "Dashboard_Mina_Jaliezer_" + type + ".xls");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Dashboard Excel exportado com sucesso!','success');
 }
 
 /* ==================== INICIALIZAÇÃO ==================== */
@@ -1000,7 +1060,7 @@ window.onload = function() {
     seedData(); 
     var sessionId = localStorage.getItem('jaliezerv2_session');
     if(sessionId) { var users = DB.get('users'); var found = users.find(function(x){ return x.id === sessionId; }); if(found) { currentUser = found; initApp(); return; } }
-    var loginHtml = '<div id="loginOverlay"><div class="login-box"><h1 style="font-family:Orbitron;color:var(--primary);margin-bottom:10px">MINA JALIEZER</h1><p style="color:var(--text-muted);margin-bottom:30px">Controlo Operacional</p><input type="text" id="loginUser" placeholder="Utilizador (admin)" style="margin-bottom:15px"><input type="password" id="loginPass" placeholder="Senha" style="margin-bottom:20px"><button class="btn btn-primary" style="width:100%" onclick="login()">Entrar</button></div></div>';
+    var loginHtml = '<div id="loginOverlay"><div class="login-box"><h1 style="font-family:Orbitron;color:var(--primary);margin-bottom:10px">MINA JALIEZER</h1><p style="color:var(--text-muted);margin-bottom:30px">Controlo Operacional</p><input type="text" id="loginUser" placeholder="Utilizador (admin)" style="margin-bottom:15px"><input type="password" id="loginPass" placeholder="Senha (1234)" style="margin-bottom:20px"><button class="btn btn-primary" style="width:100%" onclick="login()">Entrar</button></div></div>';
     document.body.insertAdjacentHTML('beforeend', loginHtml);
 };
 </script>
