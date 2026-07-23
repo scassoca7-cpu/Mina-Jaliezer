@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP - Mina Jaliezer</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg-dark:#0a0a0a;--bg-panel:rgba(20,20,20,0.95);--primary:#d4af37;--text-main:#e0e6ed;--text-muted:#8b9bb4;--border-light:1px solid rgba(212,175,55,0.3);--success:#00ff88;--danger:#ff006e;--warning:#ffc300;--info:#17a2b8;--sidebar-w:260px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Rajdhani',sans-serif}
+body{display:flex;min-height:100vh;background:var(--bg-dark);color:var(--text-main);overflow-x:hidden}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:rgba(0,0,0,.2)}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px}
+.sidebar{width:var(--sidebar-w);background:var(--bg-panel);border-right:var(--border-light);height:100vh;position:fixed;display:flex;flex-direction:column;z-index:10;transition:transform .3s}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.header{background:var(--bg-panel);padding:12px 30px;border-bottom:var(--border-light);display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.content{padding:20px;flex:1;overflow-y:auto}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:4px;border:none;font-weight:600;text-transform:uppercase;cursor:pointer;transition:.2s;font-size:.8rem;letter-spacing:.5px}
+.btn:hover{filter:brightness(1.2);transform:translateY(-1px)}
+.btn-primary{background:var(--primary);color:#000}.btn-success{background:var(--success);color:#000}
+.btn-danger{background:var(--danger);color:#fff}.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff}
+.btn-info{background:var(--info);color:#fff}.btn-warning{background:var(--warning);color:#000}.btn-sm{padding:5px 10px;font-size:.7rem}
+input,select,textarea{width:100%;padding:10px 12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);border-radius:4px;color:#fff;font-size:.9rem;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(212,175,55,.15)}
+input[readonly]{background:rgba(255,255,255,.05);color:var(--text-muted)}
+label{display:block;font-size:.75rem;color:var(--primary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:15px}
+.card{background:var(--bg-panel);border:var(--border-light);border-radius:8px;padding:20px;margin-bottom:20px;position:relative;animation:cardIn .3s ease}
+@keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.badge{padding:3px 8px;border-radius:12px;font-size:.65rem;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.bg-success{background:rgba(0,255,136,.15);color:var(--success)}.bg-danger{background:rgba(255,0,110,.15);color:var(--danger)}
+.bg-info{background:rgba(0,180,216,.15);color:var(--primary)}.bg-warning{background:rgba(255,195,0,.15);color:var(--warning)}
+table{width:100%;border-collapse:collapse}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05)}
+th{color:var(--primary);font-size:.75rem;text-transform:uppercase;background:rgba(212,175,55,.05)}tbody tr:hover{background:rgba(212,175,55,.08)}
+.text-danger{color:var(--danger);font-weight:bold}.text-success{color:var(--success);font-weight:bold}
+.sidebar-header{padding:20px;text-align:center;border-bottom:var(--border-light)}
+.sidebar-header h1{font-family:'Orbitron';font-size:1rem;color:var(--primary);margin-top:10px}
+.sidebar nav{flex:1;overflow-y:auto;padding:10px 0}
+.sidebar nav a{display:flex;align-items:center;gap:10px;padding:12px 20px;color:var(--text-muted);text-decoration:none;font-weight:600;border-left:3px solid transparent;transition:.2s;cursor:pointer;font-size:.9rem}
+.sidebar nav a:hover,.sidebar nav a.active{background:rgba(212,175,55,.1);color:#fff;border-left-color:var(--primary)}
+#menuToggle{display:none}.toast-container{position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 18px;border-radius:6px;color:#fff;font-weight:600;font-size:.9rem;animation:slideIn .3s ease;min-width:220px;display:flex;align-items:center;gap:8px}
+.toast-success{background:var(--success);color:#000}.toast-danger{background:var(--danger)}.toast-info{background:var(--primary);color:#000}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin-bottom:20px}
+.kpi-card{padding:20px;border-radius:8px;border-left:4px solid;display:flex;flex-direction:column;transition:transform .2s;background:var(--bg-panel)}
+.kpi-card:hover{transform:translateY(-3px)}
+.kpi-label{font-size:.85rem;color:var(--text-muted);margin-bottom:8px}
+.kpi-value{font-size:1.6rem;font-family:'Orbitron';font-weight:bold}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;display:none;overflow-y:auto;padding:20px}
+.modal-overlay.show{display:block}
+.modal-box{background:#141414;border:var(--border-light);border-radius:8px;width:100%;max-width:700px;margin:0 auto;animation:modalIn .25s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-header{padding:15px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:20px;max-height:70vh;overflow-y:auto}.modal-footer{padding:15px 20px;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.search-box input{max-width:400px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3)}
+#loginOverlay{position:fixed;inset:0;background:linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-box{background:var(--bg-panel);padding:40px;border-radius:8px;border:1px solid var(--primary);width:350px;text-align:center}
+.stock-card{background:rgba(0,180,216,.05);border:1px solid rgba(0,180,216,.2);padding:15px;border-radius:8px;text-align:center}
+.alert-box{background:rgba(255,0,110,.1);border:1px solid var(--danger);color:var(--danger);padding:15px;border-radius:8px;margin-bottom:15px;display:flex;align-items:center;gap:10px}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}#menuToggle{display:inline-flex!important}.form-row{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr 1fr}.header{padding:10px 15px}}
+
+/* ====== ESTILOS PARA RELATÓRIOS EM PDF (ALTA RESOLUÇÃO) ====== */
+.pdf-report { font-family: 'Arial', Helvetica, sans-serif; color: #000000; padding: 30px; background: #ffffff; }
+.pdf-report .pdf-header { text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid #000000; }
+.pdf-report .pdf-header h2 { color: #000000; margin: 0 0 5px 0; font-size: 26px; text-transform: uppercase; letter-spacing: 1px; }
+.pdf-report .pdf-header p { margin: 2px 0; font-size: 13px; color: #333333; }
+.pdf-report h3 { color: #000000; font-size: 20px; margin: 25px 0 15px 0; padding-bottom: 5px; border-bottom: 2px solid #000000; }
+.pdf-report h4 { color: #000000; font-size: 16px; margin: 20px 0 10px 0; text-transform: uppercase; }
+.pdf-report h5 { color: #000000; font-size: 14px; background: #e6e6e6; padding: 10px; border-left: 4px solid #000000; }
+.pdf-report table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+.pdf-report th { background-color: #000000 !important; color: #ffffff !important; padding: 12px 8px; text-align: left; font-weight: bold; text-transform: uppercase; font-size: 12px; border: 1px solid #000000; }
+.pdf-report td { padding: 10px 8px; border: 1px solid #555555; vertical-align: middle; color: #000000; }
+.pdf-report tbody tr:nth-child(even) { background-color: #f2f2f2; }
+.pdf-report .text-right { text-align: right; } .pdf-report .text-center { text-align: center; }
+.pdf-report .text-danger { color: #cc0000; font-weight: bold; } .pdf-report .text-success { color: #008000; font-weight: bold; }
+.pdf-report .summary-box { background: #e6e6e6; padding: 15px; border: 1px solid #000000; margin-bottom: 20px; }
+.pdf-report .total-row td { background-color: #d4af37 !important; color: #000000 !important; font-weight: bold; font-size: 15px; border: 2px solid #000000; }
+.pdf-report .signatures { margin-top: 60px; display: flex; justify-content: space-between; }
+.pdf-report .sign-line { border-top: 2px solid #000000; width: 200px; text-align: center; padding-top: 5px; font-size: 12px; color: #000000; }
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+<div id="modalGeneric" class="modal-overlay"><div class="modal-box"><div class="modal-header"><h2 id="modalTitle"></h2><span class="btn btn-outline" onclick="closeModal()">✕</span></div><div class="modal-body" id="modalBody"></div><div class="modal-footer" id="modalFooter"></div></div></div>
+
+<nav class="sidebar" id="mainSidebar">
+    <div class="sidebar-header">
+        <h1>MINA JALIEZER</h1>
+        <p style="font-size:.7rem;color:var(--text-muted)">Controlo Operacional</p>
+    </div>
+    <nav id="menuNav"></nav>
+    <div style="padding:15px;border-top:1px solid rgba(255,255,255,.1)">
+        <button class="btn btn-danger" style="width:100%" onclick="logout()">Sair</button>
+    </div>
+</nav>
+
+<main class="main">
+    <header class="header">
+        <div style="display:flex;align-items:center;gap:10px">
+            <button class="btn btn-outline" id="menuToggle" onclick="document.getElementById('mainSidebar').classList.toggle('open')">☰</button>
+            <h1 style="font-family:'Orbitron';font-size:1.1rem"><span id="pageTitle">Dashboard</span></h1>
+        </div>
+        <div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap">
+            <select id="dashMonthFilter" onchange="loadDashboard()" style="width:auto;padding:6px"></select>
+            <span style="font-size:.8rem;color:var(--primary);text-transform:uppercase;font-weight:700" id="currentUserRole"></span>
+            <span id="currentUserName" style="font-size:.9rem;color:var(--text-muted)">Administrador</span>
+        </div>
+    </header>
+    <div class="content" id="appContent"></div>
+</main>
+
+<script>
+/* ==================== LOCAL DATABASE ==================== */
+var DB = {
+    get: function(t) { var data = localStorage.getItem('jaliezerv3_'+t); return data ? JSON.parse(data) : []; },
+    save: function(t, data) { localStorage.setItem('jaliezerv3_'+t, JSON.stringify(data)); },
+    insert: function(t, r) { var data = this.get(t); data.push(r); this.save(t, data); return r; },
+    update: function(t, id, newData) { var data = this.get(t); var i = data.findIndex(function(x){ return x.id === id; }); if(i >= 0) { data[i] = Object.assign({}, data[i], newData); this.save(t, data); return data[i]; } return null; },
+    del: function(t, id) { var data = this.get(t); data = data.filter(function(x){ return x.id !== id; }); this.save(t, data); }
+};
+
+/* ==================== HELPERS ==================== */
+function showToast(msg, type) {
+    type = type || 'success'; var c = document.getElementById('toastContainer'), t = document.createElement('div');
+    t.className = 'toast toast-' + type; var icons = { success: '✅', danger: '❌', info: 'ℹ️' };
+    t.innerHTML = '<span>' + (icons[type] || '') + '</span><span>' + msg + '</span>'; c.appendChild(t);
+    setTimeout(function() { t.remove(); }, 3000);
+}
+function getTodayStr() { var d=new Date(); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }
+function fmt(n) { return new Intl.NumberFormat('pt-AO', { minimumFractionDigits:2, maximumFractionDigits:2 }).format(n||0); }
+function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function modal(t, b, fn, txt, cls) {
+    txt = txt || 'Salvar'; cls = cls || 'btn-primary';
+    document.getElementById('modalTitle').innerText = t; document.getElementById('modalBody').innerHTML = b;
+    var footer = document.getElementById('modalFooter'); footer.innerHTML = '<button class="btn btn-outline" onclick="closeModal()">Fechar</button>';
+    if (fn) { var btn = document.createElement('button'); btn.className = 'btn ' + cls; btn.innerText = txt; btn.onclick = function() { fn(); }; footer.prepend(btn); }
+    document.getElementById('modalGeneric').classList.add('show');
+}
+function closeModal() { document.getElementById('modalGeneric').classList.remove('show'); }
+function parseDate(s) { if(!s) return null; var p = s.split('/'); if(p.length === 3) return new Date(p[2], p[1]-1, p[0]); return new Date(s); }
+function getMonthName(mIdx) { var m=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; return m[mIdx]; }
+
+function calcIRT(salario) {
+    if (salario <= 70000) return 0;
+    if (salario <= 100000) return (salario - 70000) * 0.10;
+    if (salario <= 150000) return ((salario - 100000) * 0.15) + 3000;
+    if (salario <= 250000) return ((salario - 150000) * 0.20) + 10500;
+    if (salario <= 500000) return ((salario - 250000) * 0.25) + 30500;
+    return ((salario - 500000) * 0.30) + 93000;
+}
+
+var _filterTimeout = null;
+function filterTable(el, tid) {
+    clearTimeout(_filterTimeout); _filterTimeout = setTimeout(function() {
+        var f = el.value.toLowerCase(); var tb = document.getElementById(tid); if (!tb) return; var rows = tb.getElementsByTagName('tr');
+        for (var i = 1; i < rows.length; i++) { var cells = rows[i].getElementsByTagName('td'); var m = false; for (var j = 0; j < cells.length; j++) { if (cells[j].innerText.toLowerCase().indexOf(f) > -1) m = true; } rows[i].style.display = m ? '' : 'none'; }
+    }, 200);
+}
+
+function hashPass(pass) {
+    var hash = 0, i, chr;
+    for (i = 0; i < pass.length; i++) { chr = pass.charCodeAt(i); hash = ((hash << 5) - hash) + chr; hash |= 0; }
+    return 'h_' + Math.abs(hash).toString(16);
+}
+
+function logAction(action, detail) {
+    if(!currentUser) return;
+    var logs = DB.get('audit_logs');
+    logs.push({ id:'log'+Date.now(), user: currentUser.name, role: currentUser.role, action: action, detail: detail, date: new Date().toLocaleString('pt-AO') });
+    DB.save('audit_logs', logs);
+}
+
+function handleFileUpload(inputId, callback) {
+    var file = document.getElementById(inputId).files[0];
+    if (!file) return callback(null);
+    if (file.size > 1000000) { showToast('Ficheiro muito grande! Máx 1MB.', 'danger'); return callback(null); }
+    var reader = new FileReader();
+    reader.onload = function(e) { callback(e.target.result); };
+    reader.readAsDataURL(file);
+}
+
+/* ==================== AUTENTICAÇÃO E PERMISSÕES ==================== */
+var currentUser = null;
+var menuPermissions = {
+    'admin': ['dashboard', 'production', 'fuel', 'provisions', 'construcao', 'employees', 'equipment', 'finance', 'patrimony', 'suppliers', 'seguranca', 'reports', 'config', 'users', 'audit'],
+    'dir_geral': ['dashboard', 'production', 'fuel', 'provisions', 'construcao', 'employees', 'equipment', 'finance', 'patrimony', 'suppliers', 'seguranca', 'reports', 'config', 'users', 'audit'],
+    'dir_rh': ['dashboard', 'employees', 'finance'],
+    'dir_alimentar': ['dashboard', 'provisions'],
+    'dir_transporte': ['dashboard', 'fuel', 'equipment'],
+    'dir_construcao': ['dashboard', 'construcao', 'equipment'],
+    'contabilista': ['dashboard', 'production', 'finance', 'patrimony', 'suppliers', 'reports', 'config'],
+    'rh': ['dashboard', 'employees'],
+    'secretaria': ['dashboard', 'provisions', 'equipment', 'suppliers', 'seguranca']
+};
+
+function login() {
+    var u = val('loginUser'), p = val('loginPass');
+    var users = DB.get('users');
+    var found = users.find(function(x){ return x.user === u && x.pass === hashPass(p); });
+    if (found) {
+        currentUser = found;
+        localStorage.setItem('jaliezerv3_session', found.id);
+        document.getElementById('loginOverlay').style.display = 'none';
+        logAction('Login', 'Entrou no sistema');
+        initApp();
+    } else {
+        showToast('Credenciais inválidas!', 'danger');
+    }
+}
+function logout() { logAction('Logout', 'Saiu do sistema'); currentUser = null; localStorage.removeItem('jaliezerv3_session'); location.reload(); }
+
+/* ==================== DADOS INICIAIS ==================== */
+function seedData() {
+    if(!localStorage.getItem('jaliezerv3_users')) {
+        var passHash = hashPass("1234"); // Gera o hash dinamicamente para evitar erros
+        DB.save('users', [
+            {"id":"u1","name":"Diretor Geral","user":"admin","pass":passHash,"role":"admin"},
+            {"id":"u2","name":"Maria Secretária","user":"secretaria","pass":passHash,"role":"secretaria"},
+            {"id":"u3","name":"Carlos Contabilista","user":"contabilista","pass":passHash,"role":"contabilista"},
+            {"id":"u4","name":"Ana Diretora de RH","user":"rh","pass":passHash,"role":"dir_rh"},
+            {"id":"u5","name":"Paulo Logística","user":"alimentar","pass":passHash,"role":"dir_alimentar"},
+            {"id":"u6","name":"Pedro Transportes","user":"transporte","pass":passHash,"role":"dir_transporte"},
+            {"id":"u7","name":"João Construção","user":"construcao","pass":passHash,"role":"dir_construcao"}
+        ]);
+    }
+    if(!localStorage.getItem('jaliezerv3_company_config')) {
+        DB.save('company_config', [{"id":"c1","name":"Mina Jaliezer, Lda","nif":"5417121568","address":"Lunda Sul, Angola","ivaRate":14,"bank":"BFA - 1234-5678-9"}]);
+    }
+    if(!localStorage.getItem('jaliezerv3_suppliers')) {
+        DB.save('suppliers', [
+            {"id":"sup1","name":"Sonangol Distribuidora","nif":"NIF-Sonangol","contact":"923456789","account":"BFA 1234"},
+            {"id":"sup2","name":"Ferragens Luanda","nif":"NIF-Ferragens","contact":"912345678","account":"BIC 5678"}
+        ]);
+    }
+    if(!localStorage.getItem('jaliezerv3_maintenance_logs')) { DB.save('maintenance_logs', []); }
+    if(!localStorage.getItem('jaliezerv3_patrimony_logs')) { DB.save('patrimony_logs', []); }
+    if(!localStorage.getItem('jaliezerv3_security_logs')) { DB.save('security_logs', []); }
+    if(!localStorage.getItem('jaliezerv3_construcao_logs')) { DB.save('construcao_logs', []); }
+    
+    if(!localStorage.getItem('jaliezerv3_production_logs')) {
+        DB.save('production_logs', [
+            {"id":"prod1","date":"04/07/2026","time":"10:00","well":"Poço 1 (Jaliezer)","material":"Diamantes","qty":"15.5 Quilates","responsible":"Carlos Mendes"},
+            {"id":"prod2","date":"05/07/2026","time":"11:30","well":"Poço 2 (Secundário)","material":"Terra/Matriz","qty":"500 m³","responsible":"João Silva"}
+        ]);
+    }
+    
+    if(!localStorage.getItem('jaliezerv3_fuel_logs')) {
+        DB.save('fuel_logs', [
+            {"date":"19/07/2026","time":"20:07","type":"Entrada","fuelType":"Gasóleo","litros":3500,"equipment":"Gerador Denyo Sound 300SP","brand":"","plate":"","empName":"Ilota Santos","authBy":"Diretor Geral","val":147000,"id":"fl1"},
+            {"date":"05/07/2026","time":"20:09","type":"Entrada","fuelType":"Gasóleo","litros":3012,"equipment":"Gerador Denyo Sound 300SP","brand":"","plate":"","empName":"Ilota Santos","authBy":"Diretor Geral","val":1265040,"id":"fl2"},
+            {"date":"04/07/2026","time":"20:10","type":"Saída","fuelType":"Gasóleo","litros":488,"equipment":"Maquina","brand":"Maquina Shantui SO 32","plate":"SHANTUI SO 32","empName":"Ilota Santos","authBy":"Pedro Transportes","val":204960,"id":"fl3"},
+            {"date":"05/07/2026","time":"16:40","type":"Saída","fuelType":"Gasóleo","litros":39,"equipment":"Toyota Protocolar","brand":"Land Cruiser","plate":"LD-26-48-HN","empName":"Motorista","authBy":"Diretor Geral","val":16380,"id":"fl4"}
+        ]);
+    }
+    
+    if(!localStorage.getItem('jaliezerv3_employees')) {
+        DB.save('employees', [
+            {"id":"e1","name":"João Silva","role":"Motorista","salary":150000,"vehicle":"Camião Renault 350","color":"Vermelho","plate":"LD-60-89-CB"},
+            {"id":"e2","name":"Carlos Mendes","role":"Mineiro","salary":120000,"vehicle":"","color":"","plate":""},
+            {"id":"e3","name":"Pedro Beto","role":"Segurança","salary":90000,"vehicle":"","color":"","plate":""}
+        ]);
+    }
+    
+    if(!localStorage.getItem('jaliezerv3_provisions_logs')) {
+        DB.save('provisions_logs', [
+            {"id":"p1","date":"05/07/2026","time":"09:00","type":"Entrada","item":"Arroz","qty":"20 Sacos","supplier":"Fornecedor X","cost":80000,"takenBy":"","authBy":"","destination":""},
+            {"id":"p2","date":"10/07/2026","time":"12:30","type":"Saída","item":"Arroz","qty":"2 Sacos","supplier":"","cost":0,"takenBy":"Cozinheira Maria","authBy":"Paulo Logística","destination":"Cozinha Principal"}
+        ]);
+    }
+    
+    if(!localStorage.getItem('jaliezerv3_equipment')) {
+        DB.save('equipment', [
+            {"id":"eq1","name":"Gerador Denyo Sound 300SP","type":"Energia","status":"Operacional","hours":"1500h"},
+            {"id":"eq2","name":"Camião Renault 350","type":"Transporte","status":"Operacional","hours":"80000km"},
+            {"id":"eq3","name":"Escavadora CAT 320","type":"Mineração","status":"Manutenção","hours":"3200h"}
+        ]);
+    }
+    
+    if(!localStorage.getItem('jaliezerv3_finance_logs')) {
+        DB.save('finance_logs', [
+            {"id":"fin1","date":"01/07/2026","type":"Entrada","cat":"Venda de Diamantes","val":5000000,"desc":"Lote 1 - Julho","account":"Caixa","iva":700000,"status":"Pago","docBase64":""},
+            {"id":"fin2","date":"05/07/2026","type":"Saída","cat":"Ferramentas","val":150000,"desc":"Compra de picaretas e pás","account":"Caixa","iva":21000,"status":"Pago","docBase64":""}
+        ]);
+    }
+    
+    if(!localStorage.getItem('jaliezerv3_audit_logs')) { DB.save('audit_logs', []); }
+}
+
+/* ==================== INIT & SIDEBAR ==================== */
+function initApp() {
+    document.getElementById('currentUserName').innerText = currentUser.name;
+    document.getElementById('currentUserRole').innerText = currentUser.role;
+    var select = document.getElementById('dashMonthFilter');
+    var today = new Date();
+    select.innerHTML = '';
+    for(var i=0; i<12; i++) {
+        var d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        select.innerHTML += '<option value="'+d.getMonth()+'-'+d.getFullYear()+'">'+getMonthName(d.getMonth())+' '+d.getFullYear()+'</option>';
+    }
+    loadSidebar();
+    navigate('dashboard');
+}
+function loadSidebar() {
+    var nav = document.getElementById('menuNav');
+    var allItems = [
+        { id: 'dashboard', i: '📊', t: 'Dashboard' },
+        { id: 'production', i: '⛏️', t: 'Produção (Extração)' },
+        { id: 'fuel', i: '⛽', t: 'Combustível' },
+        { id: 'provisions', i: '🍚', t: 'Alimentação e Consumo' },
+        { id: 'construcao', i: '🧱', t: 'Construção Civil' },
+        { id: 'seguranca', i: '🔐', t: 'Segurança do Local' },
+        { id: 'employees', i: '👷', t: 'Recursos Humanos' },
+        { id: 'equipment', i: '🚜', t: 'Equipamentos' },
+        { id: 'finance', i: '🏦', t: 'Financeiro (Caixa/Banco)' },
+        { id: 'patrimony', i: '🏛️', t: 'Património e Ativos' },
+        { id: 'suppliers', i: '🚚', t: 'Fornecedores' },
+        { id: 'reports', i: '📈', t: 'Relatórios' },
+        { id: 'config', i: '⚙️', t: 'Configurações' },
+        { id: 'users', i: '👤', t: 'Gestão de Acessos' },
+        { id: 'audit', i: '🛡️', t: 'Auditoria' }
+    ];
+    var allowed = menuPermissions[currentUser.role] || [];
+    var items = allItems.filter(function(x){ return allowed.includes(x.id); });
+    nav.innerHTML = items.map(function(x) { return '<a onclick="navigate(\'' + x.id + '\')">' + x.i + ' ' + x.t + '</a>'; }).join('');
+}
+function navigate(id) {
+    var allowed = menuPermissions[currentUser.role] || [];
+    if(!allowed.includes(id)) return showToast('Acesso Negado!', 'danger');
+    document.querySelectorAll('.sidebar nav a').forEach(function(a) { a.classList.remove('active'); });
+    var a = document.querySelector('.sidebar nav a[onclick*="' + id + '"]'); if (a) a.classList.add('active');
+    var titles = { dashboard:'Dashboard', production:'Produção', fuel:'Combustível', provisions:'Alimentação', construcao:'Construção Civil', seguranca:'Segurança do Local', employees:'Recursos Humanos', equipment:'Equipamentos', finance:'Financeiro', patrimony:'Património', suppliers:'Fornecedores', reports:'Relatórios', config:'Configurações', users:'Gestão de Acessos', audit:'Auditoria' };
+    document.getElementById('pageTitle').innerText = titles[id] || id;
+    var actions = { dashboard: loadDashboard, production: loadProduction, fuel: loadFuel, provisions: loadProvisions, construcao: loadConstrucao, seguranca: loadSeguranca, employees: loadEmployees, equipment: loadEquipment, finance: loadFinance, patrimony: loadPatrimony, suppliers: loadSuppliers, reports: loadReports, config: loadConfig, users: loadUsers, audit: loadAudit };
+    if (actions[id]) actions[id](); document.getElementById('mainSidebar').classList.remove('open');
+}
+
+/* ==================== DASHBOARD ==================== */
+var dashChart = null;
+function loadDashboard() {
+    var filterVal = document.getElementById('dashMonthFilter').value;
+    var fParts = filterVal.split('-'); var fMonth = parseInt(fParts[0]); var fYear = parseInt(fParts[1]);
+    var isInFilterMonth = function(dateStr) { var d = parseDate(dateStr); return d && d.getMonth() === fMonth && d.getFullYear() === fYear; };
+    
+    var fuel = DB.get('fuel_logs'), prov = DB.get('provisions_logs'), emp = DB.get('employees'), fin = DB.get('finance_logs'), pat = DB.get('patrimony_logs');
+    
+    var fuelStock = fuel.reduce(function(a,b){return a + (b.type==='Entrada' ? b.litros : -b.litros);},0);
+    var provStock = {}; 
+    prov.forEach(function(p) {
+        var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0;
+        if(!provStock[p.item]) provStock[p.item] = 0; provStock[p.item] += (p.type === 'Entrada' ? num : -num);
+    });
+    
+    var alertsHtml = '';
+    if (fuelStock < 200) alertsHtml += '<div class="alert-box">⚠️ ALERTA: Stock de combustível baixo ('+fuelStock+' L). Reabastecer urgente!</div>';
+    for(var item in provStock) { if (provStock[item] <= 5) alertsHtml += '<div class="alert-box">⚠️ ALERTA: Stock de '+item+' baixo ('+provStock[item]+' unidades).</div>'; }
+
+    var totFuel = fuel.filter(function(f){return f.type==='Entrada' && isInFilterMonth(f.date);}).reduce(function(a,b){return a+(b.val||0);},0);
+    var totProv = prov.filter(function(p){return p.type==='Entrada' && isInFilterMonth(p.date);}).reduce(function(a,b){return a+(b.cost||0);},0);
+    var totSal = emp.reduce(function(a,b){return a+(b.salary||0);},0); 
+    var totFinEnt = fin.filter(function(f){return f.type==='Entrada' && f.status==='Pago' && isInFilterMonth(f.date);}).reduce(function(a,b){return a+(b.val||0);},0);
+    var totFinSai = fin.filter(function(f){return f.type==='Saída' && f.status==='Pago' && isInFilterMonth(f.date);}).reduce(function(a,b){return a+(b.val||0);},0);
+    var totPatEnt = pat.filter(function(p){return p.type==='Entrada' && isInFilterMonth(p.date);}).reduce(function(a,b){return a+(b.val||0);},0);
+    
+    var aReceber = fin.filter(function(f){return f.type==='Entrada' && f.status==='Pendente';}).reduce(function(a,b){return a+(b.val||0);},0);
+    var aPagar = fin.filter(function(f){return f.type==='Saída' && f.status==='Pendente';}).reduce(function(a,b){return a+(b.val||0);},0);
+
+    var despesasTotais = totFuel + totProv + totSal + totFinSai + totPatEnt;
+    var saldoCaixa = totFinEnt - despesasTotais;
+
+    var html = alertsHtml +
+    '<div class="kpi-grid">'+
+        '<div class="kpi-card" style="background:rgba(0,255,136,.05);border-left-color:var(--success)"><div class="kpi-label">Saldo do Mês (Realizado)</div><div class="kpi-value" style="color:'+(saldoCaixa>=0?'var(--success)':'var(--danger)')+'">'+fmt(saldoCaixa)+' Kz</div></div>'+
+        '<div class="kpi-card" style="background:rgba(255,0,110,.05);border-left-color:var(--danger)"><div class="kpi-label">Combustível ('+getMonthName(fMonth).slice(0,3)+')</div><div class="kpi-value" style="color:var(--danger)">'+fmt(totFuel)+' Kz</div></div>'+
+        '<div class="kpi-card" style="background:rgba(255,195,0,.05);border-left-color:var(--warning)"><div class="kpi-label">Contas a Receber (Crédito)</div><div class="kpi-value" style="color:var(--warning)">'+fmt(aReceber)+' Kz</div></div>'+
+        '<div class="kpi-card" style="background:rgba(212,175,55,.05);border-left-color:var(--primary)"><div class="kpi-label">Contas a Pagar (Dívida)</div><div class="kpi-value" style="color:var(--primary)">'+fmt(aPagar)+' Kz</div></div>'+
+    '</div>';
+    
+    html += '<div style="display:grid;grid-template-columns:2fr 1fr;gap:15px">'+
+        '<div class="card"><h3>Gastos Operacionais do Mês</h3><canvas id="dashChartCanvas" height="100"></canvas></div>'+
+        '<div class="card"><h3>Movimentos Financeiros</h3><table><thead><tr><th>Data</th><th>Desc</th><th>Valor</th></tr></thead><tbody>';
+    fin.filter(function(f){return isInFilterMonth(f.date);}).reverse().forEach(function(f) { 
+        var v = f.type==='Entrada' ? '<span class="text-success">+'+fmt(f.val)+'</span>' : '<span class="text-danger">-'+fmt(f.val)+'</span>';
+        html += '<tr><td>'+f.date+'</td><td>'+f.desc+'</td><td>'+v+'</td></tr>'; 
+    });
+    if(!fin.length) html += '<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">Sem registos</td></tr>';
+    html += '</tbody></table></div></div>';
+    document.getElementById('appContent').innerHTML = html;
+    renderDashChart(totFuel, totProv, totSal, totFinSai, totPatEnt);
+}
+function renderDashChart(fuel, prov, sal, fin, pat) {
+    var ctx = document.getElementById('dashChartCanvas');
+    if(!ctx) return;
+    if(dashChart) dashChart.destroy();
+    dashChart = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: { labels: ['Combustível', 'Alimentação', 'Salários', 'Outras Despesas', 'Património'], datasets: [{ label: 'Gasto (Kz)', data: [fuel, prov, sal, fin, pat], backgroundColor: ['rgba(255,0,110,.5)', 'rgba(255,195,0,.5)', 'rgba(212,175,55,.5)', 'rgba(0,180,216,.5)', 'rgba(123,45,200,.5)'], borderColor: ['#ff006e', '#ffc300', '#d4af37', '#17a2b8', '#7b2dc8'], borderWidth: 1 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#8b9bb4' } }, x: { ticks: { color: '#8b9bb4' } } } }
+    });
+}
+
+/* ==================== PRODUÇÃO ==================== */
+function loadProduction() {
+    var data = DB.get('production_logs');
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>⛏️ Produção e Extração</h2><button class="btn btn-primary btn-sm" onclick="openModalProd()">➕ Registar Extração</button></div><div class="card"><table id="tblProd"><thead><tr><th>Data/Hora</th><th>Poço/Local</th><th>Material</th><th>Quantidade</th><th>Responsável</th><th>Ações</th></tr></thead><tbody>';
+    data.reverse().forEach(function(p) { 
+        html += '<tr><td>'+p.date+'<br><small>'+p.time+'</small></td><td><strong>'+p.well+'</strong></td><td>'+p.material+'</td><td>'+p.qty+'</td><td>'+p.responsible+'</td><td style="white-space:nowrap"><button class="btn btn-danger btn-sm" onclick="delProd(\''+p.id+'\')">🗑️</button></td></tr>'; 
+    });
+    if(!data.length) html += '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Nenhuma extração registada.</td></tr>';
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+function openModalProd() {
+    modal('Registar Extração', '<div class="form-row"><div><label>Data *</label><input type="text" id="prDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Hora *</label><input type="time" id="prTime" value="'+new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'})+'"></div></div><div class="form-row"><div><label>Poço / Local *</label><input id="prWell" placeholder="Ex: Poço 1 Jaliezer"></div><div><label>Material Extraído *</label><select id="prMat"><option>Diamantes</option><option>Subprodutos</option><option>Terra/Matriz</option></select></div></div><div class="form-row"><div><label>Quantidade *</label><input id="prQty" placeholder="Ex: 15.5 Quilates, 500 m³"></div><div><label>Responsável *</label><input id="prResp" value="'+currentUser.name+'"></div></div>',
+    function() { var obj = {date:val('prDate'),time:val('prTime'),well:val('prWell'),material:val('prMat'),qty:val('prQty'),responsible:val('prResp')}; if(!obj.well||!obj.qty) return showToast('Local e Qtd obrigatórios','danger'); obj.id='prod'+Date.now(); DB.insert('production_logs', obj); logAction('Registar', 'Produção: '+obj.qty+' '+obj.material+' em '+obj.well); showToast('Extração Registada!'); closeModal(); loadProduction(); },'Salvar','btn-primary');
+}
+function delProd(id) { DB.del('production_logs', id); logAction('Apagar', 'Produção removida'); showToast('Eliminado!','danger'); loadProduction(); }
+
+/* ==================== COMBUSTÍVEL ==================== */
+function loadFuel() {
+    var data = DB.get('fuel_logs');
+    var totLitros = data.reduce(function(a,b){return a + (b.type==='Entrada' ? b.litros : -b.litros);},0);
+    var totGasto = data.filter(function(f){return f.type==='Entrada';}).reduce(function(a,b){return a+(b.val||0);},0);
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>⛽ Gestão de Combustível</h2><button class="btn btn-primary btn-sm" onclick="openModalFuel()">➕ Novo Movimento</button></div>';
+    html += '<div class="kpi-grid">'+
+        '<div class="kpi-card" style="background:rgba(0,180,216,.05);border-left-color:var(--info)"><div class="kpi-label">Stock Atual (Litros)</div><div class="kpi-value" style="color:#17a2b8">'+totLitros+' L</div></div>'+
+        '<div class="kpi-card" style="background:rgba(255,0,110,.05);border-left-color:var(--danger)"><div class="kpi-label">Total Gasto em Compras</div><div class="kpi-value" style="color:var(--danger)">'+fmt(totGasto)+' Kz</div></div>'+
+    '</div>';
+    html += '<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="filterTable(this,\'tblFuel\')" style="margin-bottom:10px"><table id="tblFuel"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Combustível</th><th>Litros</th><th>Equipamento/Veículo</th><th>Matrícula</th><th>Funcionário</th><th>Autorizado Por</th><th>Valor (Kz)</th><th>Ações</th></tr></thead><tbody>';
+    data.reverse().forEach(function(f) { 
+        var typeClass = f.type==='Entrada' ? 'bg-success' : 'bg-warning'; 
+        html += '<tr><td>'+f.date+'<br><small>'+f.time+'</small></td><td><span class="badge '+typeClass+'">'+f.type+'</span></td><td>'+f.fuelType+'</td><td>'+f.litros+' L</td><td><strong>'+f.equipment+'</strong></td><td>'+(f.plate||'-')+'</td><td>'+(f.empName||'-')+'</td><td>'+(f.authBy||'-')+'</td><td>'+fmt(f.val)+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalFuel(\''+f.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delFuel(\''+f.id+'\')">🗑️</button></td></tr>'; 
+    });
+    if(!data.length) html += '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">Nenhum registo.</td></tr>';
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+function openModalFuel(id) {
+    var data = DB.get('fuel_logs'); 
+    var f = id ? data.find(function(x){return x.id===id;}) : {date:getTodayStr(), time:new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'}), type:'Saída', fuelType:'Gasóleo', litros:0, equipment:'', brand:'', plate:'', empName:'', authBy:currentUser.name, val:0};
+    var vehicles = DB.get('equipment').filter(function(e){return e.type==='Veículo' || e.type==='Energia' || e.type==='Transporte' || e.type==='Mineração';});
+    var vehOptions = vehicles.map(function(v){ return '<option value="'+v.name+'|'+v.brand+'|'+v.plate+'" '+(f.equipment===v.name?'selected':'')+'>'+v.name+' ('+(v.plate||'Sem Mat.')+')</option>'; }).join('');
+    modal(id?'Editar Registo':'Novo Movimento', 
+    '<div class="form-row"><div><label>Data *</label><input type="text" id="fDate" value="'+f.date+'" placeholder="DD/MM/AAAA"></div><div><label>Hora *</label><input type="time" id="fTime" value="'+f.time+'"></div></div>'+
+    '<div class="form-row"><div><label>Tipo de Movimento *</label><select id="fType"><option '+(f.type==='Entrada'?'selected':'')+'>Entrada</option><option '+(f.type==='Saída'?'selected':'')+'>Saída</option></select></div><div><label>Tipo de Combustível *</label><select id="fFuelType"><option '+(f.fuelType==='Gasóleo'?'selected':'')+'>Gasóleo</option><option '+(f.fuelType==='Gasolina'?'selected':'')+'>Gasolina</option></select></div></div>'+
+    '<div class="form-row"><div><label>Litros *</label><input type="number" id="fLitros" value="'+f.litros+'"></div><div><label>Equipamento / Veículo *</label><select id="fEquip" onchange="autoFillVehicle()"><option value="">-- Selecionar --</option>'+vehOptions+'</select></div></div>'+
+    '<div class="form-row" id="vehicleInfoBox"><div><label>Marca</label><input id="fBrand" value="'+f.brand+'" readonly></div><div><label>Matrícula</label><input id="fPlate" value="'+f.plate+'" readonly></div></div>'+
+    '<div class="form-row"><div><label>Funcionário (Motorista) *</label><input id="fEmp" value="'+f.empName+'" placeholder="Nome de quem abasteceu"></div><div><label>Autorizado Por *</label><input id="fAuth" value="'+f.authBy+'" placeholder="Quem liberou o combustível"></div></div>'+
+    '<div class="form-row"><div><label>Valor (Kz) *</label><input type="number" id="fVal" value="'+f.val+'"></div></div>',
+    function() { 
+        var obj = {date:val('fDate'),time:val('fTime'),type:val('fType'),fuelType:val('fFuelType'),litros:parseFloat(val('fLitros'))||0,equipment:val('fEquip').split('|')[0],brand:val('fBrand'),plate:val('fPlate'),empName:val('fEmp'),authBy:val('fAuth'),val:parseFloat(val('fVal'))||0}; 
+        if(!obj.equipment||!obj.empName||!obj.authBy) return showToast('Veículo, Funcionário e Autorização obrigatórios','danger'); 
+        if(id) { DB.update('fuel_logs', id, obj); logAction('Editar', 'Combustível: '+obj.equipment); showToast('Atualizado!'); } 
+        else { obj.id='fl'+Date.now(); DB.insert('fuel_logs', obj); logAction('Registar', 'Combustível: '+obj.type+' '+obj.litros+'L'); showToast('Registado!'); } 
+        closeModal(); loadFuel(); 
+    },'Salvar','btn-primary');
+}
+function autoFillVehicle() { var parts = val('fEquip').split('|'); document.getElementById('fBrand').value = parts[1] || ''; document.getElementById('fPlate').value = parts[2] || ''; }
+function delFuel(id) { var f = DB.get('fuel_logs').find(x=>x.id===id); DB.del('fuel_logs', id); logAction('Apagar', 'Combustível: '+(f?f.equipment:'')); showToast('Eliminado!','danger'); loadFuel(); }
+
+/* ==================== ALIMENTAÇÃO (CONTROLO RIGOROSO) ==================== */
+function loadProvisions() {
+    var data = DB.get('provisions_logs');
+    var stock = {}; var unities = {};
+    data.forEach(function(p) {
+        var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim();
+        if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? num : -num); unities[p.item] = unit;
+    });
+    var stockHtml = '<div class="kpi-grid" style="margin-bottom:15px">';
+    for(var item in stock) {
+        var color = stock[item] <= 5 ? 'var(--danger)' : 'var(--success)';
+        stockHtml += '<div class="stock-card" style="text-align:left;padding:15px"><div style="font-size:.8rem;color:var(--text-muted)">'+item+'</div><div style="font-size:1.4rem;color:'+color+';font-weight:bold">'+stock[item]+' <span style="font-size:.8rem">'+unities[item]+'</span></div></div>';
+    }
+    stockHtml += '</div>';
+    
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🍚 Alimentação (Controlo de Stock)</h2><button class="btn btn-primary btn-sm" onclick="openModalProv()">➕ Registar Movimento</button></div>'+stockHtml+'<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="filterTable(this,\'tblProv\')" style="margin-bottom:10px"><table id="tblProv"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Levantado Por</th><th>Autorizado Por</th><th>Destino</th><th>Custo (Kz)</th><th>Ações</th></tr></thead><tbody>';
+    data.reverse().forEach(function(p) { 
+        var typeClass = p.type==='Entrada' ? 'bg-success' : 'bg-warning';
+        var who = p.type === 'Saída' ? (p.takenBy||'-') : (p.supplier||'-');
+        var auth = p.type === 'Saída' ? (p.authBy||'-') : '-';
+        var dest = p.type === 'Saída' ? (p.destination||'-') : '-';
+        html += '<tr><td>'+p.date+'<br><small>'+(p.time||'-')+'</small></td><td><span class="badge '+typeClass+'">'+p.type+'</span></td><td><strong>'+p.item+'</strong></td><td>'+p.qty+'</td><td>'+who+'</td><td>'+auth+'</td><td>'+dest+'</td><td>'+(p.type==='Entrada'?'<span class="text-danger">-'+fmt(p.cost)+'</span>':'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="delProv(\''+p.id+'\')">🗑️</button></td></tr>'; 
+    });
+    if(!data.length) html += '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Nenhum registo.</td></tr>';
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+
+function openModalProv() {
+    var timeNow = new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'});
+    var formHtml = '<div class="form-row"><div><label>Data *</label><input type="text" id="pDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Hora *</label><input type="time" id="pTime" value="'+timeNow+'"></div></div>'+
+    '<div class="form-row"><div><label>Tipo de Movimento *</label><select id="pType" onchange="toggleProvFields()"><option value="Saída">Saída (Consumo)</option><option value="Entrada">Entrada (Compra)</option></select></div><div><label>Item *</label><input id="pItem" placeholder="Arroz, Frango, Gás..."></div></div>'+
+    '<div class="form-row"><div><label>Quantidade *</label><input id="pQty" placeholder="10 Sacos"></div></div>'+
+    
+    '<div id="saidaFieldsProv" style="display:block;border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--danger);margin-bottom:10px">Autorização de Saída</h4><div class="form-row"><div><label>Levantado Por (Cozinheiro/Encarregado) *</label><input id="pTaken" placeholder="Nome de quem levou"></div><div><label>Autorizado Por *</label><input id="pAuth" value="'+currentUser.name+'"></div></div><div class="form-row"><div><label>Destino (Cozinha/Refeitório) *</label><input id="pDest" placeholder="Ex: Cozinha Principal"></div></div></div>'+
+    
+    '<div id="entradaFieldsProv" style="display:none;border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--success);margin-bottom:10px">Dados da Compra</h4><div class="form-row"><div><label>Fornecedor</label><input id="pSupplier" placeholder="Nome do fornecedor"></div><div><label>Custo (Kz)</label><input type="number" id="pCost" value="0"></div></div></div>';
+
+    modal('Novo Movimento de Alimentação', formHtml,
+    function() { 
+        var obj = {date:val('pDate'), time:val('pTime'), type:val('pType'), item:val('pItem'), qty:val('pQty'), takenBy:val('pTaken'), authBy:val('pAuth'), destination:val('pDest'), supplier:val('pSupplier'), cost:parseFloat(val('pCost'))||0}; 
+        if(!obj.item||!obj.qty) return showToast('Item e Qtd obrigatórios','danger'); 
+        if(obj.type === 'Saída' && (!obj.takenBy || !obj.authBy || !obj.destination)) return showToast('Para SAÍDAS: Preencha todos os campos de autorização!','danger');
+        if(obj.type === 'Entrada' && !obj.supplier) return showToast('Para ENTRADAS: Informe o Fornecedor','danger');
+
+        obj.id='p'+Date.now(); DB.insert('provisions_logs', obj); logAction('Registar', 'Alimentação: '+obj.type+' '+obj.qty+' '+obj.item); showToast('Registado!'); closeModal(); loadProvisions(); 
+    },'Salvar','btn-primary');
+}
+
+function toggleProvFields() { 
+    var t = val('pType'); 
+    document.getElementById('saidaFieldsProv').style.display = t === 'Saída' ? 'block' : 'none'; 
+    document.getElementById('entradaFieldsProv').style.display = t === 'Entrada' ? 'block' : 'none'; 
+}
+function delProv(id) { var p = DB.get('provisions_logs').find(x=>x.id===id); DB.del('provisions_logs', id); logAction('Apagar', 'Alimentação: '+(p?p.item:'')); showToast('Eliminado!','danger'); loadProvisions(); }
+
+
+/* ==================== CONSTRUÇÃO CIVIL (CONTROLO TOTAL) ==================== */
+function loadConstrucao() {
+    var data = DB.get('construcao_logs');
+    var stock = {}; var unities = {};
+    
+    data.forEach(function(p) {
+        var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim();
+        if(!stock[p.item]) stock[p.item] = 0; 
+        stock[p.item] += (p.type === 'Entrada' ? num : -num); 
+        unities[p.item] = unit;
+    });
+    
+    var stockHtml = '<div class="kpi-grid" style="margin-bottom:15px">';
+    for(var item in stock) {
+        var color = stock[item] <= 5 ? 'var(--danger)' : 'var(--success)';
+        var alertIcon = stock[item] <= 5 ? '⚠️ ' : '';
+        stockHtml += '<div class="stock-card" style="text-align:left;padding:15px"><div style="font-size:.8rem;color:var(--text-muted)">'+alertIcon+item+'</div><div style="font-size:1.4rem;color:'+color+';font-weight:bold">'+stock[item]+' <span style="font-size:.8rem">'+unities[item]+'</span></div></div>';
+    }
+    stockHtml += '</div>';
+    
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🧱 Construção Civil (Controlo de Stock)</h2><button class="btn btn-primary btn-sm" onclick="openModalConst()">➕ Registar Movimento</button></div>'+stockHtml+'<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar item, pessoa, obra..." oninput="filterTable(this,\'tblConst\')" style="margin-bottom:10px"><table id="tblConst"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item / Material</th><th>Qtd</th><th>Levantado Por</th><th>Autorizado Por</th><th>Obra/Destino</th><th>Custo (Kz)</th><th>Ações</th></tr></thead><tbody>';
+    
+    data.reverse().forEach(function(p) { 
+        var typeClass = p.type==='Entrada' ? 'bg-success' : 'bg-warning'; 
+        var auth = p.type === 'Saída' ? (p.authBy || '-') : '-';
+        var dest = p.type === 'Saída' ? (p.destination || '-') : '-';
+        var who = p.type === 'Saída' ? (p.takenBy || '-') : (p.supplier || 'Compra Direta');
+        
+        html += '<tr><td>'+p.date+'<br><small>'+p.time+'</small></td><td><span class="badge '+typeClass+'">'+p.type+'</span></td><td><strong>'+p.item+'</strong></td><td>'+p.qty+'</td><td>'+who+'</td><td>'+auth+'</td><td>'+dest+'</td><td>'+(p.type==='Entrada'?'<span class="text-danger">-'+fmt(p.cost)+'</span>':'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="delConst(\''+p.id+'\')">🗑️</button></td></tr>'; 
+    });
+    
+    if(!data.length) html += '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">Nenhum registo.</td></tr>';
+    html += '</tbody></table></div>'; 
+    document.getElementById('appContent').innerHTML = html;
+}
+
+function openModalConst() {
+    var timeNow = new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'});
+    
+    var formHtml = '<div class="form-row"><div><label>Data *</label><input type="text" id="cDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Hora *</label><input type="time" id="cTime" value="'+timeNow+'"></div></div>'+
+    '<div class="form-row"><div><label>Tipo de Movimento *</label><select id="cType" onchange="toggleConstFields()"><option value="Saída">Saída (Consumo/Requisição)</option><option value="Entrada">Entrada (Compra/Stock)</option></select></div><div><label>Item / Material *</label><input id="cItem" placeholder="Ex: Cimento, Varões, Lâmpada, Pregos"></div></div>'+
+    '<div class="form-row"><div><label>Quantidade *</label><input id="cQty" placeholder="Ex: 50 Sacos, 1000 Unid"></div></div>'+
+    
+    '<div id="saidaFields" style="display:block;border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--danger);margin-bottom:10px">Autorização de Saída</h4><div class="form-row"><div><label>Levantado Por (Funcionário) *</label><input id="cTaken" placeholder="Nome de quem levou o material"></div><div><label>Autorizado Por (Gestor) *</label><input id="cAuth" value="'+currentUser.name+'" placeholder="Quem autorizou a saída"></div></div><div class="form-row"><div><label>Obra / Destino *</label><input id="cDest" placeholder="Ex: Construção da Barragem, Casa de Força"></div></div></div>'+
+    
+    '<div id="entradaFields" style="display:none;border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--success);margin-bottom:10px">Dados da Compra</h4><div class="form-row"><div><label>Fornecedor</label><input id="cSupplier" placeholder="Nome do fornecedor"></div><div><label>Custo Total (Kz)</label><input type="number" id="cCost" value="0"></div></div></div>';
+
+    modal('Registar Movimento (Construção)', formHtml,
+    function() { 
+        var obj = {
+            date: val('cDate'), 
+            time: val('cTime'), 
+            type: val('cType'), 
+            item: val('cItem'), 
+            qty: val('cQty'),
+            takenBy: val('cTaken'), 
+            authBy: val('cAuth'), 
+            destination: val('cDest'), 
+            supplier: val('cSupplier'),
+            cost: parseFloat(val('cCost'))||0 
+        }; 
+        
+        if(!obj.item || !obj.qty) return showToast('Item e Quantidade obrigatórios','danger');
+        
+        if(obj.type === 'Saída') {
+            if(!obj.takenBy || !obj.authBy || !obj.destination) return showToast('Para SAÍDAS: Funcionário, Autorização e Destino são obrigatórios!','danger');
+        } else {
+            if(!obj.supplier) return showToast('Para ENTRADAS: Informe o Fornecedor','danger');
+        }
+        
+        obj.id = 'const' + Date.now(); 
+        DB.insert('construcao_logs', obj); 
+        logAction('Registar', 'Construção: '+obj.type+' '+obj.qty+' '+obj.item+' por '+currentUser.name); 
+        showToast('Movimento Registado com Sucesso!'); 
+        closeModal(); 
+        loadConstrucao(); 
+    },'Salvar','btn-primary');
+}
+
+function toggleConstFields() { 
+    var t = val('cType'); 
+    document.getElementById('saidaFields').style.display = t === 'Saída' ? 'block' : 'none'; 
+    document.getElementById('entradaFields').style.display = t === 'Entrada' ? 'block' : 'none'; 
+}
+
+function delConst(id) { 
+    var p = DB.get('construcao_logs').find(x=>x.id===id); 
+    DB.del('construcao_logs', id); 
+    logAction('Apagar', 'Construção: '+(p?p.item:'')); 
+    showToast('Eliminado!','danger'); 
+    loadConstrucao(); 
+}
+
+
+/* ==================== SEGURANÇA DO LOCAL ==================== */
+function loadSeguranca() {
+    var data = DB.get('security_logs') || [];
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🔐 Segurança e Controlo de Acessos</h2><button class="btn btn-primary btn-sm" onclick="openModalSec()">➕ Novo Registo</button></div>';
+    
+    html += '<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar nome, matrícula, ocorrência..." oninput="filterTable(this,\'tblSec\')" style="margin-bottom:10px"><table id="tblSec"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Nome / Entidade</th><th>Matrícula / ID</th><th>Destino / Motivo</th><th>Guarda de Turno</th><th>Ações</th></tr></thead><tbody>';
+    
+    data.reverse().forEach(function(s) { 
+        var typeClass = s.type === 'Ocorrência' ? 'bg-danger' : s.type === 'Saída' ? 'bg-warning' : 'bg-success';
+        html += '<tr><td>'+s.date+'<br><small>'+s.time+'</small></td><td><span class="badge '+typeClass+'">'+s.type+'</span></td><td><strong>'+s.name+'</strong></td><td>'+(s.ident||'-')+'</td><td>'+s.dest+'</td><td>'+s.guard+'</td><td><button class="btn btn-danger btn-sm" onclick="delSec(\''+s.id+'\')">🗑️</button></td></tr>'; 
+    });
+    
+    if(!data.length) html += '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Nenhum registo de segurança.</td></tr>';
+    html += '</tbody></table></div>'; 
+    document.getElementById('appContent').innerHTML = html;
+}
+
+function openModalSec() {
+    var timeNow = new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'});
+    modal('Registo de Portaria/Segurança', 
+    '<div class="form-row"><div><label>Data *</label><input type="text" id="sDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Hora *</label><input type="time" id="sTime" value="'+timeNow+'"></div></div>'+
+    '<div class="form-row"><div><label>Tipo de Movimento *</label><select id="sType"><option>Entrada no Local</option><option>Saída do Local</option><option>Ocorrência / Multa</option><option>Entrega de Chaves</option></select></div><div><label>Nome da Pessoa / Empresa *</label><input id="sName" placeholder="Ex: João Silva, Transpesado Lda"></div></div>'+
+    '<div class="form-row"><div><label>Matrícula / BI / ID *</label><input id="sIdent" placeholder="Ex: LD-12-34-AB ou 00987..." ></div><div><label>Destino / Motivo na Mina *</label><input id="sDest" placeholder="Ex: Oficina, Barragem, Entrega de material"></div></div>'+
+    '<div class="form-row"><div><label>Guarda de Turno (Registado por) *</label><input id="sGuard" value="'+currentUser.name+'"></div></div>'+
+    '<div><label>Observações (Se for ocorrência, descrever)</label><textarea id="sObs" rows="2" placeholder="Detalhes da ocorrência, estado do veículo ao entrar, etc."></textarea></div>',
+    function() { 
+        var obj = {date:val('sDate'), time:val('sTime'), type:val('sType'), name:val('sName'), ident:val('sIdent'), dest:val('sDest'), guard:val('sGuard'), obs:val('sObs')}; 
+        if(!obj.name || !obj.dest || !obj.guard) return showToast('Pessoa, Motivo e Guarda são obrigatórios!','danger'); 
+        obj.id = 'sec' + Date.now(); 
+        DB.insert('security_logs', obj); 
+        logAction('Segurança', obj.type+' - '+obj.name); 
+        showToast('Registo de Segurança criado!'); 
+        closeModal(); loadSeguranca(); 
+    },'Salvar','btn-primary');
+}
+
+function delSec(id) { 
+    DB.del('security_logs', id); 
+    logAction('Apagar', 'Registo de Segurança removido'); 
+    showToast('Eliminado!','danger'); 
+    loadSeguranca(); 
+}
+
+/* ==================== RECURSOS HUMANOS ==================== */
+function loadEmployees() {
+    var data = DB.get('employees');
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>👷 Recursos Humanos</h2><div style="display:flex;gap:10px"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="filterTable(this,\'tblEmp\')"><button class="btn btn-primary btn-sm" onclick="openModalEmp()">➕ Novo Funcionário</button></div></div><div class="card"><table id="tblEmp"><thead><tr><th>Nome</th><th>Cargo</th><th>Salário (Kz)</th><th>Veículo Atribuído</th><th>Ações</th></tr></thead><tbody>';
+    data.forEach(function(e) { 
+        var veh = e.role === 'Motorista' ? (e.vehicle+' | '+e.color+' | '+e.plate) : '-'; 
+        html += '<tr><td><strong>'+e.name+'</strong></td><td>'+e.role+'</td><td>'+fmt(e.salary)+'</td><td>'+veh+'</td><td style="white-space:nowrap"><button class="btn btn-info btn-sm" onclick="genPaycheck(\''+e.id+'\')">🧾</button> <button class="btn btn-warning btn-sm" onclick="openModalEmp(\''+e.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delEmp(\''+e.id+'\')">🗑️</button></td></tr>'; 
+    });
+    if(!data.length) html += '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhum funcionário.</td></tr>';
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+function openModalEmp(id) {
+    var data = DB.get('employees'); var e = id ? data.find(function(x){return x.id===id;}) : {name:'',role:'Mineiro',salary:0,vehicle:'',color:'',plate:''};
+    modal(id?'Editar Funcionário':'Novo Funcionário', '<div class="form-row"><div><label>Nome *</label><input id="eName" value="'+e.name+'"></div><div><label>Cargo *</label><select id="eRole" onchange="toggleDriverFields()"><option '+(e.role==='Mineiro'?'selected':'')+'>Mineiro</option><option '+(e.role==='Motorista'?'selected':'')+'>Motorista</option><option '+(e.role==='Segurança'?'selected':'')+'>Segurança</option><option '+(e.role==='Técnico'?'selected':'')+'>Técnico</option><option '+(e.role==='Administrador'?'selected':'')+'>Administrador</option></select></div></div><div class="form-row"><div><label>Salário (Kz) *</label><input type="number" id="eSalary" value="'+e.salary+'"></div></div><div id="driverBox" style="display:'+(e.role==='Motorista'?'block':'none')+'"><hr><h4 style="color:var(--primary);margin-bottom:10px">Veículo Atribuído</h4><div class="form-row"><div><label>Veículo</label><input id="eVehicle" value="'+e.vehicle+'" placeholder="Toyota Hilux"></div><div><label>Cor</label><input id="eColor" value="'+e.color+'" placeholder="Branco"></div><div><label>Matrícula</label><input id="ePlate" value="'+e.plate+'" placeholder="LD-12-34-AB"></div></div></div>',
+    function() { var obj = {name:val('eName'),role:val('eRole'),salary:parseFloat(val('eSalary'))||0,vehicle:val('eVehicle'),color:val('eColor'),plate:val('ePlate')}; if(!obj.name) return showToast('Nome obrigatório','danger'); if(id) { DB.update('employees', id, obj); logAction('Editar', 'RH: '+obj.name); showToast('Atualizado!'); } else { obj.id='e'+Date.now(); DB.insert('employees', obj); logAction('Adicionar', 'RH: '+obj.name); showToast('Adicionado!'); } closeModal(); loadEmployees(); },'Salvar','btn-primary');
+}
+function toggleDriverFields() { document.getElementById('driverBox').style.display = val('eRole') === 'Motorista' ? 'block' : 'none'; }
+function delEmp(id) { var e = DB.get('employees').find(x=>x.id===id); DB.del('employees', id); logAction('Apagar', 'RH: '+(e?e.name:'')); showToast('Eliminado!','danger'); loadEmployees(); }
+
+function genPaycheck(id) {
+    var emp = DB.get('employees').find(function(x){return x.id===id;});
+    var config = DB.get('company_config')[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
+    var irt = calcIRT(emp.salary); 
+    var seg = (emp.salary * 0.03); 
+    var liquido = emp.salary - irt - seg;
+    
+    var html = '<div id="payPrint" class="pdf-report" style="width:210mm;margin:auto">'+
+        '<div class="pdf-header"><h2>'+config.name+'</h2><p>NIF: '+config.nif+' | '+config.address+'</p></div>'+
+        '<h3 style="text-align:center; border:none; margin-bottom:20px;">RECIBO DE VENCIMENTO - '+getTodayStr()+'</h3>'+
+        '<div class="summary-box" style="display:flex; justify-content:space-between; font-size:1.1rem; margin-bottom:20px;">'+
+            '<div><strong>Funcionário:</strong> '+emp.name+'</div>'+
+            '<div><strong>Cargo:</strong> '+emp.role+'</div>'+
+        '</div>'+
+        '<table><thead><tr><th>Descrição</th><th class="text-right">Valor (Kz)</th></tr></thead><tbody>'+
+        '<tr><td>Vencimento Base</td><td class="text-right">'+fmt(emp.salary)+'</td></tr>'+
+        '<tr><td class="text-danger">(-) Retenção IRT (Tabela Progressiva)</td><td class="text-right text-danger">'+fmt(irt)+'</td></tr>'+
+        '<tr><td class="text-danger">(-) Segurança Social (3%)</td><td class="text-right text-danger">'+fmt(seg)+'</td></tr>'+
+        '<tr class="total-row"><td>Valor Líquido a Receber</td><td class="text-right">'+fmt(liquido)+'</td></tr></tbody></table>'+
+        '<p style="margin-top:40px;font-size:.9rem;color:#000;">Declaro ter recebido a importância acima descrita, pelo que dou plena e geral quitação.</p>'+
+        '<div class="signatures">'+
+            '<div class="sign-line">Assinatura do Funcionário</div>'+
+            '<div class="sign-line">Pela Empresa</div>'+
+        '</div>'+
+    '</div>';
+    
+    var printArea = document.createElement('div'); printArea.innerHTML = html; document.body.appendChild(printArea);
+    var opt = { margin: 5, filename: 'Recibo_'+emp.name.replace(/ /g,'_')+'.pdf', image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 4, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: false } };
+    showToast('A gerar PDF...','info'); 
+    html2pdf().set(opt).from(printArea.firstChild).save().then(function(){ printArea.remove(); });
+}
+
+/* ==================== EQUIPAMENTOS ==================== */
+function loadEquipment() {
+    var data = DB.get('equipment');
+    var maint = DB.get('maintenance_logs');
+    var totBuy = data.reduce(function(a,b){return a+(b.buyPrice||0);},0);
+    var totMaint = maint.reduce(function(a,b){return a+(b.cost||0);},0);
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🚜 Equipamentos e Ativos</h2><button class="btn btn-primary btn-sm" onclick="openModalEq()">➕ Novo Bem</button></div>';
+    html += '<div class="kpi-grid">'+
+        '<div class="kpi-card" style="background:rgba(255,0,110,.05);border-left-color:var(--danger)"><div class="kpi-label">Total Investido (Compras)</div><div class="kpi-value" style="color:var(--danger)">'+fmt(totBuy)+' Kz</div></div>'+
+        '<div class="kpi-card" style="background:rgba(255,195,0,.05);border-left-color:var(--warning)"><div class="kpi-label">Total Gasto em Manutenções</div><div class="kpi-value" style="color:var(--warning)">'+fmt(totMaint)+' Kz</div></div>'+
+    '</div>';
+    html += '<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="filterTable(this,\'tblEq\')" style="margin-bottom:10px"><table id="tblEq"><thead><tr><th>Nome / Modelo</th><th>Marca</th><th>Tipo</th><th>Matrícula</th><th>Preço Compra</th><th>Estado</th><th>Ações</th></tr></thead><tbody>';
+    data.forEach(function(e) { 
+        var stClass = e.status==='Em Inventário'?'bg-success':'bg-danger'; 
+        html += '<tr><td><strong>'+e.name+'</strong></td><td>'+(e.brand||'-')+'</td><td>'+e.type+'</td><td>'+(e.plate||'-')+'</td><td style="color:red">'+fmt(e.buyPrice)+'</td><td><span class="badge '+stClass+'">'+e.status+'</span></td><td style="white-space:nowrap"><button class="btn btn-info btn-sm" onclick="openModalMaint(\''+e.id+'\')">🔧</button> <button class="btn btn-warning btn-sm" onclick="openModalEq(\''+e.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delEq(\''+e.id+'\')">🗑️</button></td></tr>'; 
+    });
+    if(!data.length) html += '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Nenhum equipamento.</td></tr>';
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+function openModalEq(id) {
+    var data = DB.get('equipment'); var e = id ? data.find(function(x){return x.id===id;}) : {name:'',brand:'',type:'Veículo',plate:'',buyPrice:0,sellPrice:0,status:'Em Inventário'};
+    modal(id?'Editar Bem':'Novo Bem / Equipamento', '<div class="form-row"><div><label>Nome / Modelo *</label><input id="eqName" value="'+e.name+'" placeholder="Gerador X, Pick-up Y"></div><div><label>Marca *</label><input id="eqBrand" value="'+e.brand+'" placeholder="Toyota, CAT"></div></div><div class="form-row"><div><label>Tipo *</label><select id="eqType" onchange="togglePlateField()"><option '+(e.type==='Veículo'?'selected':'')+'>Veículo</option><option '+(e.type==='Mineração'?'selected':'')+'>Mineração</option><option '+(e.type==='Energia'?'selected':'')+'>Energia</option><option '+(e.type==='Outro'?'selected':'')+'>Outro</option></select></div><div id="plateBox" style="display:'+(e.type==='Veículo'?'block':'none')+'"><label>Matrícula</label><input id="eqPlate" value="'+e.plate+'" placeholder="LD-12-34-AB"></div></div><div class="form-row"><div><label>Preço de Compra (Kz) *</label><input type="number" id="eqBuy" value="'+e.buyPrice+'"></div><div><label>Preço de Venda (Kz)</label><input type="number" id="eqSell" value="'+e.sellPrice+'" placeholder="0 se não foi vendido"></div></div><div class="form-row"><div><label>Estado *</label><select id="eqStatus"><option '+(e.status==='Em Inventário'?'selected':'')+'>Em Inventário</option><option '+(e.status==='Vendido'?'selected':'')+'>Vendido</option><option '+(e.status==='Avariado'?'selected':'')+'>Avariado</option></select></div></div>',
+    function() { var obj = {name:val('eqName'),brand:val('eqBrand'),type:val('eqType'),plate:val('eqPlate'),buyPrice:parseFloat(val('eqBuy'))||0,sellPrice:parseFloat(val('eqSell'))||0,status:val('eqStatus')}; if(!obj.name) return showToast('Nome obrigatório','danger'); if(id) { DB.update('equipment', id, obj); logAction('Editar', 'Equipamento: '+obj.name); showToast('Atualizado!'); } else { obj.id='eq'+Date.now(); DB.insert('equipment', obj); logAction('Adicionar', 'Equipamento: '+obj.name); showToast('Adicionado!'); } closeModal(); loadEquipment(); },'Salvar','btn-primary');
+}
+function togglePlateField() { document.getElementById('plateBox').style.display = val('eqType') === 'Veículo' ? 'block' : 'none'; }
+function delEq(id) { var e = DB.get('equipment').find(x=>x.id===id); DB.del('equipment', id); logAction('Apagar', 'Equipamento: '+(e?e.name:'')); showToast('Eliminado!','danger'); loadEquipment(); }
+
+function openModalMaint(eqId) {
+    var eq = DB.get('equipment').find(function(x){return x.id===eqId;});
+    var history = DB.get('maintenance_logs').filter(function(m){return m.eqId===eqId;});
+    var histHtml = history.length ? '<ul style="font-size:.85rem;margin:10px 0 15px;padding-left:20px">'+history.map(function(m){ return '<li>'+m.date+' - '+m.desc+' ('+fmt(m.cost)+' Kz)</li>'; }).join('')+'</ul>' : '<p style="font-size:.85rem;color:var(--text-muted);margin:10px 0">Sem manutenções registadas.</p>';
+    
+    modal('🔧 Manutenção: '+eq.name, histHtml + '<div class="form-row"><div><label>Data *</label><input type="text" id="mDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Custo (Kz) *</label><input type="number" id="mCost" value="0"></div></div><div class="form-row"><div><label>Horómetro/Km Atual</label><input id="mHours" value="" placeholder="Ex: 1550h"></div></div><div><label>Descrição da Manutenção *</label><input id="mDesc" placeholder="Ex: Mudança de óleo, reparação de motor"></div>',
+    function() { 
+        var obj = {eqId:eqId, date:val('mDate'), cost:parseFloat(val('mCost'))||0, hours:val('mHours'), desc:val('mDesc')}; 
+        if(!obj.desc) return showToast('Descrição obrigatória','danger'); 
+        obj.id='maint'+Date.now(); DB.insert('maintenance_logs', obj); 
+        DB.update('equipment', eqId, {status:'Operacional'}); 
+        logAction('Manutenção', eq.name+': '+obj.desc); showToast('Manutenção Registada!'); closeModal(); loadEquipment(); 
+    },'Registar Manutenção','btn-info');
+}
+
+/* ==================== FINANCEIRO ==================== */
+function loadFinance() {
+    var data = DB.get('finance_logs');
+    var totCaixaEnt = data.filter(function(f){return f.account==='Caixa' && f.type==='Entrada' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
+    var totCaixaSai = data.filter(function(f){return f.account==='Caixa' && f.type==='Saída' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
+    var totBancoEnt = data.filter(function(f){return f.account==='Banco' && f.type==='Entrada' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
+    var totBancoSai = data.filter(function(f){return f.account==='Banco' && f.type==='Saída' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
+    var aReceber = data.filter(function(f){return f.type==='Entrada' && f.status==='Pendente';}).reduce(function(a,b){return a+b.val;},0);
+    var aPagar = data.filter(function(f){return f.type==='Saída' && f.status==='Pendente';}).reduce(function(a,b){return a+b.val;},0);
+
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🏦 Movimentos Financeiros</h2><button class="btn btn-primary btn-sm" onclick="openModalFin()">➕ Novo Lançamento</button></div>';
+    html += '<div class="kpi-grid">'+
+        '<div class="kpi-card" style="background:rgba(0,255,136,.05);border-left-color:var(--success)"><div class="kpi-label">Saldo em Caixa</div><div class="kpi-value" style="color:var(--success)">'+fmt(totCaixaEnt-totCaixaSai)+' Kz</div></div>'+
+        '<div class="kpi-card" style="background:rgba(0,180,216,.05);border-left-color:var(--info)"><div class="kpi-label">Saldo em Banco</div><div class="kpi-value" style="color:#17a2b8">'+fmt(totBancoEnt-totBancoSai)+' Kz</div></div>'+
+        '<div class="kpi-card" style="background:rgba(255,195,0,.05);border-left-color:var(--warning)"><div class="kpi-label">Contas a Receber</div><div class="kpi-value" style="color:var(--warning)">'+fmt(aReceber)+' Kz</div></div>'+
+        '<div class="kpi-card" style="background:rgba(255,0,110,.05);border-left-color:var(--danger)"><div class="kpi-label">Contas a Pagar</div><div class="kpi-value" style="color:var(--danger)">'+fmt(aPagar)+' Kz</div></div>'+
+    '</div>';
+    html += '<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="filterTable(this,\'tblFin\')" style="margin-bottom:10px"><table id="tblFin"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Conta</th><th>Tipo</th><th>Valor</th><th>IVA</th><th>Estado</th><th>Doc</th><th>Ações</th></tr></thead><tbody>';
+    data.reverse().forEach(function(f) { 
+        var typeClass = f.type==='Entrada' ? 'bg-success' : 'bg-danger'; var accClass = f.account==='Banco' ? 'bg-info' : 'bg-warning';
+        var stClass = f.status==='Pago' ? 'bg-success' : 'bg-danger';
+        var valHtml = f.type==='Entrada' ? '<span class="text-success">+'+fmt(f.val)+'</span>' : '<span class="text-danger">-'+fmt(f.val)+'</span>'; 
+        var docHtml = f.docBase64 ? '<a href="'+f.docBase64+'" target="_blank" class="btn btn-info btn-sm">📎</a>' : '-';
+        var actionHtml = f.status==='Pendente' ? '<button class="btn btn-success btn-sm" onclick="settleFin(\''+f.id+'\')">✅ Quitar</button>' : '';
+        html += '<tr><td>'+f.date+'</td><td>'+f.desc+'</td><td>'+f.cat+'</td><td><span class="badge '+accClass+'">'+f.account+'</span></td><td><span class="badge '+typeClass+'">'+f.type+'</span></td><td>'+valHtml+'</td><td>'+fmt(f.iva)+'</td><td><span class="badge '+stClass+'">'+f.status+'</span></td><td>'+docHtml+'</td><td style="white-space:nowrap">'+actionHtml+' <button class="btn btn-danger btn-sm" onclick="delFin(\''+f.id+'\')">🗑️</button></td></tr>'; 
+    });
+    if(!data.length) html += '<tr><td colspan="10" style="text-align:center;color:var(--text-muted)">Nenhum movimento.</td></tr>';
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+function openModalFin() {
+    var suppliers = DB.get('suppliers');
+    var supOptions = suppliers.map(function(s){ return '<option value="'+s.id+'">'+s.name+'</option>'; }).join('');
+    modal('Novo Lançamento', '<div class="form-row"><div><label>Data *</label><input type="text" id="finDate" value="'+getTodayStr()+'" placeholder="DD/MM/AAAA"></div><div><label>Conta *</label><select id="finAccount"><option>Caixa</option><option>Banco</option><option>Crédito (A pagar/receber)</option></select></div></div><div class="form-row"><div><label>Tipo *</label><select id="finType"><option value="Entrada">Entrada (Receita/Venda)</option><option value="Saída">Saída (Despesa/Compra)</option></select></div><div><label>Categoria *</label><select id="finCat"><option>Venda de Diamantes</option><option>Ferramentas</option><option>Manutenção</option><option>Impostos</option><option>Fornecedores</option><option>Outros</option></select></div></div><div class="form-row"><div><label>Fornecedor (se aplicável)</label><select id="finSupplier"><option value="">-- Nenhum --</option>'+supOptions+'</select></div><div><label>Valor Base (Kz) *</label><input type="number" id="finVal" value="0" oninput="calcIVA()"></div></div><div class="form-row"><div><label>IVA (14%)</label><input type="number" id="finIva" value="0" readonly></div><div><label>Estado *</label><select id="finStatus"><option value="Pago">Pago (Dinheiro saiu/entrou)</option><option value="Pendente">Pendente (A Crédito/Dívida)</option></select></div></div><div><label>Descrição *</label><input id="finDesc" placeholder="Ex: Venda do lote, Nº Fatura"></div><div style="margin-top:15px"><label>Anexar Fatura (Max 1MB)</label><input type="file" id="finDoc" accept="image/*,application/pdf"></div>',
+    function() { 
+        if(!val('finDesc')) return showToast('Descrição obrigatória','danger'); 
+        handleFileUpload('finDoc', function(base64) {
+            var isCredit = val('finAccount') === 'Crédito (A pagar/receber)';
+            var obj = {date:val('finDate'),type:val('finType'),cat:val('finCat'),val:parseFloat(val('finVal'))||0,iva:parseFloat(val('finIva'))||0,desc:val('finDesc'),account:isCredit?'Crédito':val('finAccount'),supplier:val('finSupplier'),status:val('finStatus'),docBase64:base64}; 
+            obj.id='fin'+Date.now(); DB.insert('finance_logs', obj); logAction('Lançar', 'Finanças: '+obj.type+' '+obj.val+' - '+obj.desc); showToast('Lançado!'); closeModal(); loadFinance(); 
+        });
+    },'Salvar','btn-primary');
+}
+function calcIVA() { var v = parseFloat(val('finVal'))||0; document.getElementById('finIva').value = (v * 0.14).toFixed(2); }
+function settleFin(id) { DB.update('finance_logs', id, {status:'Pago', account:'Caixa'}); logAction('Quitar', 'Finança quitada: '+id); showToast('Movimento quitado!'); loadFinance(); }
+function delFin(id) { var f = DB.get('finance_logs').find(x=>x.id===id); DB.del('finance_logs', id); logAction('Apagar', 'Finanças: '+(f?f.desc:'')); showToast('Eliminado!','danger'); loadFinance(); }
+
+/* ==================== PATRIMÓNIO ==================== */
+function loadPatrimony() {
+    var data = DB.get('patrimony_logs');
+    var totIn = data.filter(function(x){return x.type==='Entrada';}).reduce(function(a,b){return a+(b.val||0);},0);
+    var totOut = data.filter(function(x){return x.type==='Saída';}).reduce(function(a,b){return a+(b.val||0);},0);
+    var ativosFixos = data.filter(function(x){return x.status==='Em Inventário';}).length;
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🏛️ Património e Ativos</h2><div style="display:flex;gap:10px"><select id="patFilter" onchange="filterPatrimony()" style="width:auto;padding:6px"><option value="">Todos os Movimentos</option><option value="Entrada">Entradas (Compras)</option><option value="Saída">Saídas (Vendas/Consumos)</option></select><button class="btn btn-primary btn-sm" onclick="openModalPatrimony()">➕ Novo Registo</button></div></div>';
+    html += '<div class="kpi-grid">'+
+        '<div class="kpi-card" style="background:rgba(0,255,136,.05);border-left-color:var(--success)"><div class="kpi-label">Total de Entradas (Compras)</div><div class="kpi-value" style="color:var(--success)">'+fmt(totIn)+' Kz</div></div>'+
+        '<div class="kpi-card" style="background:rgba(255,0,110,.05);border-left-color:var(--danger)"><div class="kpi-label">Total de Saídas (Vendas)</div><div class="kpi-value" style="color:var(--danger)">'+fmt(totOut)+' Kz</div></div>'+
+        '<div class="kpi-card" style="background:rgba(212,175,55,.05);border-left-color:var(--primary)"><div class="kpi-label">Ativos em Inventário</div><div class="kpi-value" style="color:var(--primary)">'+ativosFixos+' Itens</div></div>'+
+    '</div>';
+    html += '<div class="card"><table id="tblPat"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Categoria/Item</th><th>Valor (Kz)</th><th>Estado</th><th>Fatura</th><th>Ações</th></tr></thead><tbody>';
+    data.reverse().forEach(function(p) { 
+        var typeClass = p.type==='Entrada' ? 'bg-success' : 'bg-danger'; var stClass = p.status==='Em Inventário' ? 'bg-info' : p.status==='Vendido' ? 'bg-danger' : 'bg-warning';
+        var docHtml = p.docBase64 ? '<a href="'+p.docBase64+'" target="_blank" class="btn btn-info btn-sm">📎</a>' : '-';
+        html += '<tr data-type="'+p.type+'"><td>'+p.date+'<br><small>'+p.time+'</small></td><td><span class="badge '+typeClass+'">'+p.type+'</span></td><td><strong>'+p.cat+'</strong><br>'+p.item+'</td><td>'+fmt(p.val)+'</td><td><span class="badge '+stClass+'">'+p.status+'</span></td><td>'+docHtml+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalPatrimony(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delPatrimony(\''+p.id+'\')">🗑️</button></td></tr>'; 
+    });
+    if(!data.length) html += '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Nenhum registo patrimonial.</td></tr>';
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+function filterPatrimony() {
+    var filter = document.getElementById('patFilter').value; var rows = document.getElementById('tblPat').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    for (var i = 0; i < rows.length; i++) { var type = rows[i].getAttribute('data-type'); if (filter === '' || type === filter) { rows[i].style.display = ''; } else { rows[i].style.display = 'none'; } }
+}
+function openModalPatrimony(id) {
+    var data = DB.get('patrimony_logs'); var p = id ? data.find(function(x){return x.id===id;}) : {date:getTodayStr(), time:new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'}), type:'Entrada', cat:'Equipamento', item:'', qty:'1 Unidade', val:0, acquiredBy:currentUser.name, paymentMethod:'Transferência', notes:'', status:'Em Inventário', docBase64:''};
+    modal(id?'Editar Registo':'Novo Movimento Patrimonial', '<div class="form-row"><div><label>Data *</label><input type="text" id="pDate" value="'+p.date+'" placeholder="DD/MM/AAAA"></div><div><label>Hora *</label><input type="time" id="pTime" value="'+p.time+'"></div></div><div class="form-row"><div><label>Tipo de Movimento *</label><select id="pType"><option '+(p.type==='Entrada'?'selected':'')+'>Entrada</option><option '+(p.type==='Saída'?'selected':'')+'>Saída</option></select></div><div><label>Categoria *</label><select id="pCat"><option '+(p.cat==='Equipamento'?'selected':'')+'>Equipamento</option><option '+(p.cat==='Veículo'?'selected':'')+'>Veículo</option><option '+(p.cat==='Combustível'?'selected':'')+'>Combustível</option><option '+(p.cat==='Material'?'selected':'')+'>Material</option></select></div></div><div class="form-row"><div><label>Item / Descrição *</label><input id="pItem" value="'+p.item+'" placeholder="Ex: Escavadora CAT, Gasóleo, Pick-up"></div><div><label>Quantidade *</label><input id="pQty" value="'+p.qty+'" placeholder="Ex: 1 Unidade, 500 Litros"></div></div><div class="form-row"><div><label>Valor (Kz) *</label><input type="number" id="pVal" value="'+p.val+'"></div><div><label>Estado do Bem *</label><select id="pStatus"><option '+(p.status==='Em Inventário'?'selected':'')+'>Em Inventário</option><option '+(p.status==='Consumido'?'selected':'')+'>Consumido</option><option '+(p.status==='Vendido'?'selected':'')+'>Vendido</option></select></div></div><div class="form-row"><div><label>Adquirido / Vendido por *</label><input id="pAcq" value="'+p.acquiredBy+'"></div><div><label>Meio de Pagamento *</label><select id="pPay"><option '+(p.paymentMethod==='Transferência Bancária'?'selected':'')+'>Transferência Bancária</option><option '+(p.paymentMethod==='Numerário'?'selected':'')+'>Numerário</option><option '+(p.paymentMethod==='Cartão Corporate'?'selected':'')+'>Cartão Corporate</option><option '+(p.paymentMethod==='Cheque'?'selected':'')+'>Cheque</option></select></div></div><div><label>Notas / Nº Fatura</label><input id="pNotes" value="'+p.notes+'" placeholder="Referência de documento"></div><div style="margin-top:15px"><label>Anexar Documento (Max 1MB)</label><input type="file" id="pDoc" accept="image/*,application/pdf"></div>',
+    function() { 
+        var obj = {date:val('pDate'),time:val('pTime'),type:val('pType'),cat:val('pCat'),item:val('pItem'),qty:val('pQty'),val:parseFloat(val('pVal'))||0,acquiredBy:val('pAcq'),paymentMethod:val('pPay'),notes:val('pNotes'),status:val('pStatus')}; 
+        if(!obj.item||!obj.date) return showToast('Item e Data obrigatórios','danger'); 
+        
+        handleFileUpload('pDoc', function(base64) {
+            obj.docBase64 = base64;
+            if(id) { 
+                DB.update('patrimony_logs', id, obj); logAction('Editar', 'Património: '+obj.item); showToast('Atualizado!'); 
+            } else { 
+                obj.id='pat'+Date.now(); 
+                DB.insert('patrimony_logs', obj); 
+                logAction('Registar', 'Património: '+obj.type+' '+obj.item); 
+                if(obj.cat === 'Combustível' && obj.type === 'Entrada') {
+                    var litrosMatch = obj.qty.match(/\d+/); var litrosNum = litrosMatch ? parseInt(litrosMatch[0]) : 0;
+                    DB.insert('fuel_logs', {id: 'fl'+Date.now(), date: obj.date, time: obj.time, type: 'Entrada', fuelType: obj.item, litros: litrosNum, equipment: 'Tankagem Geral', brand: '', plate: '', empName: obj.acquiredBy, authBy: obj.acquiredBy, val: obj.val});
+                    showToast('Combustível adicionado automaticamente!','info');
+                }
+            } 
+            closeModal(); loadPatrimony(); 
+        });
+    },'Salvar','btn-primary');
+}
+function delPatrimony(id) { var p = DB.get('patrimony_logs').find(x=>x.id===id); DB.del('patrimony_logs', id); logAction('Apagar', 'Património: '+(p?p.item:'')); showToast('Eliminado!','danger'); loadPatrimony(); }
+
+/* ==================== FORNECEDORES ==================== */
+function loadSuppliers() {
+    var data = DB.get('suppliers');
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🚚 Fornecedores e Entidades</h2><button class="btn btn-primary btn-sm" onclick="openModalSup()">➕ Novo Fornecedor</button></div><div class="card"><table id="tblSup"><thead><tr><th>Nome / Empresa</th><th>NIF</th><th>Contato</th><th>Conta Bancária</th><th>Ações</th></tr></thead><tbody>';
+    data.forEach(function(s) { html += '<tr><td><strong>'+s.name+'</strong></td><td>'+s.nif+'</td><td>'+s.contact+'</td><td>'+(s.account||'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalSup(\''+s.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delSup(\''+s.id+'\')">🗑️</button></td></tr>'; });
+    if(!data.length) html += '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhum fornecedor registado.</td></tr>';
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+function openModalSup(id) {
+    var data = DB.get('suppliers'); var s = id ? data.find(function(x){return x.id===id;}) : {name:'',nif:'',contact:'',account:''};
+    modal(id?'Editar Fornecedor':'Novo Fornecedor', '<div class="form-row"><div><label>Nome / Empresa *</label><input id="sName" value="'+s.name+'"></div><div><label>NIF *</label><input id="sNif" value="'+s.nif+'" placeholder="NIF para AGT"></div></div><div class="form-row"><div><label>Contato (Tel/Email)</label><input id="sContact" value="'+s.contact+'"></div><div><label>Conta Bancária</label><input id="sAccount" value="'+s.account+'"></div></div>',
+    function() { var obj = {name:val('sName'),nif:val('sNif'),contact:val('sContact'),account:val('sAccount')}; if(!obj.name||!obj.nif) return showToast('Nome e NIF obrigatórios (AGT)','danger'); if(id) { DB.update('suppliers', id, obj); logAction('Editar', 'Fornecedor: '+obj.name); showToast('Atualizado!'); } else { obj.id='sup'+Date.now(); DB.insert('suppliers', obj); logAction('Criar', 'Fornecedor: '+obj.name); showToast('Adicionado!'); } closeModal(); loadSuppliers(); },'Salvar','btn-primary');
+}
+function delSup(id) { DB.del('suppliers', id); logAction('Apagar', 'Fornecedor removido'); showToast('Eliminado!','danger'); loadSuppliers(); }
+
+/* ==================== CONFIGURAÇÕES E BACKUP ==================== */
+function loadConfig() {
+    var c = DB.get('company_config')[0] || {id:'c1', name:'', nif:'', address:'', ivaRate:14, bank:''};
+    var html = '<h2>⚙️ Configurações do Sistema</h2>'+
+    '<div class="card"><h3>Dados da Empresa (Para Faturas e Relatórios)</h3>'+
+    '<div class="form-row"><div><label>Nome da Empresa *</label><input id="cName" value="'+c.name+'"></div><div><label>NIF *</label><input id="cNif" value="'+c.nif+'"></div></div>'+
+    '<div class="form-row"><div><label>Endereço</label><input id="cAddr" value="'+c.address+'"></div><div><label>Taxa IVA (%)</label><input type="number" id="cIva" value="'+c.ivaRate+'"></div></div>'+
+    '<div class="form-row"><div><label>Conta Bancária Principal</label><input id="cBank" value="'+c.bank+'"></div></div>'+
+    '<button class="btn btn-success" onclick="saveConfig()">💾 Guardar Configurações</button></div>'+
+    '<div class="card"><h3>💾 Backup e Restauro de Dados (Crítico)</h3><p style="font-size:.85rem;color:var(--text-muted);margin-bottom:15px">Faça download de toda a contabilidade e dados da mina regularmente para evitar perdas. Para restaurar, selecione um ficheiro de backup.</p>'+
+    '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-info" onclick="exportBackup()">⬇️ Descarregar Backup (JSON)</button><label class="btn btn-warning" style="cursor:pointer">⬆️ Carregar Backup<input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)"></label></div></div>';
+    document.getElementById('appContent').innerHTML = html;
+}
+function saveConfig() {
+    var c = DB.get('company_config'); var obj = {id:'c1', name:val('cName'), nif:val('cNif'), address:val('cAddr'), ivaRate:parseFloat(val('cIva'))||14, bank:val('cBank')};
+    if(c.length > 0) DB.update('company_config', 'c1', obj); else DB.insert('company_config', obj);
+    logAction('Config', 'Atualizou dados da empresa'); showToast('Configurações salvas!');
+}
+function exportBackup() {
+    var tables = ['users','fuel_logs','provisions_logs','construcao_logs','security_logs','employees','equipment','finance_logs','patrimony_logs','audit_logs','suppliers','production_logs','company_config','maintenance_logs'];
+    var backup = {}; tables.forEach(function(t){ backup[t] = DB.get(t); });
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+    var link = document.createElement('a'); link.href = dataStr; link.download = "Backup_Mina_Jaliezer_"+getTodayStr().replace(/\//g,'-')+".json";
+    document.body.appendChild(link); link.click(); link.remove(); showToast('Backup descarregado!','info');
+}
+function importBackup(event) {
+    var file = event.target.files[0]; if(!file) return; var reader = new FileReader();
+    reader.onload = function(e) {
+        try { var data = JSON.parse(e.target.result); if(confirm('ATENÇÃO: Isto vai APAGAR todos os dados atuais e substituir pelos dados do ficheiro. Continuar?')) { for(var table in data) { DB.save(table, data[table]); } showToast('Backup restaurado! O sistema vai recarregar...','success'); setTimeout(function(){ location.reload(); }, 2000); } } catch(err) { showToast('Erro: Ficheiro inválido.','danger'); }
+    }; reader.readAsText(file);
+}
+
+/* ==================== GESTÃO DE UTILIZADORES ==================== */
+function loadUsers() {
+    var data = DB.get('users');
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>👤 Gestão de Acessos</h2><button class="btn btn-primary btn-sm" onclick="openModalUser()">➕ Novo Utilizador</button></div><div class="card"><table id="tblUsers"><thead><tr><th>Nome</th><th>Utilizador (Login)</th><th>Perfil de Acesso</th><th>Ações</th></tr></thead><tbody>';
+    data.forEach(function(u) {
+        var roleClass = u.role==='admin' ? 'bg-danger' : u.role==='contabilista' ? 'bg-info' : u.role==='dir_rh' ? 'bg-warning' : u.role==='dir_alimentar' ? 'bg-success' : u.role==='dir_transporte' ? 'bg-info' : u.role==='dir_construcao' ? 'bg-warning' : 'bg-success';
+        var roleName = u.role==='admin' ? 'Diretor Geral' : u.role==='contabilista' ? 'Contabilista' : u.role==='dir_rh' ? 'Diretor de RH' : u.role==='dir_alimentar' ? 'Diretor Alimentar' : u.role==='dir_transporte' ? 'Diretor de Transportes' : u.role==='dir_construcao' ? 'Diretor de Construção' : u.role==='rh' ? 'Recursos Humanos' : 'Secretária';
+        html += '<tr><td><strong>'+u.name+'</strong></td><td>'+u.user+'</td><td><span class="badge '+roleClass+'">'+roleName+'</span></td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalUser(\''+u.id+'\')">✏️</button> '+(u.role!=='admin'?'<button class="btn btn-danger btn-sm" onclick="delUser(\''+u.id+'\')">🗑️</button>':'')+'</td></tr>';
+    });
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+function openModalUser(id) {
+    var data = DB.get('users'); var u = id ? data.find(function(x){return x.id===id;}) : {name:'',user:'',pass:'',role:'secretaria'};
+    modal(id?'Editar Utilizador':'Novo Utilizador', '<div class="form-row"><div><label>Nome Completo *</label><input id="uName" value="'+u.name+'"></div><div><label>Utilizador (Login) *</label><input id="uUser" value="'+u.user+'" placeholder="Ex: maria"></div></div><div class="form-row"><div><label>Senha *</label><input type="text" id="uPass" value="" placeholder="'+(id?'Deixe vazio para manter':'Nova senha')+'"></div><div><label>Perfil de Acesso *</label><select id="uRole"><option value="admin" '+(u.role==='admin'?'selected':'')+'>Diretor Geral</option><option value="dir_rh" '+(u.role==='dir_rh'?'selected':'')+'>Diretor de RH (Paga Salários)</option><option value="dir_alimentar" '+(u.role==='dir_alimentar'?'selected':'')+'>Diretor Logística Alimentar</option><option value="dir_transporte" '+(u.role==='dir_transporte'?'selected':'')+'>Diretor de Transportes</option><option value="dir_construcao" '+(u.role==='dir_construcao'?'selected':'')+'>Diretor de Construção Civil</option><option value="contabilista" '+(u.role==='contabilista'?'selected':'')+'>Contabilista</option><option value="rh" '+(u.role==='rh'?'selected':'')+'>Recursos Humanos</option><option value="secretaria" '+(u.role==='secretaria'?'selected':'')+'>Secretária</option></select></div></div>',
+    function() { var obj = {name:val('uName'),user:val('uUser'),role:val('uRole')}; var passVal=val('uPass'); if(!obj.name||!obj.user) return showToast('Preencha os campos obrigatórios','danger'); if(passVal) obj.pass = hashPass(passVal); if(id) { DB.update('users', id, obj); logAction('Editar', 'Utilizador: '+obj.name); showToast('Utilizador atualizado!'); } else { if(!passVal) return showToast('Senha obrigatória','danger'); obj.id='u'+Date.now(); DB.insert('users', obj); logAction('Criar', 'Utilizador: '+obj.name); showToast('Utilizador criado!'); } closeModal(); loadUsers(); },'Salvar','btn-primary');
+}
+function delUser(id) { var u = DB.get('users').find(x=>x.id===id); DB.del('users', id); logAction('Apagar', 'Utilizador: '+(u?u.name:'')); showToast('Eliminado!','danger'); loadUsers(); }
+
+/* ==================== AUDITORIA ==================== */
+function loadAudit() {
+    var data = DB.get('audit_logs');
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🛡️ Registo de Auditoria</h2><button class="btn btn-danger btn-sm" onclick="clearAudit()">🗑️ Limpar Histórico</button></div><div class="card"><table id="tblAudit"><thead><tr><th>Data e Hora</th><th>Utilizador</th><th>Perfil</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody>';
+    data.reverse().forEach(function(l) { html += '<tr><td>'+l.date+'</td><td><strong>'+l.user+'</strong></td><td>'+l.role+'</td><td><span class="badge bg-info">'+l.action+'</span></td><td>'+l.detail+'</td></tr>'; });
+    if(!data.length) html += '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Nenhum registo de auditoria.</td></tr>';
+    html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html;
+}
+function clearAudit() { if(confirm('Limpar todo o histórico?')) { DB.save('audit_logs', []); showToast('Histórico limpo!','danger'); loadAudit(); } }
+
+/* ==================== RELATÓRIOS ==================== */
+function loadReports() {
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📈 Central de Relatórios</h2><div style="display:flex;gap:10px"><button class="btn btn-success btn-sm" onclick="exportPDF()">📄 Gerar PDF</button><button class="btn btn-info btn-sm" onclick="exportCSV()">📊 Exportar Excel</button></div></div>';
+    html += '<div class="card"><h3>Selecionar Relatório</h3><div class="form-row"><div><label>Tipo de Relatório *</label><select id="reportType" onchange="generateReport()"><option value="">-- Escolha um Relatório --</option><option value="fuel">Relatório de Combustível (Por Veículo)</option><option value="provisions">Relatório de Alimentação</option><option value="construcao">Relatório de Construção Civil</option><option value="seguranca">Relatório de Segurança (Portaria)</option><option value="equipment">Relatório de Equipamentos (Ativos)</option><option value="finance">Relatório Financeiro (Caixa/Banco)</option><option value="production">Relatório de Produção</option><option value="general">Relatório Geral e Auditoria</option></select></div></div></div>';
+    html += '<div id="reportPrintArea" class="card" style="background:#fff;color:#000;display:none"></div>';
+    document.getElementById('appContent').innerHTML = html;
+}
+
+function generateReport() {
+    var type = val('reportType');
+    var printArea = document.getElementById('reportPrintArea');
+    var config = DB.get('company_config')[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
+    
+    var header = '<div class="pdf-header"><h2>'+config.name.toUpperCase()+'</h2><p>NIF: '+config.nif+' | '+config.address+'</p><p style="margin-top:5px; font-size:11px; color:#888;">Relatório Gerado em: '+getTodayStr()+'</p></div>';
+    var html = '<div class="pdf-report">' + header;
+
+    if(type === 'fuel') {
+        var data = DB.get('fuel_logs');
+        var entradas = data.filter(function(f){return f.type==='Entrada';});
+        var saidas = data.filter(function(f){return f.type==='Saída';});
+        var PRECO_LITRO_COMBUSTIVEL = 420; 
+
+        html += '<h3>Relatório de Combustível</h3>';
+        html += '<h4>1. Compras (Entradas em Stock)</h4>';
+        html += '<table><thead><tr><th>Data</th><th>Combustível</th><th class="text-center">Qtd (Litros)</th><th class="text-right">Valor Compra (Kz)</th></tr></thead><tbody>';
+        entradas.forEach(function(f) { html += '<tr><td>'+f.date+'</td><td>'+f.fuelType+'</td><td class="text-center">'+f.litros+' L</td><td class="text-right">'+fmt(f.val)+'</td></tr>'; });
+        html += '</tbody></table>';
+
+        html += '<h4>2. Consumos por Veículo / Equipamento <span style="font-size:12px; font-weight:normal; color:#333;">(Avaliado a '+fmt(PRECO_LITRO_COMBUSTIVEL)+' Kz / Litro)</span></h4>';
+        
+        var groupedSaidas = {};
+        saidas.forEach(function(f) {
+            var eqName = f.equipment || 'Desconhecido';
+            if(!groupedSaidas[eqName]) groupedSaidas[eqName] = [];
+            groupedSaidas[eqName].push(f);
+        });
+
+        var totalGeralLitros = 0;
+        var totalGeralValor = 0;
+
+        for(var eqName in groupedSaidas) {
+            var eqEntries = groupedSaidas[eqName];
+            var eqTotalLitros = 0;
+            var eqTotalValor = 0;
+            
+            eqEntries.sort(function(a,b) { 
+                var da = parseDate(a.date).getTime(); 
+                var db = parseDate(b.date).getTime(); 
+                return da - db; 
+            });
+
+            var startDate = eqEntries[0].date;
+            var endDate = eqEntries[eqEntries.length - 1].date;
+
+            html += '<h5 style="margin-top:15px; color:#000000; background:#e6e6e6; padding:10px; border-left:4px solid #000000;">🚗 <strong>' + eqName + '</strong> (Matrícula: ' + (eqEntries[0].plate || 'N/D') + ')<br><span style="font-size:11px; font-weight:normal;">Período de Consumo: ' + startDate + ' a ' + endDate + '</span></h5>';
+            html += '<table><thead><tr style="background:#e9ecef;"><th>Data/Hora</th><th>Funcionário</th><th>Autorizado Por</th><th class="text-center">Litros</th><th class="text-right">Valor Equivalente (Kz)</th></tr></thead><tbody>';
+            
+            eqEntries.forEach(function(f) { 
+                var valSaida = f.litros * PRECO_LITRO_COMBUSTIVEL;
+                eqTotalLitros += f.litros;
+                eqTotalValor += valSaida;
+                html += '<tr><td>'+f.date+' '+f.time+'</td><td>'+f.empName+'</td><td>'+(f.authBy||'-')+'</td><td class="text-center">'+f.litros+'</td><td class="text-right">'+fmt(valSaida)+'</td></tr>'; 
+            });
+
+            html += '<tr class="total-row"><td colspan="3">TOTAL ' + eqName + '</td><td class="text-center">' + fmt(eqTotalLitros) + ' L</td><td class="text-right">' + fmt(eqTotalValor) + ' Kz</td></tr>';
+            html += '</tbody></table>';
+
+            totalGeralLitros += eqTotalLitros;
+            totalGeralValor += eqTotalValor;
+        }
+
+        html += '<div class="summary-box" style="text-align:right; font-weight:bold; font-size:14px; margin-top:10px;">TOTAL GERAL DE CONSUMOS: '+fmt(totalGeralLitros)+' Litros | '+fmt(totalGeralValor)+' Kz</div>';
+    } 
+    else if(type === 'provisions') {
+        var data = DB.get('provisions_logs');
+        html += '<h3>Relatório de Alimentação e Stock</h3>';
+        html += '<table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th class="text-center">Qtd</th><th>Levantado Por</th><th>Autorizado Por</th><th>Destino</th><th class="text-right">Custo (Kz)</th></tr></thead><tbody>';
+        data.forEach(function(p) { 
+            var who = p.type === 'Saída' ? (p.takenBy||'-') : (p.supplier||'-');
+            var auth = p.type === 'Saída' ? (p.authBy||'-') : '-';
+            var dest = p.type === 'Saída' ? (p.destination||'-') : '-';
+            html += '<tr><td>'+p.date+'</td><td>'+p.type+'</td><td>'+p.item+'</td><td class="text-center">'+p.qty+'</td><td>'+who+'</td><td>'+auth+'</td><td>'+dest+'</td><td class="text-right">'+(p.type==='Entrada'?fmt(p.cost):'-')+'</td></tr>'; 
+        });
+        html += '</tbody></table>';
+    }
+    else if(type === 'construcao') {
+        var data = DB.get('construcao_logs');
+        html += '<h3>Relatório de Construção Civil</h3>';
+        html += '<table><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th class="text-center">Qtd</th><th>Levantado Por</th><th>Autorizado Por</th><th>Obra/Destino</th><th class="text-right">Custo (Kz)</th></tr></thead><tbody>';
+        data.forEach(function(p) { 
+            var who = p.type === 'Saída' ? (p.takenBy||'-') : (p.supplier||'-');
+            var auth = p.type === 'Saída' ? (p.authBy||'-') : '-';
+            var dest = p.type === 'Saída' ? (p.destination||'-') : '-';
+            html += '<tr><td>'+p.date+' '+(p.time||'')+'</td><td>'+p.type+'</td><td>'+p.item+'</td><td class="text-center">'+p.qty+'</td><td>'+who+'</td><td>'+auth+'</td><td>'+dest+'</td><td class="text-right">'+(p.type==='Entrada'?fmt(p.cost):'-')+'</td></tr>'; 
+        });
+        html += '</tbody></table>';
+    }
+    else if(type === 'seguranca') {
+        var data = DB.get('security_logs');
+        html += '<h3>Relatório de Segurança (Portaria)</h3>';
+        html += '<table><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Nome / Entidade</th><th>Matrícula / ID</th><th>Destino / Motivo</th><th>Guarda</th></tr></thead><tbody>';
+        data.forEach(function(s) { 
+            html += '<tr><td>'+s.date+' '+s.time+'</td><td>'+s.type+'</td><td>'+s.name+'</td><td>'+(s.ident||'-')+'</td><td>'+s.dest+'</td><td>'+s.guard+'</td></tr>'; 
+        });
+        html += '</tbody></table>';
+    }
+    else if(type === 'equipment') {
+        var data = DB.get('equipment'); var maint = DB.get('maintenance_logs');
+        html += '<h3>Relatório de Equipamentos e Ativos</h3>';
+        html += '<table><thead><tr><th>Nome</th><th>Marca</th><th>Tipo</th><th>Matrícula</th><th class="text-right">V. Compra</th><th>Estado</th></tr></thead><tbody>';
+        data.forEach(function(e) { html += '<tr><td>'+e.name+'</td><td>'+e.brand+'</td><td>'+e.type+'</td><td>'+(e.plate||'-')+'</td><td class="text-right">'+fmt(e.buyPrice)+'</td><td>'+e.status+'</td></tr>'; });
+        html += '</tbody></table>';
+        html += '<h4>Histórico de Manutenções</h4>';
+        html += '<table><thead><tr><th>Data</th><th>Equipamento</th><th>Descrição</th><th class="text-right">Custo (Kz)</th></tr></thead><tbody>';
+        maint.forEach(function(m) { var eq = data.find(function(e){return e.id===m.eqId;}); html += '<tr><td>'+m.date+'</td><td>'+(eq?eq.name:'-')+'</td><td>'+m.desc+' ('+(m.hours||'-')+')</td><td class="text-right">'+fmt(m.cost)+'</td></tr>'; });
+        html += '</tbody></table>';
+    }
+    else if(type === 'finance') {
+        var data = DB.get('finance_logs');
+        html += '<h3>Relatório Financeiro (Caixa, Banco e Créditos)</h3>';
+        html += '<table><thead><tr><th>Data</th><th>Descrição</th><th>Conta</th><th>Tipo</th><th class="text-right">Valor (Kz)</th><th class="text-right">IVA</th><th>Estado</th></tr></thead><tbody>';
+        data.forEach(function(f) { 
+            var valClass = f.type==='Entrada' ? 'text-success' : 'text-danger';
+            var valHtml = (f.type==='Entrada'?'+':'-') + ' ' + fmt(f.val);
+            html += '<tr><td>'+f.date+'</td><td>'+f.desc+'</td><td>'+f.account+'</td><td>'+f.type+'</td><td class="text-right '+valClass+'">'+valHtml+'</td><td class="text-right">'+fmt(f.iva)+'</td><td>'+f.status+'</td></tr>'; 
+        });
+        html += '</tbody></table>';
+    }
+    else if(type === 'production') {
+        var data = DB.get('production_logs');
+        html += '<h3>Relatório de Produção (Extração)</h3>';
+        html += '<table><thead><tr><th>Data/Hora</th><th>Poço</th><th>Material</th><th class="text-center">Qtd</th><th>Responsável</th></tr></thead><tbody>';
+        data.forEach(function(p) { html += '<tr><td>'+p.date+' '+p.time+'</td><td>'+p.well+'</td><td>'+p.material+'</td><td class="text-center">'+p.qty+'</td><td>'+p.responsible+'</td></tr>'; });
+        html += '</tbody></table>';
+    }
+    else if(type === 'general') {
+        var fuel = DB.get('fuel_logs'), emp = DB.get('employees'), fin = DB.get('finance_logs');
+        var totFuel = fuel.filter(function(f){return f.type==='Entrada';}).reduce(function(a,b){return a+b.val;},0);
+        var totSal = emp.reduce(function(a,b){return a+b.salary;},0);
+        var totFinEnt = fin.filter(function(f){return f.type==='Entrada' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
+        var totFinSai = fin.filter(function(f){return f.type==='Saída' && f.status==='Pago';}).reduce(function(a,b){return a+b.val;},0);
+        var lucro = totFinEnt - (totFuel + totSal + totFinSai);
+        html += '<h3>Resumo Financeiro Geral</h3>';
+        html += '<table><thead><tr><th>Categoria</th><th class="text-right">Valor (Kz)</th></tr></thead><tbody>'+
+        '<tr><td>Receitas Financeiras</td><td class="text-right text-success">'+fmt(totFinEnt)+'</td></tr>'+
+        '<tr><td>(-) Combustível</td><td class="text-right text-danger">'+fmt(totFuel)+'</td></tr>'+
+        '<tr><td>(-) Salários</td><td class="text-right text-danger">'+fmt(totSal)+'</td></tr>'+
+        '<tr><td>(-) Outras Despesas</td><td class="text-right text-danger">'+fmt(totFinSai)+'</td></tr>'+
+        '<tr class="total-row"><td>LUCRO / PREJUÍZO</td><td class="text-right">'+fmt(lucro)+'</td></tr></tbody></table>';
+    }
+
+    html += '</div>'; 
+    if(type) { printArea.style.display = 'block'; printArea.innerHTML = html; } else { printArea.style.display = 'none'; printArea.innerHTML = ''; }
+}
+
+function exportPDF() {
+    if(!val('reportType')) return showToast('Selecione um relatório primeiro','danger');
+    var element = document.getElementById('reportPrintArea');
+    var opt = { 
+        margin: [10, 10, 10, 10], filename: 'Relatorio_Mina_Jaliezer.pdf', image: { type: 'jpeg', quality: 1.0 }, 
+        html2canvas: { scale: 4, useCORS: true, backgroundColor: '#ffffff', logging: false }, 
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: false }, 
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } 
+    };
+    showToast('A gerar PDF em Alta Resolução... Aguarde.','info'); 
+    html2pdf().set(opt).from(element).save();
+}
+
+/* ==================== INICIALIZAÇÃO ==================== */
+window.onload = function() {
+    seedData(); 
+    var sessionId = localStorage.getItem('jaliezerv3_session');
+    if(sessionId) { var users = DB.get('users'); var found = users.find(function(x){ return x.id === sessionId; }); if(found) { currentUser = found; initApp(); return; } }
+    var loginHtml = '<div id="loginOverlay"><div class="login-box"><h1 style="font-family:Orbitron;color:var(--primary);margin-bottom:10px">MINA JALIEZER</h1><p style="color:var(--text-muted);margin-bottom:30px">Controlo Operacional</p><input type="text" id="loginUser" placeholder="Utilizador (admin)" style="margin-bottom:15px"><input type="password" id="loginPass" placeholder="Senha (1234)" style="margin-bottom:20px"><button class="btn btn-primary" style="width:100%" onclick="login()">Entrar</button></div></div>';
+    document.body.insertAdjacentHTML('beforeend', loginHtml);
+};
+</script>
+</body>
+</html>
