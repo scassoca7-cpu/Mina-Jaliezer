@@ -73,7 +73,6 @@ th{color:var(--primary);font-size:.75rem;text-transform:uppercase;background:rgb
 @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
 @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}#menuToggle{display:inline-flex!important}.form-row{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr 1fr}.header{padding:10px 15px}}
 
-/* Tabs do Catálogo e Módulos */
 .catalog-tabs { display: flex; gap: 5px; border-bottom: 2px solid rgba(255,255,255,0.1); margin-bottom: 20px; flex-wrap: wrap; }
 .catalog-tab { background: transparent; border: none; color: var(--text-muted); padding: 10px 15px; cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; transition: 0.2s; font-size: .85rem; text-transform: uppercase; font-family: 'Rajdhani', sans-serif; border-radius: 5px 5px 0 0; }
 .catalog-tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
@@ -307,14 +306,14 @@ function handleFileUpload(inputId, callback) { var file = document.getElementByI
 /* ==================== AUTENTICAÇÃO E PERMISSÕES ==================== */
 var currentUser = null; var currentNav = 'dashboard';
 var menuPermissions = {
-    'admin': ['dashboard','catalog','production','fuel','provisions','construcao','bens_diversos','epis','licenses','contractors','shift_reports','logistica_pecas','seguranca','attendance','cost_centers','employees','equipment','finance','patrimony','suppliers','reports','config','users','audit'],
-    'dir_geral': ['dashboard','catalog','production','fuel','provisions','construcao','bens_diversos','epis','licenses','contractors','shift_reports','logistica_pecas','seguranca','attendance','cost_centers','employees','equipment','finance','patrimony','suppliers','reports','config','users','audit'],
-    'dir_rh': ['dashboard','employees','attendance','epis','finance','reports'],
+    'admin': ['dashboard','catalog','production','fuel','provisions','construcao','bens_diversos','epis','licenses','contractors','shift_reports','logistica_pecas','seguranca','attendance','cost_centers','employees','equipment','finance','patrimony','suppliers','reports','config','users','audit','saude'],
+    'dir_geral': ['dashboard','catalog','production','fuel','provisions','construcao','bens_diversos','epis','licenses','contractors','shift_reports','logistica_pecas','seguranca','attendance','cost_centers','employees','equipment','finance','patrimony','suppliers','reports','config','users','audit','saude'],
+    'dir_rh': ['dashboard','employees','attendance','epis','finance','reports','saude'],
     'dir_alimentar': ['dashboard','provisions','reports'],
     'dir_transporte': ['dashboard','fuel','equipment','logistica_pecas','shift_reports','reports'],
     'dir_construcao': ['dashboard','construcao','equipment','logistica_pecas','shift_reports','reports'],
     'contabilista': ['dashboard','cost_centers','finance','patrimony','suppliers','licenses','contractors','reports','config'],
-    'rh': ['dashboard','employees','attendance','epis'],
+    'rh': ['dashboard','employees','attendance','epis','saude'],
     'secretaria': ['dashboard','catalog','provisions','bens_diversos','equipment','suppliers','seguranca']
 };
 var alertPermissions = {
@@ -379,7 +378,7 @@ function initApp() {
 function loadSidebar() {
     var nav = document.getElementById('menuNav');
     var allItems = [
-        { id: 'dashboard', i: '📊', t: 'Dashboard' }, { id: 'catalog', i: '📋', t: 'Catálogo de Itens' }, { id: 'production', i: '⛏️', t: 'Produção (Extração)' }, { id: 'fuel', i: '⛽', t: 'Combustível' }, { id: 'provisions', i: '🍚', t: 'Alimentação e Consumo' }, { id: 'construcao', i: '🧱', t: 'Construção Civil' }, { id: 'bens_diversos', i: '🛋️', t: 'Bens Diversos e Hospedagem' }, { id: 'epis', i: '🦺', t: 'Segurança e EPIs' }, { id: 'licenses', i: '📜', t: 'Validades e Licenças' }, { id: 'contractors', i: '🤝', t: 'Contratos e Terceiros' }, { id: 'shift_reports', i: '📓', t: 'Relatórios de Turno' }, { id: 'logistica_pecas', i: '⚙️', t: 'Logística de Peças' }, { id: 'seguranca', i: '🔐', t: 'Segurança do Local' }, { id: 'attendance', i: '⏱️', t: 'Assiduidade (Faltas)' }, { id: 'cost_centers', i: '🎯', t: 'Centros de Custo (Poços)' }, { id: 'employees', i: '👷', t: 'Recursos Humanos' }, { id: 'equipment', i: '🚜', t: 'Equipamentos' }, { id: 'finance', i: '🏦', t: 'Financeiro (Caixa/Banco)' }, { id: 'patrimony', i: '🏛️', t: 'Património e Ativos' }, { id: 'suppliers', i: '🚚', t: 'Fornecedores' }, { id: 'reports', i: '📈', t: 'Relatórios' }, { id: 'config', i: '⚙️', t: 'Configurações' }, { id: 'users', i: '👤', t: 'Gestão de Acessos' }, { id: 'audit', i: '🛡️', t: 'Auditoria' }
+        { id: 'dashboard', i: '📊', t: 'Dashboard' }, { id: 'catalog', i: '📋', t: 'Catálogo de Itens' }, { id: 'production', i: '⛏️', t: 'Produção (Extração)' }, { id: 'fuel', i: '⛽', t: 'Combustível' }, { id: 'provisions', i: '🍚', t: 'Alimentação e Consumo' }, { id: 'construcao', i: '🧱', t: 'Construção Civil' }, { id: 'bens_diversos', i: '🛋️', t: 'Bens Diversos e Hospedagem' }, { id: 'epis', i: '🦺', t: 'Segurança e EPIs' }, { id: 'licenses', i: '📜', t: 'Validades e Licenças' }, { id: 'contractors', i: '🤝', t: 'Contratos e Terceiros' }, { id: 'shift_reports', i: '📓', t: 'Relatórios de Turno' }, { id: 'logistica_pecas', i: '⚙️', t: 'Logística de Peças' }, { id: 'seguranca', i: '🔐', t: 'Segurança do Local' }, { id: 'attendance', i: '⏱️', t: 'Assiduidade (Faltas)' }, { id: 'cost_centers', i: '🎯', t: 'Centros de Custo (Poços)' }, { id: 'employees', i: '👷', t: 'Recursos Humanos' }, { id: 'equipment', i: '🚜', t: 'Equipamentos' }, { id: 'finance', i: '🏦', t: 'Financeiro (Caixa/Banco)' }, { id: 'patrimony', i: '🏛️', t: 'Património e Ativos' }, { id: 'suppliers', i: '🚚', t: 'Fornecedores' }, { id: 'saude', i: '🩺', t: 'Saúde e Medicina' }, { id: 'reports', i: '📈', t: 'Relatórios' }, { id: 'config', i: '⚙️', t: 'Configurações' }, { id: 'users', i: '👤', t: 'Gestão de Acessos' }, { id: 'audit', i: '🛡️', t: 'Auditoria' }
     ];
     var allowed = menuPermissions[currentUser.role] || [];
     nav.innerHTML = allItems.filter(function(x){ return allowed.includes(x.id); }).map(function(x) { return '<a onclick="navigate(\'' + x.id + '\')">' + x.i + ' ' + x.t + '</a>'; }).join('');
@@ -391,9 +390,9 @@ function navigate(id) {
     if(!allowed.includes(id)) return showToast('Acesso Negado!', 'danger');
     document.querySelectorAll('.sidebar nav a').forEach(function(a) { a.classList.remove('active'); });
     var a = document.querySelector('.sidebar nav a[onclick*="' + id + '"]'); if (a) a.classList.add('active');
-    var titles = { dashboard:'Dashboard', catalog:'Catálogo de Itens', production:'Produção', fuel:'Combustível', provisions:'Alimentação', construcao:'Construção Civil', bens_diversos:'Bens Diversos', epis:'Segurança e EPIs', licenses:'Validades e Licenças', contractors:'Contratos e Terceiros', shift_reports:'Relatórios de Turno', logistica_pecas:'Logística de Peças', seguranca:'Segurança do Local', attendance:'Assiduidade', cost_centers:'Centros de Custo', employees:'Recursos Humanos', equipment:'Equipamentos', finance:'Financeiro', patrimony:'Património', suppliers:'Fornecedores', reports:'Relatórios', config:'Configurações', users:'Gestão de Acessos', audit:'Auditoria' };
+    var titles = { dashboard:'Dashboard', catalog:'Catálogo de Itens', production:'Produção', fuel:'Combustível', provisions:'Alimentação', construcao:'Construção Civil', bens_diversos:'Bens Diversos', epis:'Segurança e EPIs', licenses:'Validades e Licenças', contractors:'Contratos e Terceiros', shift_reports:'Relatórios de Turno', logistica_pecas:'Logística de Peças', seguranca:'Segurança do Local', attendance:'Assiduidade', cost_centers:'Centros de Custo', employees:'Recursos Humanos', equipment:'Equipamentos', finance:'Financeiro', patrimony:'Património', suppliers:'Fornecedores', saude:'Saúde e Medicina', reports:'Relatórios', config:'Configurações', users:'Gestão de Acessos', audit:'Auditoria' };
     document.getElementById('pageTitle').innerText = titles[id] || id;
-    var actions = { dashboard: loadDashboard, catalog: loadCatalog, production: loadProduction, fuel: loadFuel, provisions: loadProvisions, construcao: loadConstrucao, bens_diversos: loadBensDiversos, epis: loadEpis, licenses: loadLicenses, contractors: loadContractors, shift_reports: loadShiftReports, logistica_pecas: loadLogisticaPecas, seguranca: loadSeguranca, attendance: loadAttendance, cost_centers: loadCostCenters, employees: loadEmployees, equipment: loadEquipment, finance: loadFinance, patrimony: loadPatrimony, suppliers: loadSuppliers, reports: loadReports, config: loadConfig, users: loadUsers, audit: loadAudit };
+    var actions = { dashboard: loadDashboard, catalog: loadCatalog, production: loadProduction, fuel: loadFuel, provisions: loadProvisions, construcao: loadConstrucao, bens_diversos: loadBensDiversos, epis: loadEpis, licenses: loadLicenses, contractors: loadContractors, shift_reports: loadShiftReports, logistica_pecas: loadLogisticaPecas, seguranca: loadSeguranca, attendance: loadAttendance, cost_centers: loadCostCenters, employees: loadEmployees, equipment: loadEquipment, finance: loadFinance, patrimony: loadPatrimony, suppliers: loadSuppliers, saude: loadSaude, reports: loadReports, config: loadConfig, users: loadUsers, audit: loadAudit };
     if (actions[id]) actions[id]();
     document.getElementById('mainSidebar').classList.remove('open');
     checkAlerts();
@@ -453,7 +452,33 @@ async function loadDashboardRH() { var emp = await DB.get('employees'), att = aw
 async function loadDashboardAlimentar() { var prov = await DB.get('provisions_logs'); var stock = {}; prov.forEach(p => { var m = p.qty.match(/\d+/); var n = m ? parseInt(m[0]) : 0; if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? n : -n); }); var html = '<h2>🍚 Dashboard Alimentação</h2><div class="kpi-grid">'; for(var i in stock) { var c = stock[i] <= 5 ? 'var(--danger)' : 'var(--success)'; html += '<div class="stock-card"><div style="font-size:.8rem">'+i+'</div><div style="font-size:1.4rem;color:'+c+'">'+stock[i]+'</div></div>'; } html += '</div>'; document.getElementById('appContent').innerHTML = html; }
 function renderDashChart(f, p, c, s, fi, pa) { var ctx = document.getElementById('dashChartCanvas'); if(!ctx) return; if(dashChart) dashChart.destroy(); dashChart = new Chart(ctx.getContext('2d'), { type: 'bar', data: { labels: ['Combustível', 'Alimentação', 'Construção', 'Salários', 'Outras', 'Património'], datasets: [{ data: [f, p, c, s, fi, pa], backgroundColor: ['rgba(255,0,110,.5)', 'rgba(255,195,0,.5)', 'rgba(123,45,200,.5)', 'rgba(212,175,55,.5)', 'rgba(0,180,216,.5)', 'rgba(0,255,136,.5)'] }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#8b9bb4' } }, x: { ticks: { color: '#8b9bb4' } } } } }); }
 
-/* ==================== CATÁLOGO DE ITENS (COM TABS E PAGINAÇÃO) ==================== */
+/* =================--- SAÚDE E MEDICINA DO TRABALHO ---================= */
+async function loadSaude() {
+    var data = await DB.get('health_logs');
+    var emps = await DB.get('employees');
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🩺 Saúde e Medicina do Trabalho</h2><button class="btn btn-primary btn-sm" onclick="openModalSaude()">➕ Novo Registo</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblSaude\', this.value)" style="margin-bottom:10px"><table id="tblSaude"><thead><tr><th>Data</th><th>Funcionário</th><th>Tipo</th><th>Descrição</th><th>Custo (Kz)</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblSaude"></div></div>';
+    document.getElementById('appContent').innerHTML = html;
+    var renderRow = function(s) {
+        var emp = emps.find(e=>e.id===s.empId);
+        var typeClass = s.type === 'Acidente de Trabalho' ? 'bg-danger' : s.type === 'Doença' ? 'bg-warning' : 'bg-info';
+        return '<tr><td>'+s.date+'</td><td><strong>'+(emp?emp.name:'N/D')+'</strong></td><td><span class="badge '+typeClass+'">'+s.type+'</span></td><td>'+s.desc+'</td><td>'+(s.cost?fmt(s.cost):'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalSaude(\''+s.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delSaude(\''+s.id+'\')">🗑️</button></td></tr>';
+    };
+    Pager.init('tblSaude', data.reverse(), 15, renderRow, 6);
+}
+async function openModalSaude(id) {
+    var data = await DB.get('health_logs'); var s = id ? data.find(x=>x.id===id) : {date:getTodayStr(), empId:'', type:'Consulta', desc:'', cost:0};
+    var emps = await DB.get('employees'); var o = emps.map(e=>'<option value="'+e.id+'" '+(s.empId===e.id?'selected':'')+'>'+e.name+'</option>').join('');
+    modal(id?'Editar Registo de Saúde':'Novo Registo de Saúde', '<div class="form-row"><div><label>Data *</label><input type="text" id="saDate" value="'+s.date+'"></div><div><label>Funcionário *</label><select id="saEmp">'+o+'</select></div></div><div class="form-row"><div><label>Tipo *</label><select id="saType"><option '+(s.type==='Consulta'?'selected':'')+'>Consulta</option><option '+(s.type==='Doença'?'selected':'')+'>Doença</option><option '+(s.type==='Acidente de Trabalho'?'selected':'')+'>Acidente de Trabalho</option><option '+(s.type==='Vacinação'?'selected':'')+'>Vacinação</option><option '+(s.type==='Medicação'?'selected':'')+'>Medicação</option></select></div><div><label>Custo (Kz)</label><input type="number" id="saCost" value="'+s.cost+'"></div></div><div><label>Descrição / Diagnóstico *</label><textarea id="saDesc" rows="3">'+s.desc+'</textarea></div>',
+    async function() {
+        var obj = {date:val('saDate'), empId:val('saEmp'), type:val('saType'), desc:val('saDesc'), cost:parseFloat(val('saCost'))||0};
+        if(!obj.empId||!obj.desc) return showToast('Funcionário e Descrição obrigatórios','danger');
+        if(id) { await DB.update('health_logs', id, obj); showToast('Atualizado!'); } else { obj.id='saude'+Date.now(); await DB.insert('health_logs', obj); showToast('Registado!'); }
+        closeModal(); loadSaude();
+    },'Salvar','btn-primary');
+}
+async function delSaude(id) { await DB.del('health_logs', id); showToast('Eliminado!','danger'); loadSaude(); }
+
+/* =================--- CATÁLOGO DE ITENS ---================= */
 var catalogCategories = ['Alimentação', 'Construção Civil', 'Peças e Máquinas', 'Bens Diversos', 'Combustível'];
 async function loadCatalog() {
     var data = await DB.get('catalog_items');
@@ -498,7 +523,7 @@ async function delCatalog(id) {
     switchCatalogTab(window.currentCatalogTab, currentIdx);
 }
 
-/* =================--- PRODUÇÃO (COM PAGINAÇÃO) ---================= */
+/* =================--- PRODUÇÃO ---================= */
 async function loadProduction() {
     var data = await DB.get('production_logs'); 
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>⛏️ Produção e Extração</h2><button class="btn btn-primary btn-sm" onclick="openModalProd()">➕ Registar Extração</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblProd\', this.value)" style="margin-bottom:10px"><table id="tblProd"><thead><tr><th>Data/Hora</th><th>Poço/Local</th><th>Material</th><th>Volume (m³)</th><th>Quilates (Ct)</th><th>Teor (Ct/m³)</th><th>Responsável</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblProd"></div></div>';
@@ -513,7 +538,7 @@ async function openModalProd(id) {
 }
 async function delProd(id) { await DB.del('production_logs', id); showToast('Eliminado!','danger'); loadProduction(); }
 
-/* =================--- COMBUSTÍVEL (COM PAGINAÇÃO) ---================= */
+/* =================--- COMBUSTÍVEL ---================= */
 async function loadFuel() {
     var data = await DB.get('fuel_logs'); 
     var totLitros = data.reduce((a,b)=>a + (b.type==='Entrada' ? b.litros : -b.litros),0); 
@@ -543,7 +568,7 @@ function autoFillVehicle() { var parts = val('fEquip').split('|'); document.getE
 async function delFuel(id) { await DB.del('fuel_logs', id); showToast('Eliminado!','danger'); loadFuel(); }
 function scanQRCode(inputId) { if(typeof Html5Qrcode === 'undefined') return showToast('Leitor QR não carregou.', 'danger'); modal('📷 Ler Código QR', '<div id="qr-reader" style="width:100%"></div><p style="text-align:center;margin-top:10px">Aponte a câmara para o equipamento...</p>', async function(){ if(window.qrScanner) window.qrScanner.stop().catch(()=>{}); closeModal(); }, 'Fechar', 'btn-outline'); window.qrScanner = new Html5Qrcode("qr-reader"); window.qrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => { var el = document.getElementById(inputId); if(el.tagName === 'SELECT') { var opt = Array.from(el.options).find(o => o.text.includes(decodedText) || o.value.includes(decodedText)); if(opt) { el.value = opt.value; if(el.onchange) el.onchange(); showToast('QR Lido: ' + decodedText); } } else { el.value = decodedText; } window.qrScanner.stop().then(() => { closeModal(); }); }, (errorMessage) => { /* Ignore */ }); }
 
-/* =================--- ALIMENTAÇÃO (COM PAGINAÇÃO E CATÁLOGO) ---================= */
+/* =================--- ALIMENTAÇÃO ---================= */
 async function loadProvisions() {
     var data = await DB.get('provisions_logs'); var stock = {}; var unities = {};
     data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? num : -num); unities[p.item] = unit; });
@@ -568,7 +593,7 @@ async function openModalProv(id) {
 function toggleProvFields() { var t = val('pType'); document.getElementById('saidaFieldsProv').style.display = t === 'Saída' ? 'block' : 'none'; document.getElementById('entradaFieldsProv').style.display = t === 'Entrada' ? 'block' : 'none'; }
 async function delProv(id) { await DB.del('provisions_logs', id); showToast('Eliminado!','danger'); loadProvisions(); }
 
-/* =================--- CONSTRUÇÃO CIVIL (COM PAGINAÇÃO E CATÁLOGO) ---================= */
+/* =================--- CONSTRUÇÃO CIVIL ---================= */
 async function loadConstrucao() {
     var data = await DB.get('construcao_logs'); var stock = {}; var unities = {};
     data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? num : -num); unities[p.item] = unit; });
@@ -593,7 +618,7 @@ async function openModalConst(id) {
 function toggleConstFields() { var t = val('cType'); document.getElementById('saidaFields').style.display = t === 'Saída' ? 'block' : 'none'; document.getElementById('entradaFields').style.display = t === 'Entrada' ? 'block' : 'none'; }
 async function delConst(id) { await DB.del('construcao_logs', id); showToast('Eliminado!','danger'); loadConstrucao(); }
 
-/* =================--- BENS DIVERSOS (COM PAGINAÇÃO E CATÁLOGO) ---================= */
+/* =================--- BENS DIVERSOS ---================= */
 async function loadBensDiversos() {
     var data = await DB.get('bens_diversos_logs'); var stock = {}; var unities = {};
     data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? num : -num); unities[p.item] = unit; });
@@ -618,7 +643,7 @@ async function openModalBens(id) {
 function toggleBensFields() { var t = val('bType'); document.getElementById('saidaFieldsBens').style.display = t === 'Saída' ? 'block' : 'none'; document.getElementById('entradaFieldsBens').style.display = t === 'Entrada' ? 'block' : 'none'; }
 async function delBens(id) { await DB.del('bens_diversos_logs', id); showToast('Eliminado!','danger'); loadBensDiversos(); }
 
-/* =================--- LOGÍSTICA DE PEÇAS (COM PAGINAÇÃO E CATÁLOGO) ---================= */
+/* =================--- LOGÍSTICA DE PEÇAS ---================= */
 async function loadLogisticaPecas() {
     var data = await DB.get('logistica_pecas'); var stock = {}; var unities = {};
     data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? num : -num); unities[p.item] = unit; });
@@ -643,7 +668,7 @@ async function openModalPecas(id) {
 function togglePecasFields() { var t = val('lpType'); document.getElementById('saidaFieldsLp').style.display = t === 'Saída' ? 'block' : 'none'; document.getElementById('entradaFieldsLp').style.display = t === 'Entrada' ? 'block' : 'none'; }
 async function delPecas(id) { await DB.del('logistica_pecas', id); showToast('Eliminado!','danger'); loadLogisticaPecas(); }
 
-/* =================--- SEGURANÇA (COM PAGINAÇÃO) ---================= */
+/* =================--- SEGURANÇA ---================= */
 async function loadSeguranca() {
     var data = await DB.get('security_logs'); 
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🔐 Segurança e Controlo de Acessos</h2><button class="btn btn-primary btn-sm" onclick="openModalSec()">➕ Novo Registo</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblSec\', this.value)" style="margin-bottom:10px"><table id="tblSec"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Nome / Entidade</th><th>Matrícula / ID</th><th>Destino / Motivo</th><th>Guarda de Turno</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblSec"></div></div>';
@@ -664,7 +689,7 @@ async function openModalSec(id) {
 function toggleMultaFields() { document.getElementById('multaFields').style.display = val('sType') === 'Multa' ? 'block' : 'none'; }
 async function delSec(id) { await DB.del('security_logs', id); showToast('Eliminado!','danger'); loadSeguranca(); }
 
-/* =================--- ASSIDUIDADE (COM PAGINAÇÃO) ---================= */
+/* =================--- ASSIDUIDADE ---================= */
 async function loadAttendance() {
     var data = await DB.get('attendance_logs'); var emps = await DB.get('employees');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>⏱️ Assiduidade (Faltas e Férias)</h2><button class="btn btn-primary btn-sm" onclick="openModalAtt()">➕ Registar Ocorrência</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblAtt\', this.value)" style="margin-bottom:10px"><table id="tblAtt"><thead><tr><th>Data</th><th>Funcionário</th><th>Tipo</th><th>Observações</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblAtt"></div></div>';
@@ -692,7 +717,7 @@ async function loadCostCenters() {
     document.getElementById('appContent').innerHTML = html;
 }
 
-/* =================--- RH (COM PAGINAÇÃO) ---================= */
+/* =================--- RH ---================= */
 async function loadEmployees() {
     var data = await DB.get('employees'); 
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>👷 Recursos Humanos</h2><div style="display:flex;gap:10px"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblEmp\', this.value)"><button class="btn btn-info btn-sm" onclick="processMonthlyPayroll()">📑 Processar Salários</button><button class="btn btn-primary btn-sm" onclick="openModalEmp()">➕ Novo Funcionário</button></div></div><div class="card"><table id="tblEmp"><thead><tr><th>Nome</th><th>Cargo</th><th>Turno</th><th>Salário (Kz)</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblEmp"></div></div>';
@@ -747,7 +772,7 @@ async function processMonthlyPayroll() {
     showToast('A gerar PDF...','info'); html2pdf().set(opt).from(printArea.firstChild).save().then(function(){ printArea.remove(); });
 }
 
-/* =================--- EQUIPAMENTOS (COM TABS E PAGINAÇÃO) ---================= */
+/* =================--- EQUIPAMENTOS ---================= */
 async function loadEquipment() {
     var data = await DB.get('equipment'); 
     var maint = await DB.get('maintenance_logs');
@@ -790,7 +815,7 @@ async function openModalMaint(eqId) {
     async function() { var obj = {eqId:eqId, date:val('mDate'), cost:parseFloat(val('mCost'))||0, hours:val('mHours'), desc:val('mDesc')}; if(!obj.desc) return showToast('Descrição obrigatória','danger'); obj.id='maint'+Date.now(); await DB.insert('maintenance_logs', obj); await DB.update('equipment', eqId, {status:'Operacional', nextMaint:val('mNextMaint')}); showToast('Manutenção Registada!'); closeModal(); loadEquipment(); },'Registar Manutenção','btn-info');
 }
 
-/* =================--- FINANCEIRO (COM TABS E PAGINAÇÃO) ---================= */
+/* =================--- FINANCEIRO ---================= */
 async function loadFinance() {
     var data = await DB.get('finance_logs');
     window.financeData = data; 
@@ -858,7 +883,7 @@ async function exportAccountingCSV() {
     showToast('Ficheiro CSV exportado!','success');
 }
 
-/* =================--- PATRIMÓNIO (COM PAGINAÇÃO) ---================= */
+/* =================--- PATRIMÓNIO ---================= */
 async function loadPatrimony() {
     var data = await DB.get('patrimony_logs');
     var totIn = data.filter(x=>x.type==='Entrada').reduce((a,b)=>a+(b.val||0),0);
@@ -878,7 +903,7 @@ async function openModalPatrimony(id) {
 }
 async function delPatrimony(id) { await DB.del('patrimony_logs', id); showToast('Eliminado!','danger'); loadPatrimony(); }
 
-/* =================--- FORNECEDORES (COM PAGINAÇÃO) ---================= */
+/* =================--- FORNECEDORES ---================= */
 async function loadSuppliers() {
     var data = await DB.get('suppliers');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🚚 Fornecedores e Entidades</h2><button class="btn btn-primary btn-sm" onclick="openModalSup()">➕ Novo Fornecedor</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblSup\', this.value)" style="margin-bottom:10px"><table id="tblSup"><thead><tr><th>Nome / Empresa</th><th>NIF</th><th>Contato</th><th>Conta Bancária</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblSup"></div></div>';
@@ -893,7 +918,7 @@ async function openModalSup(id) {
 }
 async function delSup(id) { await DB.del('suppliers', id); showToast('Eliminado!','danger'); loadSuppliers(); }
 
-/* =================--- EPIs (COM PAGINAÇÃO) ---================= */
+/* =================--- EPIs ---================= */
 async function loadEpis() {
     var data = await DB.get('epis_logs'); var emps = await DB.get('employees');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🦺 Segurança e EPIs</h2><button class="btn btn-primary btn-sm" onclick="openModalEpi()">➕ Registar Entrega</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblEpis\', this.value)" style="margin-bottom:10px"><table id="tblEpis"><thead><tr><th>Data</th><th>Funcionário</th><th>EPI</th><th>Qtd</th><th>Autorizado</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblEpis"></div></div>';
@@ -909,7 +934,7 @@ async function openModalEpi(id) {
 }
 async function delEpi(id) { await DB.del('epis_logs', id); showToast('Eliminado!','danger'); loadEpis(); }
 
-/* =================--- LICENÇAS (COM PAGINAÇÃO) ---================= */
+/* =================--- LICENÇAS ---================= */
 async function loadLicenses() {
     var data = await DB.get('licenses_logs'); var t = new Date();
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📜 Validades e Licenças</h2><button class="btn btn-primary btn-sm" onclick="openModalLicense()">➕ Nova Licença</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblLic\', this.value)" style="margin-bottom:10px"><table id="tblLic"><thead><tr><th>Entidade</th><th>Tipo</th><th>Nº</th><th>Emissão</th><th>Validade</th><th>Estado</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblLic"></div></div>';
@@ -924,7 +949,7 @@ async function openModalLicense(id) {
 }
 async function delLicense(id) { await DB.del('licenses_logs', id); showToast('Eliminado!','danger'); loadLicenses(); }
 
-/* =================--- CONTRATOS / TERCEIROS (COM PAGINAÇÃO) ---================= */
+/* =================--- CONTRATOS / TERCEIROS ---================= */
 async function loadContractors() {
     var data = await DB.get('contractors_logs');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🤝 Contratos e Terceiros</h2><button class="btn btn-primary btn-sm" onclick="openModalContractor()">➕ Novo Contrato</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblCont\', this.value)" style="margin-bottom:10px"><table id="tblCont"><thead><tr><th>Empresa</th><th>Serviço</th><th>Valor Mensal</th><th>Início</th><th>Fim</th><th>Estado</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblCont"></div></div>';
@@ -939,7 +964,7 @@ async function openModalContractor(id) {
 }
 async function delContractor(id) { await DB.del('contractors_logs', id); showToast('Eliminado!','danger'); loadContractors(); }
 
-/* =================--- RELATÓRIOS DE TURNO (COM PAGINAÇÃO) ---================= */
+/* =================--- RELATÓRIOS DE TURNO ---================= */
 async function loadShiftReports() {
     var data = await DB.get('shift_logs');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📓 Relatórios de Turno</h2><button class="btn btn-primary btn-sm" onclick="openModalShift()">➕ Novo Relatório</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblShift\', this.value)" style="margin-bottom:10px"><table id="tblShift"><thead><tr><th>Data</th><th>Turno</th><th>Responsável</th><th>Ocorrências</th><th>Equipamentos</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblShift"></div></div>';
@@ -954,7 +979,7 @@ async function openModalShift(id) {
 }
 async function delShift(id) { await DB.del('shift_logs', id); showToast('Eliminado!','danger'); loadShiftReports(); }
 
-/* =================--- CONFIGURAÇÕES (COM BACKUP/RESTAURE E BLOQUEIO) ---================= */
+/* =================--- CONFIGURAÇÕES ---================= */
 async function loadConfig() {
     var c = (await DB.get('company_config'))[0] || {id:'c1', name:'', nif:'', address:'', ivaRate:14, bank:'', exchange_rate:920, locked_months:''};
     var lockedMonthsHtml = '<p style="font-size:.85rem;color:var(--text-muted);margin-bottom:10px">Selecione os meses que já foram processados pela contabilidade. Os meses bloqueados não podem ter registos apagados ou editados.</p><div class="form-row">';
@@ -970,7 +995,7 @@ async function saveConfig() {
     await DB.save('company_config', [obj]); showToast('Configurações salvas!'); 
 }
 async function exportBackup() {
-    var tables = ['users','catalog_items','fuel_logs','provisions_logs','construcao_logs','bens_diversos_logs','logistica_pecas','epis_logs','licenses_logs','contractors_logs','shift_logs','security_logs','attendance_logs','employees','equipment','maintenance_logs','finance_logs','patrimony_logs','audit_logs','suppliers','production_logs','company_config','hr_advances'];
+    var tables = ['users','catalog_items','fuel_logs','provisions_logs','construcao_logs','bens_diversos_logs','logistica_pecas','epis_logs','licenses_logs','contractors_logs','shift_logs','security_logs','attendance_logs','employees','equipment','maintenance_logs','finance_logs','patrimony_logs','audit_logs','suppliers','production_logs','company_config','hr_advances','health_logs'];
     var backup = {}; for(var i=0; i<tables.length; i++) { backup[tables[i]] = await DB.get(tables[i]); }
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
     var link = document.createElement('a'); link.href = dataStr; link.download = "Backup_Mina_Jaliezer_"+getTodayStr().replace(/\//g,'-')+".json"; document.body.appendChild(link); link.click(); link.remove(); showToast('Backup descarregado!','info');
@@ -981,7 +1006,7 @@ function importBackup(event) {
     reader.readAsText(file);
 }
 
-/* =================--- GESTÃO DE UTILIZADORES (COM PAGINAÇÃO) ---================= */
+/* =================--- GESTÃO DE UTILIZADORES ---================= */
 async function loadUsers() {
     var data = await DB.get('users');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>👤 Gestão de Acessos</h2><button class="btn btn-primary btn-sm" onclick="openModalUser()">➕ Novo Utilizador</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblUsers\', this.value)" style="margin-bottom:10px"><table id="tblUsers"><thead><tr><th>Nome</th><th>Utilizador</th><th>Perfil de Acesso</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblUsers"></div></div>';
@@ -996,7 +1021,7 @@ async function openModalUser(id) {
 }
 async function delUser(id) { await DB.del('users', id); showToast('Eliminado!','danger'); loadUsers(); }
 
-/* =================--- AUDITORIA (COM PAGINAÇÃO) ---================= */
+/* =================--- AUDITORIA ---================= */
 async function loadAudit() {
     var data = await DB.get('audit_logs');
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🛡️ Registo de Auditoria</h2><button class="btn btn-danger btn-sm" onclick="clearAudit()">🗑️ Limpar Histórico</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblAudit\', this.value)" style="margin-bottom:10px"><table id="tblAudit"><thead><tr><th>Data e Hora</th><th>Utilizador</th><th>Perfil</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody></tbody></table><div id="pager_tblAudit"></div></div>';
@@ -1006,12 +1031,13 @@ async function loadAudit() {
 }
 async function clearAudit() { if(confirm('Limpar todo o histórico da nuvem?')) { await DB.save('audit_logs', []); showToast('Histórico limpo!','danger'); loadAudit(); } }
 
-/* =================--- RELATÓRIOS (COM TOTAIS NO FINAL) ---================= */
+/* =================--- RELATÓRIOS ---================= */
 function loadReports() {
     var role = currentUser.role; var options = [];
     if(role === 'admin' || role === 'dir_geral') {
+        options.push('<option value="stock_map">Mapa de Requisições e Stock</option>');
         options.push('<option value="production">Relatório de Produção</option>'); options.push('<option value="fuel">Relatório de Combustível</option>'); options.push('<option value="provisions">Relatório de Alimentação</option>'); options.push('<option value="construcao">Relatório de Construção Civil</option>'); options.push('<option value="bens_diversos">Relatório de Bens Diversos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); options.push('<option value="epis">Relatório de EPIs</option>'); options.push('<option value="seguranca">Relatório de Segurança</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="licenses">Relatório de Licenças</option>'); options.push('<option value="contractors">Relatório de Contratos</option>'); options.push('<option value="shift_reports">Relatório de Turnos</option>'); options.push('<option value="finance">Relatório Financeiro</option>'); options.push('<option value="general">Relatório Geral e Lucro</option>');
-    } else if(role === 'dir_transporte') { options.push('<option value="fuel">Relatório de Combustível</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_alimentar') { options.push('<option value="provisions">Relatório de Alimentação</option>'); } else if(role === 'dir_construcao') { options.push('<option value="construcao">Relatório de Construção Civil</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_rh') { options.push('<option value="finance">Relatório Financeiro (Salários)</option>'); options.push('<option value="epis">Relatório de EPIs</option>'); }
+    } else if(role === 'dir_transporte') { options.push('<option value="fuel">Relatório de Combustível</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_alimentar') { options.push('<option value="stock_map">Mapa de Requisições e Stock</option>'); options.push('<option value="provisions">Relatório de Alimentação</option>'); } else if(role === 'dir_construcao') { options.push('<option value="stock_map">Mapa de Requisições e Stock</option>'); options.push('<option value="construcao">Relatório de Construção Civil</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_rh') { options.push('<option value="finance">Relatório Financeiro (Salários)</option>'); options.push('<option value="epis">Relatório de EPIs</option>'); }
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📈 Central de Relatórios</h2><div style="display:flex;gap:10px"><button class="btn btn-success btn-sm" onclick="exportPDF()">📄 Gerar PDF</button><button class="btn btn-info btn-sm" onclick="exportExcel()">📊 Exportar Excel</button></div></div><div class="card"><h3>Selecionar Relatório</h3><div class="form-row"><div><label>Tipo de Relatório *</label><select id="reportType" onchange="generateReport()"><option value="">-- Escolha um Relatório --</option>'+options.join('')+'</select></div></div></div><div id="reportPrintArea" class="card" style="background:#fff;color:#000;display:none"></div>';
     document.getElementById('appContent').innerHTML = html;
 }
@@ -1020,7 +1046,19 @@ async function generateReport() {
     if(!type) { printArea.style.display = 'none'; printArea.innerHTML = ''; return; }
     printArea.style.display = 'block'; var config = (await DB.get('company_config'))[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
     var html = '<div class="pdf-report" style="background:#fff; color:#000"><div style="text-align:right; margin-bottom:15px"><button class="btn btn-outline" style="color:#000; border:1px solid #000" onclick="loadReports()">⬅️ Sair</button></div><div class="pdf-header"><h2>'+config.name.toUpperCase()+'</h2><p>NIF: '+config.nif+' | '+config.address+'</p><p style="margin-top:5px; font-size:11px; color:#888;">Relatório Gerado em: '+getTodayStr()+'</p></div>';
-    if(type === 'production') { var data = await DB.get('production_logs'); html += '<h3>Produção</h3><table><thead><tr><th>Data/Hora</th><th>Poço</th><th>Material</th><th>Vol (m³)</th><th>Quilates</th><th>Teor</th><th>Resp.</th><th>Ações</th></tr></thead><tbody>'; data.forEach(p => { var volMatch = p.qty.match(/\d+/); var vol = volMatch ? parseFloat(volMatch[0]) : 0; var teor = p.yield && vol > 0 ? (p.yield / vol).toFixed(3) : '-'; html += '<tr><td>'+p.date+' '+p.time+'</td><td>'+p.well+'</td><td>'+p.material+'</td><td>'+p.qty+'</td><td>'+(p.yield||'-')+'</td><td>'+teor+'</td><td>'+p.responsible+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalProd(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delProd(\''+p.id+'\')">🗑️</button></td></tr>'; }); html += '</tbody></table>'; } 
+    
+    if(type === 'stock_map') {
+        html += '<h3>Mapa de Requisições e Stock</h3>';
+        html += '<div class="form-row" style="margin-bottom:20px;">';
+        html += '<div><label>Setor *</label><select id="mapSector"><option value="provisions_logs">Alimentação</option><option value="construcao_logs">Construção Civil</option><option value="bens_diversos_logs">Bens Diversos</option><option value="logistica_pecas">Peças e Máquinas</option></select></div>';
+        html += '<div><label>Período *</label><select id="mapPeriod" onchange="toggleCustomDates()"><option value="month">Mês Atual</option><option value="trimester">Trimestral</option><option value="semester">Semestral</option><option value="year">Anual</option><option value="custom">Personalizado</option></select></div>';
+        html += '<div id="customDatesBox" style="display:none;"><label>Data Início</label><input type="text" id="mapStart" placeholder="DD/MM/AAAA"></div>';
+        html += '<div id="customDatesBox2" style="display:none;"><label>Data Fim</label><input type="text" id="mapEnd" placeholder="DD/MM/AAAA" value="'+getTodayStr()+'"></div>';
+        html += '</div>';
+        html += '<div style="text-align:center; margin-bottom:20px;"><button class="btn btn-primary" onclick="generateStockMap()">Gerar Mapa</button></div>';
+        html += '<div id="stockMapResult"></div>';
+    }
+    else if(type === 'production') { var data = await DB.get('production_logs'); html += '<h3>Produção</h3><table><thead><tr><th>Data/Hora</th><th>Poço</th><th>Material</th><th>Vol (m³)</th><th>Quilates</th><th>Teor</th><th>Resp.</th><th>Ações</th></tr></thead><tbody>'; data.forEach(p => { var volMatch = p.qty.match(/\d+/); var vol = volMatch ? parseFloat(volMatch[0]) : 0; var teor = p.yield && vol > 0 ? (p.yield / vol).toFixed(3) : '-'; html += '<tr><td>'+p.date+' '+p.time+'</td><td>'+p.well+'</td><td>'+p.material+'</td><td>'+p.qty+'</td><td>'+(p.yield||'-')+'</td><td>'+teor+'</td><td>'+p.responsible+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalProd(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delProd(\''+p.id+'\')">🗑️</button></td></tr>'; }); html += '</tbody></table>'; } 
     else if(type === 'fuel') { var data = await DB.get('fuel_logs'); var entradas = data.filter(f=>f.type==='Entrada'); var saidas = data.filter(f=>f.type==='Saída').sort((a,b)=>parseDate(a.date)-parseDate(b.date)); html += '<h3>Combustível</h3><h4>1. Compras</h4><table><thead><tr><th>Data</th><th>Combustível</th><th>Litros</th><th>Valor (Kz)</th><th>Ações</th></tr></thead><tbody>'; var totFuelVal = 0, totFuelLit = 0; entradas.forEach(f => { totFuelVal += (f.val||0); totFuelLit += (f.litros||0); html += '<tr><td>'+f.date+'</td><td>'+f.fuelType+'</td><td>'+f.litros+' L</td><td>'+fmt(f.val)+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalFuel(\''+f.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delFuel(\''+f.id+'\')">🗑️</button></td></tr>'; }); html += '<tr class="total-row"><td colspan="2">TOTAL COMPRAS</td><td>'+fmt(totFuelLit)+' L</td><td>'+fmt(totFuelVal)+'</td><td></td></tr></tbody></table>'; html += '<h4>2. Consumos por Veículo</h4>'; var groupedSaidas = {}; saidas.forEach(f => { var n = f.equipment || '-'; if(!groupedSaidas[n]) groupedSaidas[n] = []; groupedSaidas[n].push(f); }); var totConsLit = 0, totConsVal = 0; for(var n in groupedSaidas) { var eE = groupedSaidas[n]; var eL = 0, eV = 0; var P = 420; html += '<h5>🚗 '+n+'</h5><table><thead><tr><th>Data</th><th>Func</th><th>Horóm</th><th>Litros</th><th>Valor (Kz)</th><th>Ações</th></tr></thead><tbody>'; eE.forEach(f => { var vS = f.litros * P; eL += f.litros; eV += vS; html += '<tr><td>'+f.date+'</td><td>'+f.empName+'</td><td>'+(f.hours||'-')+'</td><td>'+f.litros+'</td><td>'+fmt(vS)+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalFuel(\''+f.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delFuel(\''+f.id+'\')">🗑️</button></td></tr>'; }); html += '<tr class="total-row"><td colspan="3">TOTAL '+n+'</td><td>'+fmt(eL)+' L</td><td>'+fmt(eV)+'</td><td></td></tr></tbody></table>'; totConsLit += eL; totConsVal += eV; } html += '<div class="summary-box" style="margin-top:15px; text-align:right; font-size:14px;"><strong>TOTAL GERAL DE CONSUMOS:</strong> '+fmt(totConsLit)+' Litros | <strong>'+fmt(totConsVal)+' Kz</strong></div>'; } 
     else if(type === 'provisions') { var d = await DB.get('provisions_logs'); var tCost = d.filter(p=>p.type==='Entrada').reduce((a,b)=>a+(b.cost||0),0); html += '<h3>Alimentação</h3><table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Levantado</th><th>Autoriz.</th><th>Custo</th><th>Ações</th></tr></thead><tbody>'; d.forEach(p => { html += '<tr><td>'+p.date+'</td><td>'+p.type+'</td><td>'+p.item+'</td><td>'+p.qty+'</td><td>'+(p.takenBy||p.supplier||'-')+'</td><td>'+(p.authBy||'-')+'</td><td>'+(p.type==='Entrada'?fmt(p.cost):'-')+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalProv(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delProv(\''+p.id+'\')">🗑️</button></td></tr>'; }); html += '<tr class="total-row"><td colspan="6">TOTAL GASTO (COMPRAS)</td><td>'+fmt(tCost)+'</td><td></td></tr></tbody></table>'; }
     else if(type === 'construcao') { var d = await DB.get('construcao_logs'); var tCost = d.filter(p=>p.type==='Entrada').reduce((a,b)=>a+(b.cost||0),0); html += '<h3>Construção Civil</h3><table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Levantado</th><th>Destino</th><th>Poço</th><th>Custo</th><th>Ações</th></tr></thead><tbody>'; d.forEach(p => { html += '<tr><td>'+p.date+'</td><td>'+p.type+'</td><td>'+p.item+'</td><td>'+p.qty+'</td><td>'+(p.takenBy||p.supplier||'-')+'</td><td>'+(p.destination||'-')+'</td><td>'+(p.centroCusto||'-')+'</td><td>'+(p.type==='Entrada'?fmt(p.cost):'-')+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalConst(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delConst(\''+p.id+'\')">🗑️</button></td></tr>'; }); html += '<tr class="total-row"><td colspan="7">TOTAL GASTO (COMPRAS)</td><td>'+fmt(tCost)+'</td><td></td></tr></tbody></table>'; }
@@ -1066,6 +1104,79 @@ async function generateReport() {
     }
     html += '</div>'; printArea.innerHTML = html;
 }
+function toggleCustomDates() {
+    var p = val('mapPeriod');
+    document.getElementById('customDatesBox').style.display = p === 'custom' ? 'block' : 'none';
+    document.getElementById('customDatesBox2').style.display = p === 'custom' ? 'block' : 'none';
+}
+async function generateStockMap() {
+    var sector = val('mapSector');
+    var period = val('mapPeriod');
+    var today = new Date();
+    var start = new Date(today.getFullYear(), today.getMonth(), 1);
+    var end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    if(period === 'trimester') { start = new Date(today.getFullYear(), today.getMonth() - 2, 1); }
+    else if(period === 'semester') { start = new Date(today.getFullYear(), today.getMonth() - 5, 1); }
+    else if(period === 'year') { start = new Date(today.getFullYear(), 0, 1); }
+    else if(period === 'custom') {
+        start = parseDate(val('mapStart'));
+        end = parseDate(val('mapEnd'));
+        if(!start || !end) return showToast('Datas inválidas. Use DD/MM/AAAA', 'danger');
+    }
+    
+    var data = await DB.get(sector);
+    var items = {};
+    
+    data.forEach(p => {
+        var match = p.qty.match(/\d+/);
+        var num = match ? parseInt(match[0]) : 0;
+        if(!items[p.item]) items[p.item] = { movements: [], initial: 0, in: 0, out: 0 };
+        
+        var d = parseDate(p.date);
+        if(p.type === 'Entrada') {
+            if(d < start) items[p.item].initial += num;
+            else if(d >= start && d <= end) { items[p.item].in += num; items[p.item].movements.push(p); }
+        } else {
+            if(d < start) items[p.item].initial -= num;
+            else if(d >= start && d <= end) { items[p.item].out += num; items[p.item].movements.push(p); }
+        }
+    });
+    
+    var html = '<table><thead><tr><th>Item</th><th class="text-right">Saldo Inicial</th><th class="text-right">Entradas no Período</th><th class="text-right">Saídas (Requisições)</th><th class="text-right">Saldo Final</th></tr></thead><tbody>';
+    var hasData = false;
+    for(var name in items) {
+        var it = items[name];
+        if(it.movements.length > 0 || it.initial !== 0) {
+            hasData = true;
+            var final = it.initial + it.in - it.out;
+            html += '<tr>';
+            html += '<td><strong>'+name+'</strong><br><small>Movimentos no período: '+it.movements.length+'</small></td>';
+            html += '<td class="text-right">'+it.initial+'</td>';
+            html += '<td class="text-right text-success">'+it.in+'</td>';
+            html += '<td class="text-right text-danger">'+it.out+'</td>';
+            html += '<td class="text-right" style="font-weight:bold; '+(final < 0 ? 'color:#cc0000;' : 'color:#008000;')+'">'+final+'</td>';
+            html += '</tr>';
+            
+            if(it.movements.length > 0) {
+                html += '<tr><td colspan="5" style="padding:0;">';
+                html += '<table style="width:100%; margin:0; font-size:11px;"><tbody>';
+                it.movements.forEach(m => {
+                    var dt = m.date;
+                    var who = m.type === 'Saída' ? (m.takenBy||'-') : (m.supplier||'-');
+                    html += '<tr style="background:#f9f9f9;"><td style="padding:5px 10px; border:none;">'+dt+'</td><td style="border:none;">'+m.type+'</td><td style="border:none;">'+m.qty+'</td><td style="border:none;">'+who+'</td><td style="border:none;"></td></tr>';
+                });
+                html += '</tbody></table>';
+                html += '</td></tr>';
+            }
+        }
+    }
+    html += '</tbody></table>';
+    if(!hasData) html = '<p style="text-align:center; padding:20px; color:#888;">Nenhum movimento encontrado neste período.</p>';
+    
+    document.getElementById('stockMapResult').innerHTML = html;
+    showToast('Mapa gerado!','success');
+}
 function exportPDF() { if(!val('reportType')) return showToast('Selecione um relatório','danger'); var el = document.getElementById('reportPrintArea'); var opt = { margin: 10, filename: 'Relatorio_Mina_Jaliezer.pdf', image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 4, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } }; showToast('A gerar PDF...','info'); html2pdf().set(opt).from(el).save(); }
 
 /* =================--- EXPORTAR EXCEL ---================= */
@@ -1101,7 +1212,7 @@ async function exportExcel() {
         if(headers.length > 0) {
             html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="'+headers.length+'" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">'+type.replace('_', ' ').toUpperCase()+'</td></tr><tr class="tbl-head">';
             headers.forEach(h => html += '<td style="padding:5px;">'+h+'</td>'); html += '</tr>';
-            data.forEach(row => { html += '<tr class="tbl-body">'; if(type === 'production') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.well+'</td><td>'+row.material+'</td><td>'+row.qty+'</td><td>'+(row.yield||'-')+'</td><td>'+row.responsible+'</td>'; else if(type === 'provisions') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.takenBy||row.supplier||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'construcao') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.destination||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'bens_diversos') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.takenBy||row.supplier||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'logistica_pecas') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+(row.cat||'-')+'</td><td>'+row.item+'</td><td>'+(row.machine||'-')+'</td><td>'+row.qty+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'epis') html += '<td style="padding:5px;">'+row.date+'</td><td>'+(row.empId||'-')+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.authBy||'-')+'</td>'; else if(type === 'seguranca') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.name+'</td><td>'+row.dest+'</td><td>'+row.guard+'</td>'; else if(type === 'equipment') html += '<td style="padding:5px;">'+row.name+'</td><td>'+row.brand+'</td><td>'+row.type+'</td><td>'+row.status+'</td>'; html += '</tr>'; });
+            data.forEach(row => { html += '<tr class="tbl-body">'; if(type === 'production') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.well+'</td><td>'+row.material+'</td><td>'+row.qty+'</td><td>'+(row.yield||'-')+'</td><td>'+row.responsible+'</td>'; else if(type === 'provisions') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.takenBy||row.supplier||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'construcao') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.destination||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'bens_diversos') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.takenBy||row.supplier||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'logistica_pecas') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+(row.cat||'-')+'</td><td>'+row.item+'</td><td>'+(row.machine||'-')+'</td><td>'+row.qty+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'epis') html += '<td style="padding:5px;">'+row.date+'</td><td>'+(row.empId||'-')+'<td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.authBy||'-')+'</td>'; else if(type === 'seguranca') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.name+'</td><td>'+row.dest+'</td><td>'+row.guard+'</td>'; else if(type === 'equipment') html += '<td style="padding:5px;">'+row.name+'</td><td>'+row.brand+'</td><td>'+row.type+'</td><td>'+row.status+'</td>'; html += '</tr>'; });
             if(tCost > 0) { html += '<tr class="total-row"><td colspan="'+(headers.length-1)+'" style="padding:5px; text-align:right;">TOTAL GASTO (COMPRAS)</td><td style="text-align:right;">'+fmt(tCost)+'</td></tr>'; }
             html += '</table>';
         }
