@@ -223,10 +223,8 @@ var Pager = {
         var totalPages = Math.ceil(s.data.length / s.limit) || 1;
         if(s.page > totalPages) s.page = totalPages;
         if(s.page < 1) s.page = 1;
-        
         var start = (s.page - 1) * s.limit;
         var pageData = s.data.slice(start, start + s.limit);
-        
         var tbody = document.querySelector('#'+tableId+' tbody');
         if(tbody) {
             var html = '';
@@ -237,55 +235,38 @@ var Pager = {
             }
             tbody.innerHTML = html;
         }
-        
         var pagerDiv = document.getElementById('pager_'+tableId);
         if(pagerDiv) {
             var pagerHtml = '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:15px;flex-wrap:wrap;gap:10px;">';
             pagerHtml += '<span style="font-size:.8rem;color:var(--text-muted);">Mostrando '+(pageData.length===0?0:start+1)+' a '+(start+pageData.length)+' de '+s.data.length+' registos</span>';
             pagerHtml += '<div style="display:flex;gap:5px;align-items:center;">';
             pagerHtml += '<button class="btn btn-outline btn-sm" '+(s.page <= 1 ? 'disabled style="opacity:.5;cursor:not-allowed;"' : '')+' onclick="Pager.go(\''+tableId+'\','+(s.page - 1)+')">⬅️</button>';
-            
             var startPage = Math.max(1, s.page - 1);
             var endPage = Math.min(totalPages, s.page + 2);
             if(startPage > 1) pagerHtml += '<button class="btn btn-outline btn-sm" onclick="Pager.go(\''+tableId+'\',1)">1</button>';
             if(startPage > 2) pagerHtml += '<span style="color:var(--text-muted)">...</span>';
-            
             for(var i=startPage; i<=endPage; i++) {
                 if(i === s.page) pagerHtml += '<button class="btn btn-primary btn-sm" style="cursor:default;">'+i+'</button>';
                 else pagerHtml += '<button class="btn btn-outline btn-sm" onclick="Pager.go(\''+tableId+'\','+i+')">'+i+'</button>';
             }
-            
             if(endPage < totalPages-1) pagerHtml += '<span style="color:var(--text-muted)">...</span>';
             if(endPage < totalPages) pagerHtml += '<button class="btn btn-outline btn-sm" onclick="Pager.go(\''+tableId+'\','+totalPages+')">'+totalPages+'</button>';
-            
             pagerHtml += '<button class="btn btn-outline btn-sm" '+(s.page >= totalPages ? 'disabled style="opacity:.5;cursor:not-allowed;"' : '')+' onclick="Pager.go(\''+tableId+'\','+(s.page + 1)+')">➡️</button>';
             pagerHtml += '</div></div>';
             pagerDiv.innerHTML = pagerHtml;
         }
     },
-    go: function(tableId, pageNum) {
-        if(this.state[tableId]) {
-            this.state[tableId].page = pageNum;
-            this.render(tableId);
-        }
-    },
+    go: function(tableId, pageNum) { if(this.state[tableId]) { this.state[tableId].page = pageNum; this.render(tableId); } },
     search: function(tableId, searchTerm) {
-        var s = this.state[tableId];
-        if(!s) return;
-        searchTerm = searchTerm.toLowerCase();
-        var filtered = s.originalData.filter(function(row) {
-            return Object.values(row).join(' ').toLowerCase().includes(searchTerm);
-        });
-        s.data = filtered;
-        s.page = 1;
-        this.render(tableId);
+        var s = this.state[tableId]; if(!s) return; searchTerm = searchTerm.toLowerCase();
+        var filtered = s.originalData.filter(function(row) { return Object.values(row).join(' ').toLowerCase().includes(searchTerm); });
+        s.data = filtered; s.page = 1; this.render(tableId);
     }
 };
 
 /* ==================== PWA & OFFLINE ==================== */
 var manifest = { "name": "ERP Mina Jaliezer", "short_name": "Jaliezer", "start_url": ".", "display": "standalone", "background_color": "#0a0a0a", "theme_color": "#0a0a0a", "icons": [{"src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%230a0a0a'/%3E%3Ctext x='50%25' y='50%25' font-size='100' text-anchor='middle' dy='.35em' fill='%23d4af37' font-family='sans-serif'%3E%E2%9B%8F%EF%B8%8F%3C/text%3E%3C/svg%3E", "sizes": "192x192", "type": "image/svg+xml"}] };
 var stringManifest = JSON.stringify(manifest); var blob = new Blob([stringManifest], {type: 'application/json'}); var manifestURL = URL.createObjectURL(blob); document.querySelector('#manifest-placeholder').setAttribute('href', manifestURL);
-
 window.addEventListener('online', () => { document.getElementById('offlineBanner').style.display = 'none'; showToast('Ligação restaurada!', 'success'); if(currentNav) navigate(currentNav); });
 window.addEventListener('offline', () => { document.getElementById('offlineBanner').style.display = 'block'; showToast('Sem internet. Modo offline ativo.', 'danger'); });
 
@@ -421,7 +402,104 @@ function showAlertsModal() {
 }
 async function sendWhatsAppAlert() { if(!window.currentAlerts) return; var msg = '*⚠️ ALERTAS - MINA JALIEZER ⚠️*\n\n'; window.currentAlerts.forEach(a => { msg += a.sector+': '+a.item+' ('+a.qtd+')\n'; }); window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank'); }
 
-/* ==================== DASHBOARD ==================== */
+/* =================--- SAÚDE E MEDICINA DO TRABALHO ---================= */
+async function loadSaude() {
+    var occData = await DB.get('health_logs');
+    var stockData = await DB.get('medical_stock_logs');
+    var emps = await DB.get('employees');
+    
+    var stock = {}; 
+    stockData.forEach(p => { 
+        var match = p.qty.match(/\d+/); 
+        var num = match ? parseInt(match[0]) : 0; 
+        if(!stock[p.item]) stock[p.item] = 0; 
+        stock[p.item] += (p.type === 'Entrada' ? num : -num); 
+    });
+    var stockHtml = '<div class="kpi-grid" style="margin-bottom:15px">';
+    for(var item in stock) { 
+        var color = stock[item] <= 5 ? 'var(--danger)' : 'var(--success)'; 
+        stockHtml += '<div class="stock-card" style="text-align:left;padding:15px"><div style="font-size:.8rem;color:var(--text-muted)">'+item+'</div><div style="font-size:1.4rem;color:'+color+';font-weight:bold">'+stock[item]+'</div></div>'; 
+    }
+    stockHtml += '</div>';
+
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🩺 Saúde e Medicina do Trabalho</h2><button class="btn btn-primary btn-sm" onclick="openModalSaude()">➕ Nova Ocorrência</button></div>';
+    
+    html += '<div class="card"><div class="catalog-tabs">';
+    html += '<button class="catalog-tab active" id="saudeTab_occ" onclick="switchSaudeTab(\'occ\')">🏥 Ocorrências Médicas</button>';
+    html += '<button class="catalog-tab" id="saudeTab_stock" onclick="switchSaudeTab(\'stock\')">💊 Stock Médico (Requisições)</button>';
+    html += '</div>';
+    
+    html += '<div id="saude_occ_container">';
+    html += '<input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblSaudeOcc\', this.value)" style="margin-bottom:10px"><table id="tblSaudeOcc"><thead><tr><th>Data</th><th>Funcionário</th><th>Tipo</th><th>Descrição</th><th>Custo (Kz)</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblSaudeOcc"></div>';
+    html += '</div>';
+    
+    html += '<div id="saude_stock_container" style="display:none;">';
+    html += stockHtml;
+    html += '<div style="margin-bottom:15px;"><button class="btn btn-info btn-sm" onclick="openModalMedStock()">➕ Movimento de Stock (Entradas/Saídas)</button></div>';
+    html += '<input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblSaudeStock\', this.value)" style="margin-bottom:10px"><table id="tblSaudeStock"><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Requisitante/Fornecedor</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblSaudeStock"></div>';
+    html += '</div>';
+    
+    html += '</div>';
+    document.getElementById('appContent').innerHTML = html;
+    
+    var renderOccRow = function(s) {
+        var emp = emps.find(e=>e.id===s.empId);
+        var typeClass = s.type === 'Acidente de Trabalho' ? 'bg-danger' : s.type === 'Doença' ? 'bg-warning' : 'bg-info';
+        return '<tr><td>'+s.date+'</td><td><strong>'+(emp?emp.name:'N/D')+'</strong></td><td><span class="badge '+typeClass+'">'+s.type+'</span></td><td>'+s.desc+'</td><td>'+(s.cost?fmt(s.cost):'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalSaude(\''+s.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delSaude(\''+s.id+'\')">🗑️</button></td></tr>';
+    };
+    Pager.init('tblSaudeOcc', occData.reverse(), 15, renderOccRow, 6);
+    
+    var renderStockRow = function(s) {
+        var typeClass = s.type==='Entrada' ? 'bg-success' : 'bg-warning'; 
+        var who = s.type === 'Saída' ? (s.takenBy||'-') : (s.supplier||'-');
+        return '<tr><td>'+s.date+'</td><td><span class="badge '+typeClass+'">'+s.type+'</span></td><td><strong>'+s.item+'</strong></td><td>'+s.qty+'</td><td>'+who+'</td><td>'+(s.type==='Entrada'?'<span class="text-danger">-'+fmt(s.cost)+'</span>':'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalMedStock(\''+s.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delMedStock(\''+s.id+'\')">🗑️</button></td></tr>';
+    };
+    Pager.init('tblSaudeStock', stockData.reverse(), 15, renderStockRow, 7);
+}
+function switchSaudeTab(tab) {
+    document.querySelectorAll('.catalog-tab').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById('saudeTab_'+tab).classList.add('active');
+    document.getElementById('saude_occ_container').style.display = tab === 'occ' ? 'block' : 'none';
+    document.getElementById('saude_stock_container').style.display = tab === 'stock' ? 'block' : 'none';
+}
+async function openModalSaude(id) {
+    var data = await DB.get('health_logs'); var s = id ? data.find(x=>x.id===id) : {date:getTodayStr(), empId:'', type:'Consulta', desc:'', cost:0};
+    var emps = await DB.get('employees'); var o = emps.map(e=>'<option value="'+e.id+'" '+(s.empId===e.id?'selected':'')+'>'+e.name+'</option>').join('');
+    modal(id?'Editar Registo de Saúde':'Novo Registo de Saúde', '<div class="form-row"><div><label>Data *</label><input type="text" id="saDate" value="'+s.date+'"></div><div><label>Funcionário *</label><select id="saEmp">'+o+'</select></div></div><div class="form-row"><div><label>Tipo *</label><select id="saType"><option '+(s.type==='Consulta'?'selected':'')+'>Consulta</option><option '+(s.type==='Doença'?'selected':'')+'>Doença</option><option '+(s.type==='Acidente de Trabalho'?'selected':'')+'>Acidente de Trabalho</option><option '+(s.type==='Vacinação'?'selected':'')+'>Vacinação</option><option '+(s.type==='Medicação'?'selected':'')+'>Medicação</option></select></div><div><label>Custo (Kz)</label><input type="number" id="saCost" value="'+s.cost+'"></div></div><div><label>Descrição / Diagnóstico *</label><textarea id="saDesc" rows="3">'+s.desc+'</textarea></div>',
+    async function() {
+        var obj = {date:val('saDate'), empId:val('saEmp'), type:val('saType'), desc:val('saDesc'), cost:parseFloat(val('saCost'))||0};
+        if(!obj.empId||!obj.desc) return showToast('Funcionário e Descrição obrigatórios','danger');
+        if(id) { await DB.update('health_logs', id, obj); showToast('Atualizado!'); } else { obj.id='saude'+Date.now(); await DB.insert('health_logs', obj); showToast('Registado!'); }
+        closeModal(); loadSaude();
+    },'Salvar','btn-primary');
+}
+async function delSaude(id) { await DB.del('health_logs', id); showToast('Eliminado!','danger'); loadSaude(); }
+
+async function openModalMedStock(id) {
+    var data = await DB.get('medical_stock_logs'); 
+    var s = id ? data.find(x=>x.id===id) : {date:getTodayStr(), type:'Entrada', item:'', qty:'', supplier:'', takenBy:currentUser.name, cost:0};
+    var showSaida = (s.type === 'Saída') ? 'block' : 'none'; 
+    var showEntrada = (s.type === 'Entrada') ? 'block' : 'none';
+    
+    var formHtml = '<div class="form-row"><div><label>Data *</label><input type="text" id="msDate" value="'+s.date+'"></div><div><label>Tipo de Movimento *</label><select id="msType" onchange="toggleMedStockFields()"><option value="Entrada" '+(s.type==='Entrada'?'selected':'')+'>Entrada (Compra)</option><option value="Saída" '+(s.type==='Saída'?'selected':'')+'>Saída (Requisição Médica)</option></select></div></div><div class="form-row"><div><label>Item (Medicamento/Equipamento) *</label><input id="msItem" value="'+s.item+'" placeholder="Ex: Paracetamol, Ligaduras, Soro..."></div><div><label>Quantidade *</label><input id="msQty" value="'+s.qty+'" placeholder="Ex: 20 Caixas"></div></div><div id="saidaFieldsMs" style="display:'+showSaida+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--danger);margin-bottom:10px">Requisição Médica</h4><div class="form-row"><div><label>Requisitado Por (Enfermeiro/Médico) *</label><input id="msTaken" value="'+s.takenBy+'"></div></div></div><div id="entradaFieldsMs" style="display:'+showEntrada+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--success);margin-bottom:10px">Dados da Compra</h4><div class="form-row"><div><label>Fornecedor</label><input id="msSupplier" value="'+s.supplier+'"></div><div><label>Custo (Kz)</label><input type="number" id="msCost" value="'+s.cost+'"></div></div></div>';
+    
+    modal(id?'Editar Movimento':'Movimento de Stock Médico', formHtml, async function() { 
+        var obj = {date:val('msDate'), type:val('msType'), item:val('msItem'), qty:val('msQty'), takenBy:val('msTaken'), supplier:val('msSupplier'), cost:parseFloat(val('msCost'))||0}; 
+        if(!obj.item||!obj.qty) return showToast('Item e Qtd obrigatórios','danger'); 
+        if(obj.type === 'Saída' && !obj.takenBy) return showToast('Para SAÍDAS: Informe quem requisitou','danger'); 
+        if(obj.type === 'Entrada' && !obj.supplier) return showToast('Para ENTRADAS: Informe o Fornecedor','danger'); 
+        if(id) { await DB.update('medical_stock_logs', id, obj); showToast('Atualizado!'); } else { obj.id='med'+Date.now(); await DB.insert('medical_stock_logs', obj); showToast('Registado!'); } 
+        closeModal(); loadSaude(); 
+    },'Salvar','btn-primary');
+}
+function toggleMedStockFields() { 
+    var t = val('msType'); 
+    document.getElementById('saidaFieldsMs').style.display = t === 'Saída' ? 'block' : 'none'; 
+    document.getElementById('entradaFieldsMs').style.display = t === 'Entrada' ? 'block' : 'none'; 
+}
+async function delMedStock(id) { await DB.del('medical_stock_logs', id); showToast('Eliminado!','danger'); loadSaude(); }
+
+/* =================--- DASHBOARD ---================= */
 var dashChart = null;
 async function loadDashboard() {
     if(currentUser.role === 'dir_transporte') return loadDashboardTransporte();
@@ -451,32 +529,6 @@ async function loadDashboardTransporte() { var fuel = await DB.get('fuel_logs');
 async function loadDashboardRH() { var emp = await DB.get('employees'), att = await DB.get('attendance_logs'); var tSal = emp.reduce((a,b)=>a+(b.salary||0),0); var faltas = att.filter(f=> f.type === 'Falta Injustificada' && parseDate(f.date).getMonth() === new Date().getMonth()).length; var html = '<h2>👷 Dashboard RH</h2><div class="kpi-grid"><div class="kpi-card" style="border-left-color:var(--success)"><div class="kpi-label">Funcionários</div><div class="kpi-value" style="color:var(--success)">'+emp.length+'</div></div><div class="kpi-card" style="border-left-color:var(--primary)"><div class="kpi-label">Custo Salários</div><div class="kpi-value" style="color:var(--primary)">'+fmt(tSal)+' Kz</div></div><div class="kpi-card" style="border-left-color:var(--danger)"><div class="kpi-label">Faltas no Mês</div><div class="kpi-value" style="color:var(--danger)">'+faltas+'</div></div></div>'; document.getElementById('appContent').innerHTML = html; }
 async function loadDashboardAlimentar() { var prov = await DB.get('provisions_logs'); var stock = {}; prov.forEach(p => { var m = p.qty.match(/\d+/); var n = m ? parseInt(m[0]) : 0; if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? n : -n); }); var html = '<h2>🍚 Dashboard Alimentação</h2><div class="kpi-grid">'; for(var i in stock) { var c = stock[i] <= 5 ? 'var(--danger)' : 'var(--success)'; html += '<div class="stock-card"><div style="font-size:.8rem">'+i+'</div><div style="font-size:1.4rem;color:'+c+'">'+stock[i]+'</div></div>'; } html += '</div>'; document.getElementById('appContent').innerHTML = html; }
 function renderDashChart(f, p, c, s, fi, pa) { var ctx = document.getElementById('dashChartCanvas'); if(!ctx) return; if(dashChart) dashChart.destroy(); dashChart = new Chart(ctx.getContext('2d'), { type: 'bar', data: { labels: ['Combustível', 'Alimentação', 'Construção', 'Salários', 'Outras', 'Património'], datasets: [{ data: [f, p, c, s, fi, pa], backgroundColor: ['rgba(255,0,110,.5)', 'rgba(255,195,0,.5)', 'rgba(123,45,200,.5)', 'rgba(212,175,55,.5)', 'rgba(0,180,216,.5)', 'rgba(0,255,136,.5)'] }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#8b9bb4' } }, x: { ticks: { color: '#8b9bb4' } } } } }); }
-
-/* =================--- SAÚDE E MEDICINA DO TRABALHO ---================= */
-async function loadSaude() {
-    var data = await DB.get('health_logs');
-    var emps = await DB.get('employees');
-    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🩺 Saúde e Medicina do Trabalho</h2><button class="btn btn-primary btn-sm" onclick="openModalSaude()">➕ Novo Registo</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblSaude\', this.value)" style="margin-bottom:10px"><table id="tblSaude"><thead><tr><th>Data</th><th>Funcionário</th><th>Tipo</th><th>Descrição</th><th>Custo (Kz)</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblSaude"></div></div>';
-    document.getElementById('appContent').innerHTML = html;
-    var renderRow = function(s) {
-        var emp = emps.find(e=>e.id===s.empId);
-        var typeClass = s.type === 'Acidente de Trabalho' ? 'bg-danger' : s.type === 'Doença' ? 'bg-warning' : 'bg-info';
-        return '<tr><td>'+s.date+'</td><td><strong>'+(emp?emp.name:'N/D')+'</strong></td><td><span class="badge '+typeClass+'">'+s.type+'</span></td><td>'+s.desc+'</td><td>'+(s.cost?fmt(s.cost):'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalSaude(\''+s.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delSaude(\''+s.id+'\')">🗑️</button></td></tr>';
-    };
-    Pager.init('tblSaude', data.reverse(), 15, renderRow, 6);
-}
-async function openModalSaude(id) {
-    var data = await DB.get('health_logs'); var s = id ? data.find(x=>x.id===id) : {date:getTodayStr(), empId:'', type:'Consulta', desc:'', cost:0};
-    var emps = await DB.get('employees'); var o = emps.map(e=>'<option value="'+e.id+'" '+(s.empId===e.id?'selected':'')+'>'+e.name+'</option>').join('');
-    modal(id?'Editar Registo de Saúde':'Novo Registo de Saúde', '<div class="form-row"><div><label>Data *</label><input type="text" id="saDate" value="'+s.date+'"></div><div><label>Funcionário *</label><select id="saEmp">'+o+'</select></div></div><div class="form-row"><div><label>Tipo *</label><select id="saType"><option '+(s.type==='Consulta'?'selected':'')+'>Consulta</option><option '+(s.type==='Doença'?'selected':'')+'>Doença</option><option '+(s.type==='Acidente de Trabalho'?'selected':'')+'>Acidente de Trabalho</option><option '+(s.type==='Vacinação'?'selected':'')+'>Vacinação</option><option '+(s.type==='Medicação'?'selected':'')+'>Medicação</option></select></div><div><label>Custo (Kz)</label><input type="number" id="saCost" value="'+s.cost+'"></div></div><div><label>Descrição / Diagnóstico *</label><textarea id="saDesc" rows="3">'+s.desc+'</textarea></div>',
-    async function() {
-        var obj = {date:val('saDate'), empId:val('saEmp'), type:val('saType'), desc:val('saDesc'), cost:parseFloat(val('saCost'))||0};
-        if(!obj.empId||!obj.desc) return showToast('Funcionário e Descrição obrigatórios','danger');
-        if(id) { await DB.update('health_logs', id, obj); showToast('Atualizado!'); } else { obj.id='saude'+Date.now(); await DB.insert('health_logs', obj); showToast('Registado!'); }
-        closeModal(); loadSaude();
-    },'Salvar','btn-primary');
-}
-async function delSaude(id) { await DB.del('health_logs', id); showToast('Eliminado!','danger'); loadSaude(); }
 
 /* =================--- CATÁLOGO DE ITENS ---================= */
 var catalogCategories = ['Alimentação', 'Construção Civil', 'Peças e Máquinas', 'Bens Diversos', 'Combustível'];
@@ -995,7 +1047,7 @@ async function saveConfig() {
     await DB.save('company_config', [obj]); showToast('Configurações salvas!'); 
 }
 async function exportBackup() {
-    var tables = ['users','catalog_items','fuel_logs','provisions_logs','construcao_logs','bens_diversos_logs','logistica_pecas','epis_logs','licenses_logs','contractors_logs','shift_logs','security_logs','attendance_logs','employees','equipment','maintenance_logs','finance_logs','patrimony_logs','audit_logs','suppliers','production_logs','company_config','hr_advances','health_logs'];
+    var tables = ['users','catalog_items','fuel_logs','provisions_logs','construcao_logs','bens_diversos_logs','logistica_pecas','epis_logs','licenses_logs','contractors_logs','shift_logs','security_logs','attendance_logs','employees','equipment','maintenance_logs','finance_logs','patrimony_logs','audit_logs','suppliers','production_logs','company_config','hr_advances','health_logs','medical_stock_logs'];
     var backup = {}; for(var i=0; i<tables.length; i++) { backup[tables[i]] = await DB.get(tables[i]); }
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
     var link = document.createElement('a'); link.href = dataStr; link.download = "Backup_Mina_Jaliezer_"+getTodayStr().replace(/\//g,'-')+".json"; document.body.appendChild(link); link.click(); link.remove(); showToast('Backup descarregado!','info');
@@ -1036,8 +1088,9 @@ function loadReports() {
     var role = currentUser.role; var options = [];
     if(role === 'admin' || role === 'dir_geral') {
         options.push('<option value="stock_map">Mapa de Requisições e Stock</option>');
+        options.push('<option value="saude">Relatório de Saúde e Medicina</option>');
         options.push('<option value="production">Relatório de Produção</option>'); options.push('<option value="fuel">Relatório de Combustível</option>'); options.push('<option value="provisions">Relatório de Alimentação</option>'); options.push('<option value="construcao">Relatório de Construção Civil</option>'); options.push('<option value="bens_diversos">Relatório de Bens Diversos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); options.push('<option value="epis">Relatório de EPIs</option>'); options.push('<option value="seguranca">Relatório de Segurança</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="licenses">Relatório de Licenças</option>'); options.push('<option value="contractors">Relatório de Contratos</option>'); options.push('<option value="shift_reports">Relatório de Turnos</option>'); options.push('<option value="finance">Relatório Financeiro</option>'); options.push('<option value="general">Relatório Geral e Lucro</option>');
-    } else if(role === 'dir_transporte') { options.push('<option value="fuel">Relatório de Combustível</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_alimentar') { options.push('<option value="stock_map">Mapa de Requisições e Stock</option>'); options.push('<option value="provisions">Relatório de Alimentação</option>'); } else if(role === 'dir_construcao') { options.push('<option value="stock_map">Mapa de Requisições e Stock</option>'); options.push('<option value="construcao">Relatório de Construção Civil</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_rh') { options.push('<option value="finance">Relatório Financeiro (Salários)</option>'); options.push('<option value="epis">Relatório de EPIs</option>'); }
+    } else if(role === 'dir_transporte') { options.push('<option value="fuel">Relatório de Combustível</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_alimentar') { options.push('<option value="stock_map">Mapa de Requisições e Stock</option>'); options.push('<option value="provisions">Relatório de Alimentação</option>'); } else if(role === 'dir_construcao') { options.push('<option value="stock_map">Mapa de Requisições e Stock</option>'); options.push('<option value="construcao">Relatório de Construção Civil</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_rh') { options.push('<option value="saude">Relatório de Saúde e Medicina</option>'); options.push('<option value="finance">Relatório Financeiro (Salários)</option>'); options.push('<option value="epis">Relatório de EPIs</option>'); }
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📈 Central de Relatórios</h2><div style="display:flex;gap:10px"><button class="btn btn-success btn-sm" onclick="exportPDF()">📄 Gerar PDF</button><button class="btn btn-info btn-sm" onclick="exportExcel()">📊 Exportar Excel</button></div></div><div class="card"><h3>Selecionar Relatório</h3><div class="form-row"><div><label>Tipo de Relatório *</label><select id="reportType" onchange="generateReport()"><option value="">-- Escolha um Relatório --</option>'+options.join('')+'</select></div></div></div><div id="reportPrintArea" class="card" style="background:#fff;color:#000;display:none"></div>';
     document.getElementById('appContent').innerHTML = html;
 }
@@ -1050,13 +1103,33 @@ async function generateReport() {
     if(type === 'stock_map') {
         html += '<h3>Mapa de Requisições e Stock</h3>';
         html += '<div class="form-row" style="margin-bottom:20px;">';
-        html += '<div><label>Setor *</label><select id="mapSector"><option value="provisions_logs">Alimentação</option><option value="construcao_logs">Construção Civil</option><option value="bens_diversos_logs">Bens Diversos</option><option value="logistica_pecas">Peças e Máquinas</option></select></div>';
+        html += '<div><label>Setor *</label><select id="mapSector"><option value="all">Todos os Setores (Consolidado)</option><option value="provisions_logs">Alimentação</option><option value="construcao_logs">Construção Civil</option><option value="bens_diversos_logs">Bens Diversos</option><option value="logistica_pecas">Peças e Máquinas</option><option value="medical_stock_logs">Saúde (Medicamentos)</option><option value="fuel_logs">Combustível</option></select></div>';
         html += '<div><label>Período *</label><select id="mapPeriod" onchange="toggleCustomDates()"><option value="month">Mês Atual</option><option value="trimester">Trimestral</option><option value="semester">Semestral</option><option value="year">Anual</option><option value="custom">Personalizado</option></select></div>';
         html += '<div id="customDatesBox" style="display:none;"><label>Data Início</label><input type="text" id="mapStart" placeholder="DD/MM/AAAA"></div>';
         html += '<div id="customDatesBox2" style="display:none;"><label>Data Fim</label><input type="text" id="mapEnd" placeholder="DD/MM/AAAA" value="'+getTodayStr()+'"></div>';
         html += '</div>';
         html += '<div style="text-align:center; margin-bottom:20px;"><button class="btn btn-primary" onclick="generateStockMap()">Gerar Mapa</button></div>';
         html += '<div id="stockMapResult"></div>';
+    }
+    else if(type === 'saude') { 
+        var occ = await DB.get('health_logs'); 
+        var medStock = await DB.get('medical_stock_logs');
+        var emps = await DB.get('employees'); 
+        var tCostMed = medStock.filter(p=>p.type==='Entrada').reduce((a,b)=>a+(b.cost||0),0);
+        
+        html += '<h3>Ocorrências Médicas</h3><table><thead><tr><th>Data</th><th>Funcionário</th><th>Tipo</th><th>Descrição</th><th>Custo (Kz)</th><th>Ações</th></tr></thead><tbody>'; 
+        occ.forEach(p => { 
+            var emp = emps.find(e=>e.id===p.empId); 
+            html += '<tr><td>'+p.date+'</td><td>'+(emp?emp.name:'-')+'</td><td>'+p.type+'</td><td>'+p.desc+'</td><td>'+(p.cost?fmt(p.cost):'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="delSaude(\''+p.id+'\')">🗑️</button></td></tr>'; 
+        }); 
+        html += '</tbody></table>'; 
+        
+        html += '<h3>Stock Médico (Medicamentos e Equipamentos)</h3><table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Requisitante/Fornecedor</th><th>Custo</th><th>Ações</th></tr></thead><tbody>'; 
+        medStock.forEach(p => { 
+            var who = p.type === 'Saída' ? (p.takenBy||'-') : (p.supplier||'-'); 
+            html += '<tr><td>'+p.date+'</td><td>'+p.type+'</td><td>'+p.item+'</td><td>'+p.qty+'</td><td>'+who+'</td><td>'+(p.type==='Entrada'?fmt(p.cost):'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="delMedStock(\''+p.id+'\')">🗑️</button></td></tr>'; 
+        }); 
+        html += '<tr class="total-row"><td colspan="5">TOTAL GASTO (COMPRAS MÉDICAS)</td><td>'+fmt(tCostMed)+'</td><td></td></tr></tbody></table>'; 
     }
     else if(type === 'production') { var data = await DB.get('production_logs'); html += '<h3>Produção</h3><table><thead><tr><th>Data/Hora</th><th>Poço</th><th>Material</th><th>Vol (m³)</th><th>Quilates</th><th>Teor</th><th>Resp.</th><th>Ações</th></tr></thead><tbody>'; data.forEach(p => { var volMatch = p.qty.match(/\d+/); var vol = volMatch ? parseFloat(volMatch[0]) : 0; var teor = p.yield && vol > 0 ? (p.yield / vol).toFixed(3) : '-'; html += '<tr><td>'+p.date+' '+p.time+'</td><td>'+p.well+'</td><td>'+p.material+'</td><td>'+p.qty+'</td><td>'+(p.yield||'-')+'</td><td>'+teor+'</td><td>'+p.responsible+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalProd(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delProd(\''+p.id+'\')">🗑️</button></td></tr>'; }); html += '</tbody></table>'; } 
     else if(type === 'fuel') { var data = await DB.get('fuel_logs'); var entradas = data.filter(f=>f.type==='Entrada'); var saidas = data.filter(f=>f.type==='Saída').sort((a,b)=>parseDate(a.date)-parseDate(b.date)); html += '<h3>Combustível</h3><h4>1. Compras</h4><table><thead><tr><th>Data</th><th>Combustível</th><th>Litros</th><th>Valor (Kz)</th><th>Ações</th></tr></thead><tbody>'; var totFuelVal = 0, totFuelLit = 0; entradas.forEach(f => { totFuelVal += (f.val||0); totFuelLit += (f.litros||0); html += '<tr><td>'+f.date+'</td><td>'+f.fuelType+'</td><td>'+f.litros+' L</td><td>'+fmt(f.val)+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalFuel(\''+f.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delFuel(\''+f.id+'\')">🗑️</button></td></tr>'; }); html += '<tr class="total-row"><td colspan="2">TOTAL COMPRAS</td><td>'+fmt(totFuelLit)+' L</td><td>'+fmt(totFuelVal)+'</td><td></td></tr></tbody></table>'; html += '<h4>2. Consumos por Veículo</h4>'; var groupedSaidas = {}; saidas.forEach(f => { var n = f.equipment || '-'; if(!groupedSaidas[n]) groupedSaidas[n] = []; groupedSaidas[n].push(f); }); var totConsLit = 0, totConsVal = 0; for(var n in groupedSaidas) { var eE = groupedSaidas[n]; var eL = 0, eV = 0; var P = 420; html += '<h5>🚗 '+n+'</h5><table><thead><tr><th>Data</th><th>Func</th><th>Horóm</th><th>Litros</th><th>Valor (Kz)</th><th>Ações</th></tr></thead><tbody>'; eE.forEach(f => { var vS = f.litros * P; eL += f.litros; eV += vS; html += '<tr><td>'+f.date+'</td><td>'+f.empName+'</td><td>'+(f.hours||'-')+'</td><td>'+f.litros+'</td><td>'+fmt(vS)+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalFuel(\''+f.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delFuel(\''+f.id+'\')">🗑️</button></td></tr>'; }); html += '<tr class="total-row"><td colspan="3">TOTAL '+n+'</td><td>'+fmt(eL)+' L</td><td>'+fmt(eV)+'</td><td></td></tr></tbody></table>'; totConsLit += eL; totConsVal += eV; } html += '<div class="summary-box" style="margin-top:15px; text-align:right; font-size:14px;"><strong>TOTAL GERAL DE CONSUMOS:</strong> '+fmt(totConsLit)+' Litros | <strong>'+fmt(totConsVal)+' Kz</strong></div>'; } 
@@ -1125,41 +1198,72 @@ async function generateStockMap() {
         if(!start || !end) return showToast('Datas inválidas. Use DD/MM/AAAA', 'danger');
     }
     
-    var data = await DB.get(sector);
-    var items = {};
+    // Buscar dados de todos os setores selecionados
+    var allData = [];
+    if(sector === 'all' || sector === 'provisions_logs') {
+        (await DB.get('provisions_logs')).forEach(p => allData.push({ sector: 'Alimentação', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier }));
+    }
+    if(sector === 'all' || sector === 'construcao_logs') {
+        (await DB.get('construcao_logs')).forEach(p => allData.push({ sector: 'Construção', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier }));
+    }
+    if(sector === 'all' || sector === 'bens_diversos_logs') {
+        (await DB.get('bens_diversos_logs')).forEach(p => allData.push({ sector: 'Bens Diversos', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier }));
+    }
+    if(sector === 'all' || sector === 'logistica_pecas') {
+        (await DB.get('logistica_pecas')).forEach(p => allData.push({ sector: 'Peças e Máquinas', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier }));
+    }
+    if(sector === 'all' || sector === 'medical_stock_logs') {
+        (await DB.get('medical_stock_logs')).forEach(p => allData.push({ sector: 'Saúde', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier }));
+    }
+    if(sector === 'all' || sector === 'fuel_logs') {
+        (await DB.get('fuel_logs')).forEach(p => allData.push({ sector: 'Combustível', date: p.date, type: p.type, item: p.fuelType, qty: p.litros + ' L', takenBy: p.empName, supplier: p.supplier }));
+    }
     
-    data.forEach(p => {
+    var items = {};
+    var isAll = sector === 'all';
+    
+    allData.forEach(p => {
         var match = p.qty.match(/\d+/);
         var num = match ? parseInt(match[0]) : 0;
-        if(!items[p.item]) items[p.item] = { movements: [], initial: 0, in: 0, out: 0 };
+        var key = isAll ? (p.sector + '___' + p.item) : p.item;
+        
+        if(!items[key]) items[key] = { sector: p.sector, name: p.item, movements: [], initial: 0, in: 0, out: 0 };
         
         var d = parseDate(p.date);
         if(p.type === 'Entrada') {
-            if(d < start) items[p.item].initial += num;
-            else if(d >= start && d <= end) { items[p.item].in += num; items[p.item].movements.push(p); }
+            if(d < start) items[key].initial += num;
+            else if(d >= start && d <= end) { items[key].in += num; items[key].movements.push(p); }
         } else {
-            if(d < start) items[p.item].initial -= num;
-            else if(d >= start && d <= end) { items[p.item].out += num; items[p.item].movements.push(p); }
+            if(d < start) items[key].initial -= num;
+            else if(d >= start && d <= end) { items[key].out += num; items[key].movements.push(p); }
         }
     });
     
-    var html = '<table><thead><tr><th>Item</th><th class="text-right">Saldo Inicial</th><th class="text-right">Entradas no Período</th><th class="text-right">Saídas (Requisições)</th><th class="text-right">Saldo Final</th></tr></thead><tbody>';
+    var html = '<table><thead><tr>';
+    if(isAll) html += '<th>Setor</th>';
+    html += '<th>Item</th><th class="text-right">Saldo Inicial</th><th class="text-right">Entradas no Período</th><th class="text-right">Saídas (Requisições)</th><th class="text-right">Saldo Final</th></tr></thead><tbody>';
     var hasData = false;
-    for(var name in items) {
-        var it = items[name];
+    
+    // Ordenar itens alfabeticamente
+    var keys = Object.keys(items).sort();
+    
+    keys.forEach(key => {
+        var it = items[key];
         if(it.movements.length > 0 || it.initial !== 0) {
             hasData = true;
             var final = it.initial + it.in - it.out;
             html += '<tr>';
-            html += '<td><strong>'+name+'</strong><br><small>Movimentos no período: '+it.movements.length+'</small></td>';
+            if(isAll) html += '<td><span class="badge bg-info">'+it.sector+'</span></td>';
+            html += '<td><strong>'+it.name+'</strong><br><small>Movimentos no período: '+it.movements.length+'</small></td>';
             html += '<td class="text-right">'+it.initial+'</td>';
             html += '<td class="text-right text-success">'+it.in+'</td>';
             html += '<td class="text-right text-danger">'+it.out+'</td>';
             html += '<td class="text-right" style="font-weight:bold; '+(final < 0 ? 'color:#cc0000;' : 'color:#008000;')+'">'+final+'</td>';
             html += '</tr>';
             
+            // Mostrar os detalhes dos movimentos no período
             if(it.movements.length > 0) {
-                html += '<tr><td colspan="5" style="padding:0;">';
+                html += '<tr><td colspan="'+(isAll ? 6 : 5)+'" style="padding:0;">';
                 html += '<table style="width:100%; margin:0; font-size:11px;"><tbody>';
                 it.movements.forEach(m => {
                     var dt = m.date;
@@ -1170,7 +1274,7 @@ async function generateStockMap() {
                 html += '</td></tr>';
             }
         }
-    }
+    });
     html += '</tbody></table>';
     if(!hasData) html = '<p style="text-align:center; padding:20px; color:#888;">Nenhum movimento encontrado neste período.</p>';
     
@@ -1185,7 +1289,21 @@ async function exportExcel() {
     var config = (await DB.get('company_config'))[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
     var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><style>td, th { vertical-align: middle; border: 1px solid #d4d4d4; } .title { background-color: #1a1a1a; color: #fff; font-size: 22px; text-align: center; padding: 15px; font-weight: bold; } .subtitle { background-color: #d4af37; color: #000; font-size: 14px; text-align: center; padding: 8px; font-weight: bold; } .info { font-size: 11px; color: #333; padding: 5px; } .tbl-head { background-color: #2c3e50; color: #fff; font-weight: bold; text-align: center; padding: 8px; } .tbl-body td { padding: 5px; } .bg-success { background-color: #d4edda; color: #155724; font-weight: bold; } .bg-danger { background-color: #f8d7da; color: #721c24; font-weight: bold; } .total-row td { background-color: #d4af37; color: #000; font-weight: bold; border: 2px solid #000; }</style></head><body>';
     html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; border:none;"><tr><td colspan="3" class="title">' + config.name.toUpperCase() + '</td></tr><tr><td colspan="3" class="subtitle">RELATÓRIO DE ' + type.replace('_', ' ').toUpperCase() + '</td></tr><tr><td class="info"><b>NIF:</b> ' + config.nif + '</td><td class="info" style="text-align:center;"><b>Emissão:</b> ' + getTodayStr() + '</td><td class="info" style="text-align:right;"><b>Endereço:</b> ' + config.address + '</td></tr></table><br>';
-    if(type === 'fuel') {
+    if(type === 'saude') {
+        var occData = await DB.get('health_logs'); 
+        var medStockData = await DB.get('medical_stock_logs');
+        var emps = await DB.get('employees');
+        var tCostMed = medStockData.filter(p=>p.type==='Entrada').reduce((a,b)=>a+(b.cost||0),0);
+        
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="5" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">OCORRÊNCIAS MÉDICAS</td></tr><tr class="tbl-head"><td style="padding:5px;">Data</td><td>Funcionário</td><td>Tipo</td><td>Descrição</td><td>Custo</td></tr>';
+        occData.forEach(p => { var emp = emps.find(e=>e.id===p.empId); html += '<tr class="tbl-body"><td style="padding:5px;">'+p.date+'</td><td>'+(emp?emp.name:'-')+'</td><td>'+p.type+'</td><td>'+p.desc+'</td><td>'+(p.cost||'-')+'</td></tr>'; });
+        html += '</table><br>';
+        
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="6" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">STOCK MÉDICO</td></tr><tr class="tbl-head"><td style="padding:5px;">Data</td><td>Tipo</td><td>Item</td><td>Qtd</td><td>Req/Forn</td><td>Custo</td></tr>';
+        medStockData.forEach(p => { var who = p.type === 'Saída' ? (p.takenBy||'-') : (p.supplier||'-'); html += '<tr class="tbl-body"><td style="padding:5px;">'+p.date+'</td><td>'+p.type+'</td><td>'+p.item+'</td><td>'+p.qty+'</td><td>'+who+'</td><td>'+(p.cost||'-')+'</td></tr>'; });
+        html += '<tr class="total-row"><td colspan="5" style="padding:5px; text-align:right;">TOTAL GASTO (COMPRAS)</td><td style="text-align:right;">'+fmt(tCostMed)+'</td></tr></table>';
+    }
+    else if(type === 'fuel') {
         var data = await DB.get('fuel_logs'); var entradas = data.filter(f => f.type === 'Entrada'); var saidas = data.filter(f => f.type === 'Saída').sort((a,b) => parseDate(a.date) - parseDate(b.date));
         html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="4" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">1. COMPRAS</td></tr><tr class="tbl-head"><td style="padding:5px;">Data</td><td>Combustível</td><td>Litros</td><td>Valor (Kz)</td></tr>';
         var totEVal = 0, totELit = 0; entradas.forEach(f => { totEVal += (f.val||0); totELit += (f.litros||0); html += '<tr class="tbl-body"><td style="padding:5px;">'+f.date+'</td><td>'+f.fuelType+'</td><td>'+f.litros+' L</td><td>'+fmt(f.val)+'</td></tr>'; });
@@ -1212,7 +1330,7 @@ async function exportExcel() {
         if(headers.length > 0) {
             html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="'+headers.length+'" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">'+type.replace('_', ' ').toUpperCase()+'</td></tr><tr class="tbl-head">';
             headers.forEach(h => html += '<td style="padding:5px;">'+h+'</td>'); html += '</tr>';
-            data.forEach(row => { html += '<tr class="tbl-body">'; if(type === 'production') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.well+'</td><td>'+row.material+'</td><td>'+row.qty+'</td><td>'+(row.yield||'-')+'</td><td>'+row.responsible+'</td>'; else if(type === 'provisions') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.takenBy||row.supplier||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'construcao') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.destination||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'bens_diversos') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.takenBy||row.supplier||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'logistica_pecas') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+(row.cat||'-')+'</td><td>'+row.item+'</td><td>'+(row.machine||'-')+'</td><td>'+row.qty+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'epis') html += '<td style="padding:5px;">'+row.date+'</td><td>'+(row.empId||'-')+'<td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.authBy||'-')+'</td>'; else if(type === 'seguranca') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.name+'</td><td>'+row.dest+'</td><td>'+row.guard+'</td>'; else if(type === 'equipment') html += '<td style="padding:5px;">'+row.name+'</td><td>'+row.brand+'</td><td>'+row.type+'</td><td>'+row.status+'</td>'; html += '</tr>'; });
+            data.forEach(row => { html += '<tr class="tbl-body">'; if(type === 'production') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.well+'</td><td>'+row.material+'</td><td>'+row.qty+'</td><td>'+(row.yield||'-')+'</td><td>'+row.responsible+'</td>'; else if(type === 'provisions') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.takenBy||row.supplier||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'construcao') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.destination||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'bens_diversos') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.takenBy||row.supplier||'-')+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'logistica_pecas') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+(row.cat||'-')+'</td><td>'+row.item+'</td><td>'+(row.machine||'-')+'</td><td>'+row.qty+'</td><td>'+(row.cost||'-')+'</td>'; else if(type === 'epis') html += '<td style="padding:5px;">'+row.date+'</td><td>'+(row.empId||'-')+'</td><td>'+row.item+'</td><td>'+row.qty+'</td><td>'+(row.authBy||'-')+'</td>'; else if(type === 'seguranca') html += '<td style="padding:5px;">'+row.date+'</td><td>'+row.type+'</td><td>'+row.name+'</td><td>'+row.dest+'</td><td>'+row.guard+'</td>'; else if(type === 'equipment') html += '<td style="padding:5px;">'+row.name+'</td><td>'+row.brand+'</td><td>'+row.type+'</td><td>'+row.status+'</td>'; html += '</tr>'; });
             if(tCost > 0) { html += '<tr class="total-row"><td colspan="'+(headers.length-1)+'" style="padding:5px; text-align:right;">TOTAL GASTO (COMPRAS)</td><td style="text-align:right;">'+fmt(tCost)+'</td></tr>'; }
             html += '</table>';
         }
