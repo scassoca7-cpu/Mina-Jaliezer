@@ -1268,11 +1268,72 @@ async function exportExcel() {
     var config = (await DB.get('company_config'))[0] || {name:'Mina Jaliezer', nif:'N/D', address:'Angola'};
     var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><style>td, th { vertical-align: middle; border: 1px solid #d4d4d4; } .title { background-color: #1a1a1a; color: #fff; font-size: 22px; text-align: center; padding: 15px; font-weight: bold; } .subtitle { background-color: #d4af37; color: #000; font-size: 14px; text-align: center; padding: 8px; font-weight: bold; } .info { font-size: 11px; color: #333; padding: 5px; } .tbl-head { background-color: #2c3e50; color: #fff; font-weight: bold; text-align: center; padding: 8px; } .tbl-body td { padding: 5px; } .bg-success { background-color: #d4edda; color: #155724; font-weight: bold; } .bg-danger { background-color: #f8d7da; color: #721c24; font-weight: bold; } .total-row td { background-color: #d4af37; color: #000; font-weight: bold; border: 2px solid #000; }</style></head><body>';
     html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; border:none;"><tr><td colspan="3" class="title">' + config.name.toUpperCase() + '</td></tr><tr><td colspan="3" class="subtitle">RELATÓRIO DE ' + type.replace('_', ' ').toUpperCase() + '</td></tr><tr><td class="info"><b>NIF:</b> ' + config.nif + '</td><td class="info" style="text-align:center;"><b>Emissão:</b> ' + getTodayStr() + '</td><td class="info" style="text-align:right;"><b>Endereço:</b> ' + config.address + '</td></tr></table><br>';
-    if(type === 'saude') {
-        var occData = await DB.get('health_logs'); var medStockData = await DB.get('medical_stock_logs'); var emps = await DB.get('employees'); var tCostMed = medStockData.filter(p=>p.type==='Entrada').reduce((a,b)=>a+(b.cost||0),0);
+
+    if(type === 'stock_map') {
+        var sector = val('mapSector');
+        var period = val('mapPeriod');
+        var today = new Date();
+        var start = new Date(today.getFullYear(), today.getMonth(), 1);
+        var end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        
+        if(period === 'trimester') { start = new Date(today.getFullYear(), today.getMonth() - 2, 1); }
+        else if(period === 'semester') { start = new Date(today.getFullYear(), today.getMonth() - 5, 1); }
+        else if(period === 'year') { start = new Date(today.getFullYear(), 0, 1); }
+        else if(period === 'custom') {
+            start = parseDate(val('mapStart'));
+            end = parseDate(val('mapEnd'));
+        }
+        
+        var allData = [];
+        if(sector === 'all' || sector === 'provisions_logs') { (await DB.get('provisions_logs')).forEach(p => allData.push({ sector: 'Alimentação', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier })); }
+        if(sector === 'all' || sector === 'construcao_logs') { (await DB.get('construcao_logs')).forEach(p => allData.push({ sector: 'Construção', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier })); }
+        if(sector === 'all' || sector === 'bens_diversos_logs') { (await DB.get('bens_diversos_logs')).forEach(p => allData.push({ sector: 'Bens Diversos', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier })); }
+        if(sector === 'all' || sector === 'logistica_pecas') { (await DB.get('logistica_pecas')).forEach(p => allData.push({ sector: 'Peças e Máquinas', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier })); }
+        if(sector === 'all' || sector === 'medical_stock_logs') { (await DB.get('medical_stock_logs')).forEach(p => allData.push({ sector: 'Saúde', date: p.date, type: p.type, item: p.item, qty: p.qty, takenBy: p.takenBy, supplier: p.supplier })); }
+        if(sector === 'all' || sector === 'fuel_logs') { (await DB.get('fuel_logs')).forEach(p => allData.push({ sector: 'Combustível', date: p.date, type: p.type, item: p.fuelType, qty: p.litros + ' L', takenBy: p.empName, supplier: p.supplier })); }
+        
+        var items = {};
+        var isAll = sector === 'all';
+        
+        allData.forEach(p => {
+            var match = p.qty.match(/\d+/);
+            var num = match ? parseInt(match[0]) : 0;
+            var key = isAll ? (p.sector + '___' + p.item) : p.item;
+            if(!items[key]) items[key] = { sector: p.sector, name: p.item, initial: 0, in: 0, out: 0 };
+            var d = parseDate(p.date);
+            if(p.type === 'Entrada') {
+                if(d < start) items[key].initial += num;
+                else if(d >= start && d <= end) { items[key].in += num; }
+            } else {
+                if(d < start) items[key].initial -= num;
+                else if(d >= start && d <= end) { items[key].out += num; }
+            }
+        });
+
+        html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="'+(isAll ? 6 : 5)+'" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">MAPA DE REQUISIÇÕES E STOCK</td></tr><tr class="tbl-head">';
+        if(isAll) html += '<td style="padding:5px;">Setor</td>';
+        html += '<td>Item</td><td>Saldo Inicial</td><td>Entradas no Período</td><td>Saídas (Requisições)</td><td>Saldo Final</td></tr>';
+        
+        var keys = Object.keys(items).sort();
+        keys.forEach(key => {
+            var it = items[key];
+            var final = it.initial + it.in - it.out;
+            html += '<tr class="tbl-body">';
+            if(isAll) html += '<td style="padding:5px;">'+it.sector+'</td>';
+            html += '<td>'+it.name+'</td><td>'+it.initial+'</td><td style="color:#008000;">'+it.in+'</td><td style="color:#cc0000;">'+it.out+'</td><td style="font-weight:bold;">'+final+'</td></tr>';
+        });
+        html += '</table>';
+    }
+    else if(type === 'saude') {
+        var occData = await DB.get('health_logs'); 
+        var medStockData = await DB.get('medical_stock_logs');
+        var emps = await DB.get('employees');
+        var tCostMed = medStockData.filter(p=>p.type==='Entrada').reduce((a,b)=>a+(b.cost||0),0);
+        
         html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="5" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">OCORRÊNCIAS MÉDICAS</td></tr><tr class="tbl-head"><td style="padding:5px;">Data</td><td>Funcionário</td><td>Tipo</td><td>Descrição</td><td>Custo</td></tr>';
         occData.forEach(p => { var emp = emps.find(e=>e.id===p.empId); html += '<tr class="tbl-body"><td style="padding:5px;">'+p.date+'</td><td>'+(emp?emp.name:'-')+'</td><td>'+p.type+'</td><td>'+p.desc+'</td><td>'+(p.cost||'-')+'</td></tr>'; });
         html += '</table><br>';
+        
         html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="6" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">STOCK MÉDICO</td></tr><tr class="tbl-head"><td style="padding:5px;">Data</td><td>Tipo</td><td>Item</td><td>Qtd</td><td>Req/Forn</td><td>Custo</td></tr>';
         medStockData.forEach(p => { var who = p.type === 'Saída' ? (p.takenBy||'-') : (p.supplier||'-'); html += '<tr class="tbl-body"><td style="padding:5px;">'+p.date+'</td><td>'+p.type+'</td><td>'+p.item+'</td><td>'+p.qty+'</td><td>'+who+'</td><td>'+(p.cost||'-')+'</td></tr>'; });
         html += '<tr class="total-row"><td colspan="5" style="padding:5px; text-align:right;">TOTAL GASTO (COMPRAS)</td><td style="text-align:right;">'+fmt(tCostMed)+'</td></tr></table>';
@@ -1290,7 +1351,7 @@ async function exportExcel() {
         var data = await DB.get('finance_logs'); var totEnt = data.filter(f=>f.type==='Entrada').reduce((a,b)=>a+(b.val||0),0); var totSai = data.filter(f=>f.type==='Saída').reduce((a,b)=>a+(b.val||0),0); var saldo = totEnt - totSai;
         html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="5" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">RELATÓRIO FINANCEIRO</td></tr><tr class="tbl-head"><td style="padding:5px;">Data</td><td>Descrição</td><td>Tipo</td><td>Estado</td><td>Valor (Kz)</td></tr>';
         data.forEach(f => { var valClass = f.type === 'Entrada' ? 'bg-success' : 'bg-danger'; html += '<tr class="tbl-body '+valClass+'"><td style="padding:5px;">'+f.date+'</td><td>'+f.desc+'</td><td>'+f.type+'</td><td>'+f.status+'</td><td>'+fmt(f.val)+'</td></tr>'; });
-        html += '<tr class="total-row"><td colspan="4" style="padding:5px; text-align:right;">TOTAL ENTRADAS</td><td style="text-align:right;">'+fmt(totEnt)+'</td></tr><tr class="total-row"><td colspan="4" style="padding:5px; text-align:right;">TOTAL SAÍDAS</td><td style="text-align:right;">'+fmt(totSai)+'</td></tr><tr class="total-row" style="background-color:#1a1a1a; color:#fff;"><td colspan="4" style="padding:5px; text-align:right;">SALDO FINAL</td><td style="text-align:right;">'+fmt(saldo)+'</td></tr></table>';
+        html += '<tr class="total-row"><td colspan="4" style="padding:5px; text-align:right;">TOTAL ENTRADAS</td><td style="text-align:right;">'+fmt(totEnt)+'</td></tr><tr class="total-row"><td colspan="4" style="padding:5px;text-align:right;">TOTAL SAÍDAS</td><td style="text-align:right;">'+fmt(totSai)+'</td></tr><tr class="total-row" style="background-color:#1a1a1a; color:#fff;"><td colspan="4" style="padding:5px; text-align:right;">SALDO FINAL</td><td style="text-align:right;">'+fmt(saldo)+'</td></tr></table>';
     } else {
         var data = []; var headers = []; var tCost = 0;
         if(type === 'production') { data = await DB.get('production_logs'); headers = ['Data', 'Poço', 'Material', 'Volume', 'Quilates', 'Responsável']; }
