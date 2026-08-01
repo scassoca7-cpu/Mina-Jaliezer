@@ -287,17 +287,52 @@ function hashPass(pass) { var hash = 0, i, chr; for (i = 0; i < pass.length; i++
 async function logAction(action, detail) { if(!currentUser) return; try { await DB.insert('audit_logs', { id:'log'+Date.now(), user: currentUser.name, role: currentUser.role, action: action, detail: detail, date: new Date().toLocaleString('pt-AO') }); } catch(e){} }
 function handleFileUpload(inputId, callback) { var file = document.getElementById(inputId).files[0]; if (!file) return callback(null); if (file.size > 1000000) { showToast('Ficheiro muito grande! Máx 1MB.', 'danger'); return callback(null); } var reader = new FileReader(); reader.onload = function(e) { callback(e.target.result); }; reader.readAsDataURL(file); }
 
+function buildGroupedSelect(items, selectedItem) {
+    var sorted = items.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    var groups = {};
+    sorted.forEach(c => {
+        var g = c.group || 'Geral';
+        if(!groups[g]) groups[g] = [];
+        groups[g].push(c);
+    });
+    var html = '';
+    Object.keys(groups).sort().forEach(g => {
+        html += '<optgroup label="'+g+'">';
+        groups[g].forEach(item => {
+            html += '<option value="'+item.name+'" '+(selectedItem===item.name?'selected':'')+'>'+item.name+(item.unit?' ('+item.unit+')':'')+'</option>';
+        });
+        html += '</optgroup>';
+    });
+    return html;
+}
+
+function openStockModal(moduleName) {
+    var stock = (window.currentStockData || {})[moduleName] || {};
+    var html = '<table style="width:100%"><thead><tr><th>Item</th><th style="text-align:right">Qtd em Stock</th></tr></thead><tbody>';
+    var keys = Object.keys(stock).sort();
+    if(keys.length === 0) {
+        html += '<tr><td colspan="2" style="text-align:center;color:var(--text-muted);padding:20px">Sem dados de stock disponíveis.</td></tr>';
+    } else {
+        keys.forEach(function(item) {
+            var color = stock[item].qty <= 5 ? 'var(--danger)' : 'var(--success)';
+            html += '<tr><td><strong>'+item+'</strong></td><td style="text-align:right;color:'+color+';font-weight:bold;">'+stock[item].qty+' '+(stock[item].unit||'')+'</td></tr>';
+        });
+    }
+    html += '</tbody></table>';
+    modal('📦 Stock Atual - ' + moduleName, html, null, 'Fechar', 'btn-primary');
+}
+
 /* ==================== AUTENTICAÇÃO E PERMISSÕES ==================== */
 var currentUser = null; var currentNav = 'dashboard';
 var menuPermissions = {
-    'admin': ['dashboard','catalog','production','fuel','provisions','construcao','bens_diversos','epis','licenses','contractors','shift_reports','logistica_pecas','seguranca','attendance','cost_centers','employees','equipment','finance','patrimony','suppliers','reports','config','users','audit','saude'],
-    'dir_geral': ['dashboard','catalog','production','fuel','provisions','construcao','bens_diversos','epis','licenses','contractors','shift_reports','logistica_pecas','seguranca','attendance','cost_centers','employees','equipment','finance','patrimony','suppliers','reports','config','users','audit','saude'],
-    'dir_rh': ['dashboard','employees','attendance','epis','finance','reports','saude'],
+    'admin': ['dashboard','catalog','production','fuel','provisions','construcao','bens_diversos','epis','licenses','contractors','shift_reports','logistica_pecas','seguranca','attendance','ferias','cost_centers','employees','equipment','finance','patrimony','suppliers','reports','config','users','audit','saude'],
+    'dir_geral': ['dashboard','catalog','production','fuel','provisions','construcao','bens_diversos','epis','licenses','contractors','shift_reports','logistica_pecas','seguranca','attendance','ferias','cost_centers','employees','equipment','finance','patrimony','suppliers','reports','config','users','audit','saude'],
+    'dir_rh': ['dashboard','employees','attendance','epis','ferias','finance','reports','saude'],
     'dir_alimentar': ['dashboard','provisions','reports'],
     'dir_transporte': ['dashboard','fuel','equipment','logistica_pecas','shift_reports','reports'],
     'dir_construcao': ['dashboard','construcao','equipment','logistica_pecas','shift_reports','reports'],
     'contabilista': ['dashboard','cost_centers','finance','patrimony','suppliers','licenses','contractors','reports','config'],
-    'rh': ['dashboard','employees','attendance','epis','saude'],
+    'rh': ['dashboard','employees','attendance','epis','ferias','saude'],
     'secretaria': ['dashboard','catalog','provisions','bens_diversos','equipment','suppliers','seguranca']
 };
 var alertPermissions = {
@@ -321,6 +356,7 @@ async function login() {
 function logout() { logAction('Logout', 'Saiu do sistema'); currentUser = null; localStorage.removeItem('jaliezerv4_session'); location.reload(); }
 
 /* ==================== DADOS INICIAIS ==================== */
+var catalogCategories = ['Alimentação', 'Construção Civil', 'Peças e Máquinas', 'Bens Diversos', 'Combustível'];
 async function seedData() {
     var users = await DB.get('users');
     if(users.length === 0) {
@@ -337,12 +373,12 @@ async function seedData() {
         await DB.save('company_config', [{"id":"c1","name":"Mina Jaliezer, Lda","nif":"5417121568","address":"Lunda Sul, Angola","ivaRate":14,"bank":"BFA - 1234-5678-9","exchange_rate":920,"locked_months":""}]);
         await DB.save('suppliers', [{"id":"sup1","name":"Sonangol Distribuidora","nif":"NIF-Sonangol","contact":"923456789","account":"BFA 1234"},{"id":"sup2","name":"Ferragens Luanda","nif":"NIF-Ferragens","contact":"912345678","account":"BIC 5678"}]);
         await DB.save('catalog_items', [
-            {"id":"cat1","cat":"Alimentação","name":"Arroz","unit":"Sacos 25kg"},
-            {"id":"cat2","cat":"Alimentação","name":"Óleo de Palma","unit":"Lata 20L"},
-            {"id":"cat3","cat":"Construção Civil","name":"Cimento","unit":"Sacos 50kg"},
-            {"id":"cat4","cat":"Construção Civil","name":"Areia","unit":"m³"},
-            {"id":"cat5","cat":"Peças e Máquinas","name":"Filtro de Óleo","unit":"Unid"},
-            {"id":"cat6","cat":"Bens Diversos","name":"Colchão","unit":"Unid"}
+            {"id":"cat1","cat":"Alimentação","group":"Cereais","name":"Arroz","unit":"Sacos 25kg","min_stock":10},
+            {"id":"cat2","cat":"Alimentação","group":"Cereais","name":"Fuba","unit":"Sacos 25kg","min_stock":5},
+            {"id":"cat3","cat":"Alimentação","group":"Bebidas","name":"Coca-Cola","unit":"Lata","min_stock":24},
+            {"id":"cat4","cat":"Alimentação","group":"Bebidas","name":"Fanta","unit":"Lata","min_stock":24},
+            {"id":"cat5","cat":"Construção Civil","group":"Cimento","name":"Cimento 42.5","unit":"Sacos 50kg","min_stock":20},
+            {"id":"cat6","cat":"Peças e Máquinas","group":"Filtros","name":"Filtro de Óleo CAT","unit":"Unid","min_stock":2}
         ]);
         showToast('Dados iniciais criados na nuvem!','info');
     }
@@ -362,7 +398,7 @@ function initApp() {
 function loadSidebar() {
     var nav = document.getElementById('menuNav');
     var allItems = [
-        { id: 'dashboard', i: '📊', t: 'Dashboard' }, { id: 'catalog', i: '📋', t: 'Catálogo de Itens' }, { id: 'production', i: '⛏️', t: 'Produção (Extração)' }, { id: 'fuel', i: '⛽', t: 'Combustível' }, { id: 'provisions', i: '🍚', t: 'Alimentação e Consumo' }, { id: 'construcao', i: '🧱', t: 'Construção Civil' }, { id: 'bens_diversos', i: '🛋️', t: 'Bens Diversos e Hospedagem' }, { id: 'epis', i: '🦺', t: 'Segurança e EPIs' }, { id: 'licenses', i: '📜', t: 'Validades e Licenças' }, { id: 'contractors', i: '🤝', t: 'Contratos e Terceiros' }, { id: 'shift_reports', i: '📓', t: 'Relatórios de Turno' }, { id: 'logistica_pecas', i: '⚙️', t: 'Logística de Peças' }, { id: 'seguranca', i: '🔐', t: 'Segurança do Local' }, { id: 'attendance', i: '⏱️', t: 'Assiduidade (Faltas)' }, { id: 'cost_centers', i: '🎯', t: 'Centros de Custo (Poços)' }, { id: 'employees', i: '👷', t: 'Recursos Humanos' }, { id: 'equipment', i: '🚜', t: 'Equipamentos' }, { id: 'finance', i: '🏦', t: 'Financeiro (Caixa/Banco)' }, { id: 'patrimony', i: '🏛️', t: 'Património e Ativos' }, { id: 'suppliers', i: '🚚', t: 'Fornecedores' }, { id: 'saude', i: '🩺', t: 'Saúde e Medicina' }, { id: 'reports', i: '📈', t: 'Relatórios' }, { id: 'config', i: '⚙️', t: 'Configurações' }, { id: 'users', i: '👤', t: 'Gestão de Acessos' }, { id: 'audit', i: '🛡️', t: 'Auditoria' }
+        { id: 'dashboard', i: '📊', t: 'Dashboard' }, { id: 'catalog', i: '📋', t: 'Catálogo de Itens' }, { id: 'production', i: '⛏️', t: 'Produção (Extração)' }, { id: 'fuel', i: '⛽', t: 'Combustível' }, { id: 'provisions', i: '🍚', t: 'Alimentação e Consumo' }, { id: 'construcao', i: '🧱', t: 'Construção Civil' }, { id: 'bens_diversos', i: '🛋️', t: 'Bens Diversos e Hospedagem' }, { id: 'epis', i: '🦺', t: 'Segurança e EPIs' }, { id: 'licenses', i: '📜', t: 'Validades e Licenças' }, { id: 'contractors', i: '🤝', t: 'Contratos e Terceiros' }, { id: 'shift_reports', i: '📓', t: 'Relatórios de Turno' }, { id: 'logistica_pecas', i: '⚙️', t: 'Logística de Peças' }, { id: 'seguranca', i: '🔐', t: 'Segurança do Local' }, { id: 'attendance', i: '⏱️', t: 'Assiduidade (Faltas)' }, { id: 'ferias', i: '🏖️', t: 'Mapa de Férias' }, { id: 'cost_centers', i: '🎯', t: 'Centros de Custo (Poços)' }, { id: 'employees', i: '👷', t: 'Recursos Humanos' }, { id: 'equipment', i: '🚜', t: 'Equipamentos' }, { id: 'finance', i: '🏦', t: 'Financeiro (Caixa/Banco)' }, { id: 'patrimony', i: '🏛️', t: 'Património e Ativos' }, { id: 'suppliers', i: '🚚', t: 'Fornecedores' }, { id: 'saude', i: '🩺', t: 'Saúde e Medicina' }, { id: 'reports', i: '📈', t: 'Relatórios' }, { id: 'config', i: '⚙️', t: 'Configurações' }, { id: 'users', i: '👤', t: 'Gestão de Acessos' }, { id: 'audit', i: '🛡️', t: 'Auditoria' }
     ];
     var allowed = menuPermissions[currentUser.role] || [];
     nav.innerHTML = allItems.filter(function(x){ return allowed.includes(x.id); }).map(function(x) { return '<a onclick="navigate(\'' + x.id + '\')">' + x.i + ' ' + x.t + '</a>'; }).join('');
@@ -374,9 +410,9 @@ function navigate(id) {
     if(!allowed.includes(id)) return showToast('Acesso Negado!', 'danger');
     document.querySelectorAll('.sidebar nav a').forEach(function(a) { a.classList.remove('active'); });
     var a = document.querySelector('.sidebar nav a[onclick*="' + id + '"]'); if (a) a.classList.add('active');
-    var titles = { dashboard:'Dashboard', catalog:'Catálogo de Itens', production:'Produção', fuel:'Combustível', provisions:'Alimentação', construcao:'Construção Civil', bens_diversos:'Bens Diversos', epis:'Segurança e EPIs', licenses:'Validades e Licenças', contractors:'Contratos e Terceiros', shift_reports:'Relatórios de Turno', logistica_pecas:'Logística de Peças', seguranca:'Segurança do Local', attendance:'Assiduidade', cost_centers:'Centros de Custo', employees:'Recursos Humanos', equipment:'Equipamentos', finance:'Financeiro', patrimony:'Património', suppliers:'Fornecedores', saude:'Saúde e Medicina', reports:'Relatórios', config:'Configurações', users:'Gestão de Acessos', audit:'Auditoria' };
+    var titles = { dashboard:'Dashboard', catalog:'Catálogo de Itens', production:'Produção', fuel:'Combustível', provisions:'Alimentação', construcao:'Construção Civil', bens_diversos:'Bens Diversos', epis:'Segurança e EPIs', licenses:'Validades e Licenças', contractors:'Contratos e Terceiros', shift_reports:'Relatórios de Turno', logistica_pecas:'Logística de Peças', seguranca:'Segurança do Local', attendance:'Assiduidade', ferias:'Mapa de Férias', cost_centers:'Centros de Custo', employees:'Recursos Humanos', equipment:'Equipamentos', finance:'Financeiro', patrimony:'Património', suppliers:'Fornecedores', saude:'Saúde e Medicina', reports:'Relatórios', config:'Configurações', users:'Gestão de Acessos', audit:'Auditoria' };
     document.getElementById('pageTitle').innerText = titles[id] || id;
-    var actions = { dashboard: loadDashboard, catalog: loadCatalog, production: loadProduction, fuel: loadFuel, provisions: loadProvisions, construcao: loadConstrucao, bens_diversos: loadBensDiversos, epis: loadEpis, licenses: loadLicenses, contractors: loadContractors, shift_reports: loadShiftReports, logistica_pecas: loadLogisticaPecas, seguranca: loadSeguranca, attendance: loadAttendance, cost_centers: loadCostCenters, employees: loadEmployees, equipment: loadEquipment, finance: loadFinance, patrimony: loadPatrimony, suppliers: loadSuppliers, saude: loadSaude, reports: loadReports, config: loadConfig, users: loadUsers, audit: loadAudit };
+    var actions = { dashboard: loadDashboard, catalog: loadCatalog, production: loadProduction, fuel: loadFuel, provisions: loadProvisions, construcao: loadConstrucao, bens_diversos: loadBensDiversos, epis: loadEpis, licenses: loadLicenses, contractors: loadContractors, shift_reports: loadShiftReports, logistica_pecas: loadLogisticaPecas, seguranca: loadSeguranca, attendance: loadAttendance, ferias: loadFerias, cost_centers: loadCostCenters, employees: loadEmployees, equipment: loadEquipment, finance: loadFinance, patrimony: loadPatrimony, suppliers: loadSuppliers, saude: loadSaude, reports: loadReports, config: loadConfig, users: loadUsers, audit: loadAudit };
     if (actions[id]) actions[id]();
     document.getElementById('mainSidebar').classList.remove('open');
     checkAlerts();
@@ -392,6 +428,7 @@ async function delBens(id) { confirmDelete('Tem a certeza que pretende apagar es
 async function delPecas(id) { confirmDelete('Tem a certeza que pretende apagar este movimento de peças?', async function() { await DB.del('logistica_pecas', id); showToast('Eliminado!','danger'); loadLogisticaPecas(); }); }
 async function delSec(id) { confirmDelete('Tem a certeza que pretende apagar este registo de segurança?', async function() { await DB.del('security_logs', id); showToast('Eliminado!','danger'); loadSeguranca(); }); }
 async function delAtt(id) { confirmDelete('Tem a certeza que pretende apagar este registo de assiduidade?', async function() { await DB.del('attendance_logs', id); showToast('Eliminado!','danger'); loadAttendance(); }); }
+async function delFerias(id) { confirmDelete('Tem a certeza que pretende apagar este registo de férias?', async function() { await DB.del('vacation_logs', id); showToast('Eliminado!','danger'); loadFerias(); }); }
 async function delEmp(id) { confirmDelete('Tem a certeza que pretende apagar este funcionário? Os recibos gerados não serão afetados, mas não poderá associar novos registos a ele.', async function() { await DB.del('employees', id); showToast('Eliminado!','danger'); loadEmployees(); }); }
 async function delAdv(id) { confirmDelete('Tem a certeza que pretende apagar este adiantamento salarial?', async function() { await DB.del('hr_advances', id); showToast('Eliminado!','danger'); closeModal(); loadEmployees(); }); }
 async function delEq(id) { confirmDelete('Tem a certeza que pretende apagar este equipamento?', async function() { await DB.del('equipment', id); showToast('Eliminado!','danger'); loadEquipment(); }); }
@@ -411,17 +448,29 @@ async function delMedStock(id) { confirmDelete('Tem a certeza que pretende apaga
 async function checkAlerts() {
     var allowedAlerts = alertPermissions[currentUser.role] || [];
     var fuel = await DB.get('fuel_logs'), prov = await DB.get('provisions_logs'), constLogs = await DB.get('construcao_logs'), pecas = await DB.get('logistica_pecas'), eqs = await DB.get('equipment'), lics = await DB.get('licenses_logs');
+    var catalog = await DB.get('catalog_items');
     var alerts = [];
     if (allowedAlerts.includes('fuel')) { var fS = fuel.reduce((a,b)=>a + (b.type==='Entrada' ? b.litros : -b.litros),0); if (fS < 200) alerts.push({sector: 'Combustível', item: 'Gasóleo', qtd: fS + ' L'}); }
-    if (allowedAlerts.includes('provisions')) { var pS = {}; prov.forEach(p => { var m = p.qty.match(/\d+/); var n = m ? parseInt(m[0]) : 0; if(!pS[p.item]) pS[p.item] = 0; pS[p.item] += (p.type === 'Entrada' ? n : -n); }); for(var i in pS) { if (pS[i] <= 5) alerts.push({sector: 'Alimentação', item: i, qtd: pS[i] + ' un.'}); } }
-    if (allowedAlerts.includes('construcao')) { var cS = {}; constLogs.forEach(c => { var m = c.qty.match(/\d+/); var n = m ? parseInt(m[0]) : 0; if(!cS[c.item]) cS[c.item] = 0; cS[c.item] += (c.type === 'Entrada' ? n : -n); }); for(var i in cS) { if (cS[i] <= 5) alerts.push({sector: 'Construção', item: i, qtd: cS[i] + ' un.'}); } }
-    if (allowedAlerts.includes('logistica_pecas')) { var peS = {}; pecas.forEach(p => { var m = p.qty.match(/\d+/); var n = m ? parseInt(m[0]) : 0; if(!peS[p.item]) peS[p.item] = 0; peS[p.item] += (p.type === 'Entrada' ? n : -n); }); for(var i in peS) { if (peS[i] <= 2) alerts.push({sector: 'Peças', item: i, qtd: peS[i] + ' un.'}); } }
+    if (allowedAlerts.includes('provisions')) { 
+        var pS = {}; 
+        prov.forEach(p => { var m = p.qty.match(/\d+/); var n = m ? parseInt(m[0]) : 0; if(!pS[p.item]) pS[p.item] = 0; pS[p.item] += (p.type === 'Entrada' ? n : -n); }); 
+        for(var i in pS) { var catItem = catalog.find(c=>c.name===i); var minS = catItem ? (catItem.min_stock||5) : 5; if (pS[i] <= minS) alerts.push({sector: 'Alimentação', item: i, qtd: pS[i] + ' un.'}); } 
+    }
+    if (allowedAlerts.includes('construcao')) { 
+        var cS = {}; 
+        constLogs.forEach(c => { var m = c.qty.match(/\d+/); var n = m ? parseInt(m[0]) : 0; if(!cS[c.item]) cS[c.item] = 0; cS[c.item] += (c.type === 'Entrada' ? n : -n); }); 
+        for(var i in cS) { var catItem = catalog.find(c=>c.name===i); var minS = catItem ? (catItem.min_stock||5) : 5; if (cS[i] <= minS) alerts.push({sector: 'Construção', item: i, qtd: cS[i] + ' un.'}); } 
+    }
+    if (allowedAlerts.includes('logistica_pecas')) { 
+        var peS = {}; 
+        pecas.forEach(p => { var m = p.qty.match(/\d+/); var n = m ? parseInt(m[0]) : 0; if(!peS[p.item]) peS[p.item] = 0; peS[p.item] += (p.type === 'Entrada' ? n : -n); }); 
+        for(var i in peS) { var catItem = catalog.find(c=>c.name===i); var minS = catItem ? (catItem.min_stock||2) : 2; if (peS[i] <= minS) alerts.push({sector: 'Peças', item: i, qtd: peS[i] + ' un.'}); } 
+    }
     if (allowedAlerts.includes('equipment')) { eqs.forEach(eq => { if(eq.nextMaint) { var lF = fuel.filter(f=>f.equipment === eq.name && f.hours).sort((a,b)=>parseFloat(b.hours)-parseFloat(a.hours))[0]; if(lF && parseFloat(lF.hours) >= parseFloat(eq.nextMaint)) alerts.push({sector: 'Manutenção', item: eq.name, qtd: 'Revisão! ('+lF.hours+'h)'}); } }); }
     if (allowedAlerts.includes('licenses')) { var t = new Date(); lics.forEach(l => { var e = parseDate(l.expiryDate); if(e) { var d = Math.ceil((e - t) / (1000 * 60 * 60 * 24)); if(d <= 30) alerts.push({sector: 'Licença', item: l.entity, qtd: d < 0 ? 'Expirado!' : 'Vence em '+d+'d'}); } }); }
     var badge = document.getElementById('alertBadge');
     if(alerts.length > 0) { badge.style.display = 'block'; badge.innerText = alerts.length; } else { badge.style.display = 'none'; }
-    if(alerts.length > 0 && 'Notification' in window && Notification.permission === 'granted') { if(!window.lastAlertCount || window.lastAlertCount < alerts.length) new Notification('MINA JALIEZER - Alerta', { body: 'Existem ' + alerts.length + ' alertas críticos.' }); }
-    window.lastAlertCount = alerts.length; window.currentAlerts = alerts;
+    window.currentAlerts = alerts;
 }
 function showAlertsModal() {
     var html = '<div style="max-height:400px; overflow-y:auto">';
@@ -430,31 +479,43 @@ function showAlertsModal() {
 }
 async function sendWhatsAppAlert() { if(!window.currentAlerts) return; var msg = '*⚠️ ALERTAS - MINA JALIEZER ⚠️*\n\n'; window.currentAlerts.forEach(a => { msg += a.sector+': '+a.item+' ('+a.qtd+')\n'; }); window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank'); }
 
+/* =================--- MAPA DE FÉRIAS ---================= */
+async function loadFerias() {
+    var data = await DB.get('vacation_logs');
+    var emps = await DB.get('employees');
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🏖️ Mapa de Férias e Licenças</h2><button class="btn btn-primary btn-sm" onclick="openModalFerias()">➕ Registar Férias</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblFerias\', this.value)" style="margin-bottom:10px"><table id="tblFerias"><thead><tr><th>Funcionário</th><th>Início</th><th>Fim</th><th>Dias</th><th>Tipo</th><th>Estado</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblFerias"></div></div>';
+    document.getElementById('appContent').innerHTML = html;
+    var renderRow = function(v) { var emp = emps.find(e=>e.id===v.empId); var stClass = v.status==='Aprovado'?'bg-success':'bg-warning'; return '<tr><td><strong>'+(emp?emp.name:'Desconhecido')+'</strong></td><td>'+v.startDate+'</td><td>'+v.endDate+'</td><td>'+v.days+'</td><td>'+v.type+'</td><td><span class="badge '+stClass+'">'+v.status+'</span></td><td style="white-space:nowrap"><button class="btn btn-danger btn-sm" onclick="delFerias(\''+v.id+'\')">🗑️</button></td></tr>'; };
+    Pager.init('tblFerias', data.reverse(), 15, renderRow, 7);
+}
+async function openModalFerias() {
+    var emps = await DB.get('employees'); var empOptions = emps.map(e=>'<option value="'+e.id+'">'+e.name+' ('+e.role+')</option>').join('');
+    modal('Registar Férias/Licença', '<div class="form-row"><div><label>Funcionário *</label><select id="vEmp">'+empOptions+'</select></div><div><label>Tipo *</label><select id="vType"><option>Férias Anuais</option><option>Licença sem Vencimento</option><option>Licença Maternidade</option></select></div></div><div class="form-row"><div><label>Data Início *</label><input type="text" id="vStart" value="'+getTodayStr()+'"></div><div><label>Data Fim *</label><input type="text" id="vEnd" value="'+getTodayStr()+'"></div></div>',
+    async function() { 
+        var sD = parseDate(val('vStart')); var eD = parseDate(val('vEnd'));
+        if(!sD || !eD) return showToast('Datas inválidas','danger');
+        var days = Math.round((eD - sD) / (1000 * 60 * 60 * 24)) + 1;
+        var obj = {empId:val('vEmp'), type:val('vType'), startDate:val('vStart'), endDate:val('vEnd'), days:days, status:'Aprovado'}; 
+        obj.id='v'+Date.now(); await DB.insert('vacation_logs', obj); showToast('Férias Registadas!'); closeModal(); loadFerias(); 
+    },'Salvar','btn-primary');
+}
+
 /* =================--- SAÚDE E MEDICINA DO TRABALHO ---================= */
 async function loadSaude() {
     var occData = await DB.get('health_logs');
     var stockData = await DB.get('medical_stock_logs');
     var emps = await DB.get('employees');
     
-    var stock = {}; 
-    stockData.forEach(p => { 
-        var match = p.qty.match(/\d+/); 
-        var num = match ? parseInt(match[0]) : 0; 
-        if(!stock[p.item]) stock[p.item] = 0; 
-        stock[p.item] += (p.type === 'Entrada' ? num : -num); 
-    });
-    var stockHtml = '<div class="kpi-grid" style="margin-bottom:15px">';
-    for(var item in stock) { 
-        var color = stock[item] <= 5 ? 'var(--danger)' : 'var(--success)'; 
-        stockHtml += '<div class="stock-card" style="text-align:left;padding:15px"><div style="font-size:.8rem;color:var(--text-muted)">'+item+'</div><div style="font-size:1.4rem;color:'+color+';font-weight:bold">'+stock[item]+'</div></div>'; 
-    }
-    stockHtml += '</div>';
+    var stock = {}; var alertsCount = 0;
+    stockData.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; if(!stock[p.item]) stock[p.item] = {qty:0, unit:''}; stock[p.item].qty += (p.type === 'Entrada' ? num : -num); });
+    window.currentStockData = window.currentStockData || {}; window.currentStockData['Saúde'] = stock;
+    for(var item in stock) { if(stock[item].qty <= 5) alertsCount++; }
 
-    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🩺 Saúde e Medicina do Trabalho</h2><button class="btn btn-primary btn-sm" onclick="openModalSaude()">➕ Nova Ocorrência</button></div>';
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px;align-items:center"><h2>🩺 Saúde e Medicina do Trabalho</h2><div style="display:flex;gap:15px;align-items:center;"><div class="notif-bell" style="position:relative;cursor:pointer;font-size:1.5rem;padding:5px" onclick="openStockModal(\'Saúde\')" title="Ver Stock Médico">🔔<span class="notif-badge" style="display:'+(alertsCount>0?'block':'none')+'">'+alertsCount+'</span></div><button class="btn btn-primary btn-sm" onclick="openModalSaude()">➕ Nova Ocorrência</button></div></div>';
     
     html += '<div class="card"><div class="catalog-tabs">';
     html += '<button class="catalog-tab active" id="saudeTab_occ" onclick="switchSaudeTab(\'occ\')">🏥 Ocorrências Médicas</button>';
-    html += '<button class="catalog-tab" id="saudeTab_stock" onclick="switchSaudeTab(\'stock\')">💊 Stock Médico (Requisições)</button>';
+    html += '<button class="catalog-tab" id="saudeTab_stock" onclick="switchSaudeTab(\'stock\')">💊 Movimentos de Stock</button>';
     html += '</div>';
     
     html += '<div id="saude_occ_container">';
@@ -462,7 +523,6 @@ async function loadSaude() {
     html += '</div>';
     
     html += '<div id="saude_stock_container" style="display:none;">';
-    html += stockHtml;
     html += '<div style="margin-bottom:15px;"><button class="btn btn-info btn-sm" onclick="openModalMedStock()">➕ Movimento de Stock (Entradas/Saídas)</button></div>';
     html += '<input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblSaudeStock\', this.value)" style="margin-bottom:10px"><table id="tblSaudeStock"><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Requisitante/Fornecedor</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblSaudeStock"></div>';
     html += '</div>';
@@ -501,7 +561,6 @@ async function openModalSaude(id) {
         closeModal(); loadSaude();
     },'Salvar','btn-primary');
 }
-
 async function openModalMedStock(id) {
     var data = await DB.get('medical_stock_logs'); 
     var s = id ? data.find(x=>x.id===id) : {date:getTodayStr(), type:'Entrada', item:'', qty:'', supplier:'', takenBy:currentUser.name, cost:0};
@@ -531,10 +590,12 @@ async function loadDashboard() {
     if(currentUser.role === 'dir_transporte') return loadDashboardTransporte();
     if(currentUser.role === 'dir_rh') return loadDashboardRH();
     if(currentUser.role === 'dir_alimentar') return loadDashboardAlimentar();
+    
     var fV = document.getElementById('dashMonthFilter').value; var fP = fV.split('-'); var fM = parseInt(fP[0]); var fY = parseInt(fP[1]);
     var isInM = function(d) { var dt = parseDate(d); return dt && dt.getMonth() === fM && dt.getFullYear() === fY; };
     var fuel = await DB.get('fuel_logs'), prov = await DB.get('provisions_logs'), emp = await DB.get('employees'), fin = await DB.get('finance_logs'), pat = await DB.get('patrimony_logs'), constLogs = await DB.get('construcao_logs');
     var config = (await DB.get('company_config'))[0] || {exchange_rate:1};
+    
     var tFuel = fuel.filter(f=>f.type==='Entrada' && isInM(f.date)).reduce((a,b)=>a+(b.val||0),0);
     var tProv = prov.filter(p=>p.type==='Entrada' && isInM(p.date)).reduce((a,b)=>a+(b.cost||0),0);
     var tConst = constLogs.filter(c=>c.type==='Entrada' && isInM(c.date)).reduce((a,b)=>a+(b.cost||0),0);
@@ -544,51 +605,204 @@ async function loadDashboard() {
     var tPatE = pat.filter(p=>p.type==='Entrada' && isInM(p.date)).reduce((a,b)=>a+(b.val||0),0);
     var aRec = fin.filter(f=>f.type==='Entrada' && f.status==='Pendente').reduce((a,b)=>a+(b.val||0),0);
     var aPag = fin.filter(f=>f.type==='Saída' && f.status==='Pendente').reduce((a,b)=>a+(b.val||0),0);
-    var desp = tFuel + tProv + tConst + tSal + tFinS + tPatE; var saldo = tFinE - desp;
-    var html = '<div class="kpi-grid"><div class="kpi-card" style="background:rgba(0,255,136,.05);border-left-color:var(--success)"><div class="kpi-label">Saldo do Mês (AOA)</div><div class="kpi-value" style="color:'+(saldo>=0?'var(--success)':'var(--danger)')+'">'+fmt(saldo)+' Kz</div></div><div class="kpi-card" style="background:rgba(255,0,110,.05);border-left-color:var(--danger)"><div class="kpi-label">Combustível</div><div class="kpi-value" style="color:var(--danger)">'+fmt(tFuel)+' Kz</div></div><div class="kpi-card" style="background:rgba(255,195,0,.05);border-left-color:var(--warning)"><div class="kpi-label">Contas a Receber</div><div class="kpi-value" style="color:var(--warning)">'+fmt(aRec)+' Kz</div></div><div class="kpi-card" style="background:rgba(212,175,55,.05);border-left-color:var(--primary)"><div class="kpi-label">Contas a Pagar</div><div class="kpi-value" style="color:var(--primary)">'+fmt(aPag)+' Kz</div></div></div>';
-    html += '<div style="display:grid;grid-template-columns:2fr 1fr;gap:15px"><div class="card"><h3>Gastos Operacionais</h3><canvas id="dashChartCanvas" height="100"></canvas></div><div class="card"><h3>Movimentos Financeiros</h3><table><thead><tr><th>Data</th><th>Desc</th><th>Valor</th></tr></thead><tbody>';
-    fin.filter(f=>isInM(f.date)).reverse().slice(0, 10).forEach(f => { var v = f.type==='Entrada' ? '<span class="text-success">+'+fmt(f.val)+'</span>' : '<span class="text-danger">-'+fmt(f.val)+'</span>'; html += '<tr><td>'+f.date+'</td><td>'+f.desc+'</td><td>'+v+'</td></tr>'; });
-    if(!fin.length) html += '<tr><td colspan="3" style="text-align:center">Sem registos</td></tr>';
-    html += '</tbody></table></div></div>'; document.getElementById('appContent').innerHTML = html; renderDashChart(tFuel, tProv, tConst, tSal, tFinS, tPatE);
+    
+    var desp = tFuel + tProv + tConst + tSal + tFinS + tPatE; 
+    var saldo = tFinE - desp;
+    var monthName = getMonthName(fM);
+
+    var html = `
+    <div class="card" style="background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%); border:none; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+            <div>
+                <h2 style="font-family:'Orbitron'; color:var(--primary); margin:0;">Resumo Financeiro</h2>
+                <p style="color:var(--text-muted); margin:5px 0 0 0; font-size:.9rem;">Visão geral de ${monthName} ${fY}</p>
+            </div>
+            <div style="text-align:right;">
+                <span style="font-size:.8rem; color:var(--text-muted); text-transform:uppercase;">Saldo do Mês</span>
+                <h2 style="font-family:'Orbitron'; font-size:2rem; margin:0; color:${saldo >= 0 ? 'var(--success)' : 'var(--danger)'};">${fmt(saldo)} Kz</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card" style="background:rgba(255,0,110,.05); border-left-color:var(--danger)">
+            <div class="kpi-label">Despesas Operacionais</div>
+            <div class="kpi-value" style="color:var(--danger); font-size:1.3rem;">${fmt(desp)} Kz</div>
+        </div>
+        <div class="kpi-card" style="background:rgba(0,255,136,.05); border-left-color:var(--success)">
+            <div class="kpi-label">Receitas Realizadas</div>
+            <div class="kpi-value" style="color:var(--success); font-size:1.3rem;">${fmt(tFinE)} Kz</div>
+        </div>
+        <div class="kpi-card" style="background:rgba(255,195,0,.05); border-left-color:var(--warning)">
+            <div class="kpi-label">Contas a Receber</div>
+            <div class="kpi-value" style="color:var(--warning); font-size:1.3rem;">${fmt(aRec)} Kz</div>
+        </div>
+        <div class="kpi-card" style="background:rgba(212,175,55,.05); border-left-color:var(--primary)">
+            <div class="kpi-label">Contas a Pagar</div>
+            <div class="kpi-value" style="color:var(--primary); font-size:1.3rem;">${fmt(aPag)} Kz</div>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:20px; margin-bottom:20px;" class="dash-grid">
+        <div class="card" style="margin:0;">
+            <h3 style="margin-bottom:20px; display:flex; align-items:center; gap:10px;"><span style="width:10px; height:10px; background:var(--primary); border-radius:50%;"></span> Distribuição de Despesas</h3>
+            <div style="position:relative; height:300px; width:100%;">
+                <canvas id="dashChartCanvas"></canvas>
+            </div>
+        </div>
+        <div class="card" style="margin:0; display:flex; flex-direction:column; justify-content:space-between;">
+            <h3 style="margin-bottom:20px; display:flex; align-items:center; gap:10px;"><span style="width:10px; height:10px; background:var(--info); border-radius:50%;"></span> Resumo de Gastos</h3>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:10px;">
+                    <span style="color:var(--text-muted)">Combustível</span>
+                    <strong style="color:var(--danger)">${fmt(tFuel)} Kz</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:10px;">
+                    <span style="color:var(--text-muted)">Alimentação</span>
+                    <strong style="color:var(--danger)">${fmt(tProv)} Kz</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:10px;">
+                    <span style="color:var(--text-muted)">Construção</span>
+                    <strong style="color:var(--danger)">${fmt(tConst)} Kz</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:10px;">
+                    <span style="color:var(--text-muted)">Salários (Fixo)</span>
+                    <strong style="color:var(--danger)">${fmt(tSal)} Kz</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:10px;">
+                    <span style="color:var(--text-muted)">Outras Despesas</span>
+                    <strong style="color:var(--danger)">${fmt(tFinS + tPatE)} Kz</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin:0;">
+        <h3 style="margin-bottom:15px;">Movimentos Financeiros Recentes</h3>
+        <table>
+            <thead>
+                <tr><th>Data</th><th>Descrição</th><th style="text-align:right;">Valor (Kz)</th></tr>
+            </thead>
+            <tbody>`;
+    
+    var recentFins = fin.filter(f=>isInM(f.date)).reverse().slice(0, 8);
+    if(recentFins.length === 0) {
+        html += '<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:20px;">Sem movimentos neste mês.</td></tr>';
+    } else {
+        recentFins.forEach(finLog => { 
+            var v = finLog.type==='Entrada' ? '<span class="text-success">+'+fmt(finLog.val)+'</span>' : '<span class="text-danger">-'+fmt(finLog.val)+'</span>'; 
+            html += '<tr><td>'+finLog.date+'</td><td>'+finLog.desc+'</td><td style="text-align:right;">'+v+'</td></tr>'; 
+        });
+    }
+    
+    html += `</tbody>
+        </table>
+    </div>
+    <style>
+        @media(max-width: 992px) { .dash-grid { grid-template-columns: 1fr !important; } }
+    </style>`;
+
+    document.getElementById('appContent').innerHTML = html; 
+    renderDashChart(tFuel, tProv, tConst, tSal, (tFinS + tPatE));
 }
-async function loadDashboardTransporte() { var fuel = await DB.get('fuel_logs'); var tL = fuel.reduce((a,b)=>a + (b.type==='Entrada' ? b.litros : -b.litros),0); var tG = fuel.filter(f=>f.type==='Entrada').reduce((a,b)=>a+(b.val||0),0); var tC = fuel.filter(f=>f.type==='Entrada').reduce((a,b)=>a+(b.litros||0),0); var cM = tC > 0 ? tG / tC : 0; var vS = tL * cM; var html = '<h2>⛽ Dashboard Transportes</h2><div class="kpi-grid"><div class="kpi-card" style="border-left-color:var(--info)"><div class="kpi-label">Stock (L)</div><div class="kpi-value" style="color:#17a2b8">'+tL+' L</div></div><div class="kpi-card" style="border-left-color:var(--danger)"><div class="kpi-label">Compras</div><div class="kpi-value" style="color:var(--danger)">'+fmt(tG)+' Kz</div></div><div class="kpi-card" style="border-left-color:var(--success)"><div class="kpi-label">Valor Stock</div><div class="kpi-value" style="color:var(--success)">'+fmt(vS)+' Kz</div></div></div>'; html += '<div class="card"><table><thead><tr><th>Data</th><th>Veículo</th><th>Litros</th><th>Horóm</th></tr></thead><tbody>'; fuel.filter(f=>f.type==='Saída').reverse().slice(0, 10).forEach(f => { html += '<tr><td>'+f.date+'</td><td>'+f.equipment+'</td><td>'+f.litros+' L</td><td>'+(f.hours||'-')+'</td></tr>'; }); html += '</tbody></table></div>'; document.getElementById('appContent').innerHTML = html; }
-async function loadDashboardRH() { var emp = await DB.get('employees'), att = await DB.get('attendance_logs'); var tSal = emp.reduce((a,b)=>a+(b.salary||0),0); var faltas = att.filter(f=> f.type === 'Falta Injustificada' && parseDate(f.date).getMonth() === new Date().getMonth()).length; var html = '<h2>👷 Dashboard RH</h2><div class="kpi-grid"><div class="kpi-card" style="border-left-color:var(--success)"><div class="kpi-label">Funcionários</div><div class="kpi-value" style="color:var(--success)">'+emp.length+'</div></div><div class="kpi-card" style="border-left-color:var(--primary)"><div class="kpi-label">Custo Salários</div><div class="kpi-value" style="color:var(--primary)">'+fmt(tSal)+' Kz</div></div><div class="kpi-card" style="border-left-color:var(--danger)"><div class="kpi-label">Faltas no Mês</div><div class="kpi-value" style="color:var(--danger)">'+faltas+'</div></div></div>'; document.getElementById('appContent').innerHTML = html; }
-async function loadDashboardAlimentar() { var prov = await DB.get('provisions_logs'); var stock = {}; prov.forEach(p => { var m = p.qty.match(/\d+/); var n = m ? parseInt(m[0]) : 0; if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? n : -n); }); var html = '<h2>🍚 Dashboard Alimentação</h2><div class="kpi-grid">'; for(var i in stock) { var c = stock[i] <= 5 ? 'var(--danger)' : 'var(--success)'; html += '<div class="stock-card"><div style="font-size:.8rem">'+i+'</div><div style="font-size:1.4rem;color:'+c+'">'+stock[i]+'</div></div>'; } html += '</div>'; document.getElementById('appContent').innerHTML = html; }
-function renderDashChart(f, p, c, s, fi, pa) { var ctx = document.getElementById('dashChartCanvas'); if(!ctx) return; if(dashChart) dashChart.destroy(); dashChart = new Chart(ctx.getContext('2d'), { type: 'bar', data: { labels: ['Combustível', 'Alimentação', 'Construção', 'Salários', 'Outras', 'Património'], datasets: [{ data: [f, p, c, s, fi, pa], backgroundColor: ['rgba(255,0,110,.5)', 'rgba(255,195,0,.5)', 'rgba(123,45,200,.5)', 'rgba(212,175,55,.5)', 'rgba(0,180,216,.5)', 'rgba(0,255,136,.5)'] }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#8b9bb4' } }, x: { ticks: { color: '#8b9bb4' } } } } }); }
+
+function renderDashChart(f, p, c, s, o) { 
+    var ctx = document.getElementById('dashChartCanvas'); 
+    if(!ctx) return; 
+    if(dashChart) dashChart.destroy(); 
+    
+    dashChart = new Chart(ctx.getContext('2d'), { 
+        type: 'doughnut', 
+        data: { 
+            labels: ['Combustível', 'Alimentação', 'Construção', 'Salários', 'Outras'], 
+            datasets: [{ 
+                data: [f, p, c, s, o], 
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',    
+                    'rgba(255, 195, 0, 0.8)',     
+                    'rgba(123, 45, 200, 0.8)',    
+                    'rgba(212, 175, 55, 0.8)',    
+                    'rgba(0, 180, 216, 0.8)'      
+                ],
+                borderColor: '#141414',
+                borderWidth: 4,
+                hoverOffset: 8
+            }] 
+        }, 
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: { 
+                legend: { 
+                    position: 'bottom',
+                    labels: {
+                        color: '#8b9bb4',
+                        font: { size: 12, family: "'Rajdhani', sans-serif" },
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#0a0a0a',
+                    titleColor: '#d4af37',
+                    bodyColor: '#e0e6ed',
+                    borderColor: '#d4af37',
+                    borderWidth: 1,
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            var value = context.raw || 0;
+                            return label + ': ' + fmt(value) + ' Kz';
+                        }
+                    }
+                }
+            } 
+        } 
+    }); 
+}
 
 /* =================--- CATÁLOGO DE ITENS ---================= */
-var catalogCategories = ['Alimentação', 'Construção Civil', 'Peças e Máquinas', 'Bens Diversos', 'Combustível'];
 async function loadCatalog() {
     var data = await DB.get('catalog_items');
     window.catalogData = data;
+    window.currentCatalogTab = 'Alimentação'; // Mantém um padrão para quando se clica em "Novo Item"
+    
     var tabsHtml = '<div class="catalog-tabs">';
     catalogCategories.forEach(function(cat, idx) {
         var icon = cat === 'Alimentação' ? '🍚' : cat === 'Construção Civil' ? '🧱' : cat === 'Peças e Máquinas' ? '⚙️' : cat === 'Bens Diversos' ? '🛋️' : '⛽';
-        tabsHtml += '<button class="catalog-tab '+(idx === 0 ? 'active' : '')+'" id="catTab_'+idx+'" onclick="switchCatalogTab(\''+cat+'\', '+idx+')">'+icon+' '+cat+'</button>';
+        // Removido o 'active' daqui para que nenhum inicie ativo
+        tabsHtml += '<button class="catalog-tab" id="catTab_'+idx+'" onclick="switchCatalogTab(\''+cat+'\', '+idx+')">'+icon+' '+cat+'</button>';
     });
     tabsHtml += '</div>';
-    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📋 Catálogo de Itens</h2><button class="btn btn-primary btn-sm" onclick="openModalCatalog(null, window.currentCatalogTab)">➕ Novo Item</button></div><div class="card"><p style="color:var(--text-muted);margin-bottom:15px;font-size:.85rem">Selecione o setor acima para gerir os itens.</p>'+tabsHtml+'<input type="text" class="search-box" placeholder="🔍 Pesquisar item..." oninput="Pager.search(\'tblCat\', this.value)" style="margin-bottom:10px"><div id="catalogTableContainer"></div></div>';
+    
+    // Mensagem padrão antes de selecionar
+    var placeholderHtml = '<div style="text-align:center; color:var(--text-muted); padding:50px 0;"><span style="font-size:3rem; display:block; margin-bottom:15px;">📋</span>Selecione um setor acima para visualizar os itens registados.</div>';
+    
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📋 Catálogo de Itens</h2><button class="btn btn-primary btn-sm" onclick="openModalCatalog(null, window.currentCatalogTab)">➕ Novo Item</button></div><div class="card"><p style="color:var(--text-muted);margin-bottom:15px;font-size:.85rem">Selecione o setor acima para visualizar os itens.</p>'+tabsHtml+'<input type="text" class="search-box" placeholder="🔍 Pesquisar item..." oninput="Pager.search(\'tblCat\', this.value)" style="margin-bottom:10px"><div id="catalogTableContainer">'+placeholderHtml+'</div></div>';
+    
     document.getElementById('appContent').innerHTML = html;
-    switchCatalogTab(catalogCategories[0], 0);
 }
 function switchCatalogTab(cat, idx) {
     window.currentCatalogTab = cat;
     document.querySelectorAll('.catalog-tab').forEach(function(b){ b.classList.remove('active'); });
     document.getElementById('catTab_'+idx).classList.add('active');
-    var filtered = window.catalogData.filter(function(c) { return c.cat === cat; });
-    var html = '<table id="tblCat"><thead><tr><th>Nome do Item</th><th>Unidade</th><th style="width:120px">Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblCat"></div>';
+    var filtered = (window.catalogData || []).filter(function(c) { return c.cat === cat; }).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    var html = '<table id="tblCat"><thead><tr><th>Nome do Item</th><th>Subgrupo</th><th>Unidade</th><th>Alerta Mín.</th><th style="width:120px">Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblCat"></div>';
     document.getElementById('catalogTableContainer').innerHTML = html;
-    var renderRow = function(c) { return '<tr><td><strong>'+c.name+'</strong></td><td>'+(c.unit||'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalCatalog(\''+c.id+'\', \''+cat+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delCatalog(\''+c.id+'\')">🗑️</button></td></tr>'; };
-    Pager.init('tblCat', filtered.reverse(), 15, renderRow, 3);
+    var renderRow = function(c) { return '<tr><td><strong>'+c.name+'</strong></td><td>'+(c.group||'-')+'</td><td>'+(c.unit||'-')+'</td><td>'+(c.min_stock||0)+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalCatalog(\''+c.id+'\', \''+cat+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delCatalog(\''+c.id+'\')">🗑️</button></td></tr>'; };
+    Pager.init('tblCat', filtered, 15, renderRow, 5);
 }
 async function openModalCatalog(id, presetCat) {
     var data = window.catalogData || await DB.get('catalog_items');
-    var c = id ? data.find(function(x){return x.id===id;}) : {cat: presetCat || 'Alimentação', name:'', unit:''};
+    var c = id ? data.find(function(x){return x.id===id;}) : {cat: presetCat || 'Alimentação', group:'', name:'', unit:'', min_stock:0};
     var catOptions = catalogCategories.map(function(cat) { return '<option '+(c.cat===cat?'selected':'')+'>'+cat+'</option>'; }).join('');
-    modal(id?'Editar Item':'Adicionar a: '+(presetCat||c.cat), '<div class="form-row"><div><label>Categoria *</label><select id="catCat" '+(id?'':'disabled')+'>'+catOptions+'</select></div><div><label>Unidade</label><input id="catUnit" value="'+c.unit+'" placeholder="Ex: Sacos, Litros, Unid"></div></div><div><label>Nome do Item *</label><input id="catName" value="'+c.name+'" autofocus></div>',
+    modal(id?'Editar Item':'Adicionar a: '+(presetCat||c.cat), '<div class="form-row"><div><label>Categoria *</label><select id="catCat" '+(id?'':'disabled')+'>'+catOptions+'</select></div><div><label>Subgrupo / Tipo *</label><input id="catGroup" value="'+(c.group||'')+'" placeholder="Ex: Bebidas, Seringas"></div></div><div class="form-row"><div><label>Unidade</label><input id="catUnit" value="'+c.unit+'" placeholder="Ex: Sacos, Litros, Unid"></div><div><label>Alerta Mínimo (Stock)</label><input type="number" id="catMinStock" value="'+(c.min_stock||0)+'" placeholder="Ex: 10 (avisa quando chegar a 10)"></div></div><div><label>Nome do Item *</label><input id="catName" value="'+c.name+'" autofocus></div>',
     async function() { 
-        var obj = {cat:val('catCat'), name:val('catName'), unit:val('catUnit')}; 
-        if(!obj.name) return showToast('Nome obrigatório','danger'); 
+        var obj = {cat:val('catCat'), group:val('catGroup'), name:val('catName'), unit:val('catUnit'), min_stock:parseInt(val('catMinStock'))||0}; 
+        if(!obj.name || !obj.group) return showToast('Nome e Subgrupo obrigatórios','danger'); 
         if(id) { await DB.update('catalog_items', id, obj); logAction('Editar', 'Catálogo: '+obj.name); showToast('Atualizado!'); } 
         else { obj.id='cat'+Date.now(); await DB.insert('catalog_items', obj); logAction('Criar', 'Catálogo: '+obj.name); showToast('Adicionado!'); } 
         closeModal(); loadCatalog(); 
@@ -598,7 +812,7 @@ async function openModalCatalog(id, presetCat) {
 /* =================--- PRODUÇÃO ---================= */
 async function loadProduction() {
     var data = await DB.get('production_logs'); 
-    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>⛏️ Produção e Extração</h2><button class="btn btn-primary btn-sm" onclick="openModalProd()">➕ Registar Extração</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblProd\', this.value)" style="margin-bottom:10px"><table id="tblProd"><thead><tr><th>Data/Hora</th><th>Poço/Local</th><th>Material</th><th>Volume (m³)</th><th>Quilates (Ct)</th><th>Teor (Ct/m³)</th><th>Responsável</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblProd"></div></div>';
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>⛏️ Produção e Extração</h2><button class="btn btn-primary btn-sm" onclick="openModalProd()">➕ Registar Extração</button></div><div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblProd\', this.value)" style="margin-bottom:10px"><table id="tblProd"><thead><tr><th>Data/Hora</th><th>Poço/Local</th><th>Material</th><th>Volume (m³)</th><th>Quilares (Ct)</th><th>Teor (Ct/m³)</th><th>Responsável</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblProd"></div></div>';
     document.getElementById('appContent').innerHTML = html;
     var renderRow = function(p) { var volMatch = p.qty.match(/\d+/); var vol = volMatch ? parseFloat(volMatch[0]) : 0; var teor = p.yield && vol > 0 ? (p.yield / vol).toFixed(3) : '-'; return '<tr><td>'+p.date+'<br><small>'+p.time+'</small></td><td><strong>'+p.well+'</strong></td><td>'+p.material+'</td><td>'+p.qty+'</td><td>'+(p.yield||'-')+'</td><td>'+teor+'</td><td>'+p.responsible+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalProd(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delProd(\''+p.id+'\')">🗑️</button></td></tr>'; };
     Pager.init('tblProd', data.reverse(), 15, renderRow, 8);
@@ -640,12 +854,13 @@ function scanQRCode(inputId) { if(typeof Html5Qrcode === 'undefined') return sho
 
 /* =================--- ALIMENTAÇÃO ---================= */
 async function loadProvisions() {
-    var data = await DB.get('provisions_logs'); var stock = {}; var unities = {};
-    data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? num : -num); unities[p.item] = unit; });
-    var stockHtml = '<div class="kpi-grid" style="margin-bottom:15px">';
-    for(var item in stock) { var color = stock[item] <= 5 ? 'var(--danger)' : 'var(--success)'; stockHtml += '<div class="stock-card" style="text-align:left;padding:15px"><div style="font-size:.8rem;color:var(--text-muted)">'+item+'</div><div style="font-size:1.4rem;color:'+color+';font-weight:bold">'+stock[item]+' <span style="font-size:.8rem">'+unities[item]+'</span></div></div>'; }
-    stockHtml += '</div>';
-    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🍚 Alimentação (Controlo de Stock)</h2><button class="btn btn-primary btn-sm" onclick="openModalProv()">➕ Registar Movimento</button></div>'+stockHtml+'<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblProv\', this.value)" style="margin-bottom:10px"><table id="tblProv"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Levantado Por</th><th>Autorizado Por</th><th>Destino</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblProv"></div></div>';
+    var data = await DB.get('provisions_logs'); var stock = {}; var alertsCount = 0;
+    data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = {qty:0, unit:''}; stock[p.item].qty += (p.type === 'Entrada' ? num : -num); stock[p.item].unit = unit || stock[p.item].unit; });
+    window.currentStockData = window.currentStockData || {}; window.currentStockData['Alimentação'] = stock;
+    for(var item in stock) { if(stock[item].qty <= 5) alertsCount++; }
+
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px;align-items:center"><h2>🍚 Alimentação</h2><div style="display:flex;gap:15px;align-items:center;"><div class="notif-bell" style="position:relative;cursor:pointer;font-size:1.5rem;padding:5px" onclick="openStockModal(\'Alimentação\')" title="Ver Stock Atual">🔔<span class="notif-badge" style="display:'+(alertsCount>0?'block':'none')+'">'+alertsCount+'</span></div><button class="btn btn-primary btn-sm" onclick="openModalProv()">➕ Registar Movimento</button></div></div>';
+    html += '<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblProv\', this.value)" style="margin-bottom:10px"><table id="tblProv"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Levantado Por</th><th>Autorizado Por</th><th>Destino</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblProv"></div></div>';
     document.getElementById('appContent').innerHTML = html;
     var renderRow = function(p) { var typeClass = p.type==='Entrada' ? 'bg-success' : 'bg-warning'; var who = p.type === 'Saída' ? (p.takenBy||'-') : (p.supplier||'-'); var auth = p.type === 'Saída' ? (p.authBy||'-') : '-'; var dest = p.type === 'Saída' ? (p.destination||'-') : '-'; return '<tr><td>'+p.date+'<br><small>'+(p.time||'-')+'</small></td><td><span class="badge '+typeClass+'">'+p.type+'</span></td><td><strong>'+p.item+'</strong></td><td>'+p.qty+'</td><td>'+who+'</td><td>'+auth+'</td><td>'+dest+'</td><td>'+(p.type==='Entrada'?'<span class="text-danger">-'+fmt(p.cost)+'</span>':'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalProv(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delProv(\''+p.id+'\')">🗑️</button></td></tr>'; };
     Pager.init('tblProv', data.reverse(), 15, renderRow, 9);
@@ -655,7 +870,7 @@ async function openModalProv(id) {
     var catalog = await DB.get('catalog_items');
     var provItems = catalog.filter(c => c.cat === 'Alimentação');
     if(provItems.length === 0) return showToast('A secretária deve registar itens no Catálogo primeiro!','danger');
-    var itemOpts = provItems.map(c => '<option value="'+c.name+'" '+(p.item===c.name?'selected':'')+'>'+c.name+(c.unit?' ('+c.unit+')':'')+'</option>').join('');
+    var itemOpts = buildGroupedSelect(provItems, p.item);
     var showSaida = (p.type === 'Saída') ? 'block' : 'none'; var showEntrada = (p.type === 'Entrada') ? 'block' : 'none';
     var formHtml = '<div class="form-row"><div><label>Data *</label><input type="text" id="pDate" value="'+p.date+'"></div><div><label>Hora *</label><input type="time" id="pTime" value="'+p.time+'"></div></div><div class="form-row"><div><label>Tipo *</label><select id="pType" onchange="toggleProvFields()"><option value="Saída" '+(p.type==='Saída'?'selected':'')+'>Saída (Consumo)</option><option value="Entrada" '+(p.type==='Entrada'?'selected':'')+'>Entrada (Compra)</option></select></div><div><label>Item (Catálogo) *</label><select id="pItem">'+itemOpts+'</select></div></div><div class="form-row"><div><label>Quantidade *</label><input id="pQty" value="'+p.qty+'" placeholder="Ex: 10 Sacos"></div></div><div id="saidaFieldsProv" style="display:'+showSaida+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--danger);margin-bottom:10px">Autorização de Saída</h4><div class="form-row"><div><label>Levantado Por *</label><input id="pTaken" value="'+p.takenBy+'"></div><div><label>Autorizado Por *</label><input id="pAuth" value="'+p.authBy+'"></div></div><div class="form-row"><div><label>Destino *</label><input id="pDest" value="'+p.destination+'"></div></div></div><div id="entradaFieldsProv" style="display:'+showEntrada+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--success);margin-bottom:10px">Dados da Compra</h4><div class="form-row"><div><label>Fornecedor</label><input id="pSupplier" value="'+p.supplier+'"></div><div><label>Custo (Kz)</label><input type="number" id="pCost" value="'+p.cost+'"></div></div></div>';
     modal(id?'Editar Movimento':'Novo Movimento de Alimentação', formHtml, async function() { var obj = {date:val('pDate'), time:val('pTime'), type:val('pType'), item:val('pItem'), qty:val('pQty'), takenBy:val('pTaken'), authBy:val('pAuth'), destination:val('pDest'), supplier:val('pSupplier'), cost:parseFloat(val('pCost'))||0}; if(!obj.item||!obj.qty) return showToast('Item e Qtd obrigatórios','danger'); if(obj.type === 'Saída' && (!obj.takenBy || !obj.authBy || !obj.destination)) return showToast('Para SAÍDAS: Preencha todos os campos de autorização!','danger'); if(obj.type === 'Entrada' && !obj.supplier) return showToast('Para ENTRADAS: Informe o Fornecedor','danger'); if(id) { await DB.update('provisions_logs', id, obj); showToast('Atualizado!'); } else { obj.id='p'+Date.now(); await DB.insert('provisions_logs', obj); showToast('Registado!'); } closeModal(); loadProvisions(); },'Salvar','btn-primary');
@@ -664,12 +879,13 @@ function toggleProvFields() { var t = val('pType'); document.getElementById('sai
 
 /* =================--- CONSTRUÇÃO CIVIL ---================= */
 async function loadConstrucao() {
-    var data = await DB.get('construcao_logs'); var stock = {}; var unities = {};
-    data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? num : -num); unities[p.item] = unit; });
-    var stockHtml = '<div class="kpi-grid" style="margin-bottom:15px">';
-    for(var item in stock) { var color = stock[item] <= 5 ? 'var(--danger)' : 'var(--success)'; var alertIcon = stock[item] <= 5 ? '⚠️ ' : ''; stockHtml += '<div class="stock-card" style="text-align:left;padding:15px"><div style="font-size:.8rem;color:var(--text-muted)">'+alertIcon+item+'</div><div style="font-size:1.4rem;color:'+color+';font-weight:bold">'+stock[item]+' <span style="font-size:.8rem">'+unities[item]+'</span></div></div>'; }
-    stockHtml += '</div>';
-    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🧱 Construção Civil (Controlo de Stock)</h2><button class="btn btn-primary btn-sm" onclick="openModalConst()">➕ Registar Movimento</button></div>'+stockHtml+'<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblConst\', this.value)" style="margin-bottom:10px"><table id="tblConst"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Levantado Por</th><th>Autorizado Por</th><th>Destino</th><th>Poço</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblConst"></div></div>';
+    var data = await DB.get('construcao_logs'); var stock = {}; var alertsCount = 0;
+    data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = {qty:0, unit:''}; stock[p.item].qty += (p.type === 'Entrada' ? num : -num); stock[p.item].unit = unit || stock[p.item].unit; });
+    window.currentStockData = window.currentStockData || {}; window.currentStockData['Construção Civil'] = stock;
+    for(var item in stock) { if(stock[item].qty <= 5) alertsCount++; }
+
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px;align-items:center"><h2>🧱 Construção Civil</h2><div style="display:flex;gap:15px;align-items:center;"><div class="notif-bell" style="position:relative;cursor:pointer;font-size:1.5rem;padding:5px" onclick="openStockModal(\'Construção Civil\')" title="Ver Stock Atual">🔔<span class="notif-badge" style="display:'+(alertsCount>0?'block':'none')+'">'+alertsCount+'</span></div><button class="btn btn-primary btn-sm" onclick="openModalConst()">➕ Registar Movimento</button></div></div>';
+    html += '<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblConst\', this.value)" style="margin-bottom:10px"><table id="tblConst"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Levantado Por</th><th>Autorizado Por</th><th>Destino</th><th>Poço</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblConst"></div></div>';
     document.getElementById('appContent').innerHTML = html;
     var renderRow = function(p) { var typeClass = p.type==='Entrada' ? 'bg-success' : 'bg-warning'; var who = p.type === 'Saída' ? (p.takenBy||'-') : (p.supplier||'-'); var auth = p.type === 'Saída' ? (p.authBy||'-') : '-'; var dest = p.type === 'Saída' ? (p.destination||'-') : '-'; return '<tr><td>'+p.date+'<br><small>'+p.time+'</small></td><td><span class="badge '+typeClass+'">'+p.type+'</span></td><td><strong>'+p.item+'</strong></td><td>'+p.qty+'</td><td>'+who+'</td><td>'+auth+'</td><td>'+dest+'</td><td>'+(p.centroCusto||'-')+'</td><td>'+(p.type==='Entrada'?'<span class="text-danger">-'+fmt(p.cost)+'</span>':'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalConst(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delConst(\''+p.id+'\')">🗑️</button></td></tr>'; };
     Pager.init('tblConst', data.reverse(), 15, renderRow, 10);
@@ -679,7 +895,7 @@ async function openModalConst(id) {
     var catalog = await DB.get('catalog_items');
     var constItems = catalog.filter(c => c.cat === 'Construção Civil');
     if(constItems.length === 0) return showToast('A secretária deve registar itens no Catálogo primeiro!','danger');
-    var itemOpts = constItems.map(c => '<option value="'+c.name+'" '+(p.item===c.name?'selected':'')+'>'+c.name+(c.unit?' ('+c.unit+')':'')+'</option>').join('');
+    var itemOpts = buildGroupedSelect(constItems, p.item);
     var showSaida = (p.type === 'Saída') ? 'block' : 'none'; var showEntrada = (p.type === 'Entrada') ? 'block' : 'none';
     var formHtml = '<div class="form-row"><div><label>Data *</label><input type="text" id="cDate" value="'+p.date+'"></div><div><label>Hora *</label><input type="time" id="cTime" value="'+p.time+'"></div></div><div class="form-row"><div><label>Tipo *</label><select id="cType" onchange="toggleConstFields()"><option value="Saída" '+(p.type==='Saída'?'selected':'')+'>Saída (Consumo)</option><option value="Entrada" '+(p.type==='Entrada'?'selected':'')+'>Entrada (Compra)</option></select></div><div><label>Item (Catálogo) *</label><select id="cItem">'+itemOpts+'</select></div></div><div class="form-row"><div><label>Quantidade *</label><input id="cQty" value="'+p.qty+'"></div></div><div id="saidaFields" style="display:'+showSaida+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--danger);margin-bottom:10px">Autorização de Saída</h4><div class="form-row"><div><label>Levantado Por *</label><input id="cTaken" value="'+p.takenBy+'"></div><div><label>Autorizado Por *</label><input id="cAuth" value="'+p.authBy+'"></div></div><div class="form-row"><div><label>Obra / Destino *</label><input id="cDest" value="'+p.destination+'"></div><div><label>Centro de Custo / Poço</label><select id="cCentro"><option '+(p.centroCusto==='Geral'?'selected':'')+'>Geral</option><option '+(p.centroCusto==='Poço 1 (Jaliezer)'?'selected':'')+'>Poço 1 (Jaliezer)</option><option '+(p.centroCusto==='Poço 2 (Secundário)'?'selected':'')+'>Poço 2 (Secundário)</option><option '+(p.centroCusto==='Administração'?'selected':'')+'>Administração</option></select></div></div></div><div id="entradaFields" style="display:'+showEntrada+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--success);margin-bottom:10px">Dados da Compra</h4><div class="form-row"><div><label>Fornecedor</label><input id="cSupplier" value="'+p.supplier+'"></div><div><label>Custo (Kz)</label><input type="number" id="cCost" value="'+p.cost+'"></div></div></div>';
     modal(id?'Editar Movimento':'Registar Movimento (Construção)', formHtml, async function() { var obj = {date:val('cDate'), time:val('cTime'), type:val('cType'), item:val('cItem'), qty:val('cQty'), takenBy:val('cTaken'), authBy:val('cAuth'), destination:val('cDest'), supplier:val('cSupplier'), cost:parseFloat(val('cCost'))||0, centroCusto:val('cCentro')}; if(!obj.item||!obj.qty) return showToast('Item e Qtd obrigatórios','danger'); if(obj.type === 'Saída' && (!obj.takenBy || !obj.authBy || !obj.destination)) return showToast('Para SAÍDAS: Preencha todos os campos de autorização!','danger'); if(obj.type === 'Entrada' && !obj.supplier) return showToast('Para ENTRADAS: Informe o Fornecedor','danger'); if(id) { await DB.update('construcao_logs', id, obj); showToast('Atualizado!'); } else { obj.id='const'+Date.now(); await DB.insert('construcao_logs', obj); showToast('Registado!'); } closeModal(); loadConstrucao(); },'Salvar','btn-primary');
@@ -688,12 +904,13 @@ function toggleConstFields() { var t = val('cType'); document.getElementById('sa
 
 /* =================--- BENS DIVERSOS ---================= */
 async function loadBensDiversos() {
-    var data = await DB.get('bens_diversos_logs'); var stock = {}; var unities = {};
-    data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? num : -num); unities[p.item] = unit; });
-    var stockHtml = '<div class="kpi-grid" style="margin-bottom:15px">';
-    for(var item in stock) { var color = stock[item] <= 2 ? 'var(--danger)' : 'var(--success)'; var alertIcon = stock[item] <= 2 ? '⚠️ ' : ''; stockHtml += '<div class="stock-card" style="text-align:left;padding:15px"><div style="font-size:.8rem;color:var(--text-muted)">'+alertIcon+item+'</div><div style="font-size:1.4rem;color:'+color+';font-weight:bold">'+stock[item]+' <span style="font-size:.8rem">'+unities[item]+'</span></div></div>'; }
-    stockHtml += '</div>';
-    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>🛋️ Bens Diversos e Hospedagem</h2><button class="btn btn-primary btn-sm" onclick="openModalBens()">➕ Registar Movimento</button></div>'+stockHtml+'<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblBens\', this.value)" style="margin-bottom:10px"><table id="tblBens"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Entregue a/Destino</th><th>Estado/Origem</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblBens"></div></div>';
+    var data = await DB.get('bens_diversos_logs'); var stock = {}; var alertsCount = 0;
+    data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = {qty:0, unit:''}; stock[p.item].qty += (p.type === 'Entrada' ? num : -num); stock[p.item].unit = unit || stock[p.item].unit; });
+    window.currentStockData = window.currentStockData || {}; window.currentStockData['Bens Diversos'] = stock;
+    for(var item in stock) { if(stock[item].qty <= 2) alertsCount++; }
+
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px;align-items:center"><h2>🛋️ Bens Diversos e Hospedagem</h2><div style="display:flex;gap:15px;align-items:center;"><div class="notif-bell" style="position:relative;cursor:pointer;font-size:1.5rem;padding:5px" onclick="openStockModal(\'Bens Diversos\')" title="Ver Stock Atual">🔔<span class="notif-badge" style="display:'+(alertsCount>0?'block':'none')+'">'+alertsCount+'</span></div><button class="btn btn-primary btn-sm" onclick="openModalBens()">➕ Registar Movimento</button></div></div>';
+    html += '<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar..." oninput="Pager.search(\'tblBens\', this.value)" style="margin-bottom:10px"><table id="tblBens"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Entregue a/Destino</th><th>Estado/Origem</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblBens"></div></div>';
     document.getElementById('appContent').innerHTML = html;
     var renderRow = function(p) { var typeClass = p.type==='Entrada' ? 'bg-success' : 'bg-warning'; var who = p.type === 'Saída' ? (p.takenBy||'-') : (p.supplier||'-'); var dest = p.type === 'Saída' ? (p.destination||'-') : '-'; return '<tr><td>'+p.date+'<br><small>'+(p.time||'-')+'</small></td><td><span class="badge '+typeClass+'">'+p.type+'</span></td><td><strong>'+p.item+'</strong></td><td>'+p.qty+'</td><td>'+who+'<br><small>'+dest+'</small></td><td>'+(p.authBy||'-')+'</td><td>'+(p.type==='Entrada'?'<span class="text-danger">-'+fmt(p.cost)+'</span>':'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalBens(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delBens(\''+p.id+'\')">🗑️</button></td></tr>'; };
     Pager.init('tblBens', data.reverse(), 15, renderRow, 8);
@@ -702,8 +919,8 @@ async function openModalBens(id) {
     var data = await DB.get('bens_diversos_logs'); var p = id ? data.find(x=>x.id===id) : {date:getTodayStr(), time:new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'}), type:'Saída', item:'', qty:'', takenBy:'', authBy:currentUser.name, destination:'', supplier:'', cost:0};
     var catalog = await DB.get('catalog_items');
     var bensItems = catalog.filter(c => c.cat === 'Bens Diversos');
-    if(bensItems.length === 0) return showToast('RegistItens no Catálogo (Bens Diversos) primeiro!','danger');
-    var itemOpts = bensItems.map(c => '<option value="'+c.name+'" '+(p.item===c.name?'selected':'')+'>'+c.name+(c.unit?' ('+c.unit+')':'')+'</option>').join('');
+    if(bensItems.length === 0) return showToast('Registe itens no Catálogo (Bens Diversos) primeiro!','danger');
+    var itemOpts = buildGroupedSelect(bensItems, p.item);
     var showSaida = (p.type === 'Saída') ? 'block' : 'none'; var showEntrada = (p.type === 'Entrada') ? 'block' : 'none';
     var formHtml = '<div class="form-row"><div><label>Data *</label><input type="text" id="bDate" value="'+p.date+'"></div><div><label>Hora *</label><input type="time" id="bTime" value="'+p.time+'"></div></div><div class="form-row"><div><label>Tipo *</label><select id="bType" onchange="toggleBensFields()"><option value="Saída" '+(p.type==='Saída'?'selected':'')+'>Saída (Entrega)</option><option value="Entrada" '+(p.type==='Entrada'?'selected':'')+'>Entrada (Compra)</option></select></div><div><label>Item (Catálogo) *</label><select id="bItem">'+itemOpts+'</select></div></div><div class="form-row"><div><label>Quantidade *</label><input id="bQty" value="'+p.qty+'"></div></div><div id="saidaFieldsBens" style="display:'+showSaida+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--danger);margin-bottom:10px">Entrega</h4><div class="form-row"><div><label>Entregue a *</label><input id="bTaken" value="'+p.takenBy+'"></div><div><label>Destino *</label><input id="bDest" value="'+p.destination+'"></div></div><div class="form-row"><div><label>Autorizado Por *</label><input id="bAuth" value="'+p.authBy+'"></div></div></div><div id="entradaFieldsBens" style="display:'+showEntrada+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--success);margin-bottom:10px">Dados da Compra</h4><div class="form-row"><div><label>Fornecedor</label><input id="bSupplier" value="'+p.supplier+'"></div><div><label>Custo (Kz)</label><input type="number" id="bCost" value="'+p.cost+'"></div></div></div>';
     modal(id?'Editar Movimento':'Registar Movimento (Bens)', formHtml, async function() { var obj = {date:val('bDate'), time:val('bTime'), type:val('bType'), item:val('bItem'), qty:val('bQty'), takenBy:val('bTaken'), authBy:val('bAuth'), destination:val('bDest'), supplier:val('bSupplier'), cost:parseFloat(val('bCost'))||0}; if(!obj.item||!obj.qty) return showToast('Item e Qtd obrigatórios','danger'); if(obj.type === 'Saída' && (!obj.takenBy || !obj.authBy || !obj.destination)) return showToast('Para SAÍDAS: Preencha todos os campos!','danger'); if(obj.type === 'Entrada' && !obj.supplier) return showToast('Para ENTRADAS: Informe o Fornecedor','danger'); if(id) { await DB.update('bens_diversos_logs', id, obj); showToast('Atualizado!'); } else { obj.id='b'+Date.now(); await DB.insert('bens_diversos_logs', obj); showToast('Registado!'); } closeModal(); loadBensDiversos(); },'Salvar','btn-primary');
@@ -712,12 +929,13 @@ function toggleBensFields() { var t = val('bType'); document.getElementById('sai
 
 /* =================--- LOGÍSTICA DE PEÇAS ---================= */
 async function loadLogisticaPecas() {
-    var data = await DB.get('logistica_pecas'); var stock = {}; var unities = {};
-    data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = 0; stock[p.item] += (p.type === 'Entrada' ? num : -num); unities[p.item] = unit; });
-    var stockHtml = '<div class="kpi-grid" style="margin-bottom:15px">';
-    for(var item in stock) { var color = stock[item] <= 2 ? 'var(--danger)' : 'var(--success)'; var alertIcon = stock[item] <= 2 ? '⚠️ ' : ''; stockHtml += '<div class="stock-card" style="text-align:left;padding:15px"><div style="font-size:.8rem;color:var(--text-muted)">'+alertIcon+item+'</div><div style="font-size:1.4rem;color:'+color+';font-weight:bold">'+stock[item]+' <span style="font-size:.8rem">'+unities[item]+'</span></div></div>'; }
-    stockHtml += '</div>';
-    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>⚙️ Logística de Peças (Máquinas/Veículos)</h2><button class="btn btn-primary btn-sm" onclick="openModalPecas()">➕ Registar Movimento</button></div>'+stockHtml+'<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar peça, máquina..." oninput="Pager.search(\'tblPecas\', this.value)" style="margin-bottom:10px"><table id="tblPecas"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Categoria</th><th>Peça / Item</th><th>Qtd</th><th>Para Máquina/Veículo</th><th>Levantado/Compra por</th><th>Autorizado Por</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblPecas"></div></div>';
+    var data = await DB.get('logistica_pecas'); var stock = {}; var alertsCount = 0;
+    data.forEach(p => { var match = p.qty.match(/\d+/); var num = match ? parseInt(match[0]) : 0; var unit = p.qty.replace(/[0-9]/g, '').trim(); if(!stock[p.item]) stock[p.item] = {qty:0, unit:''}; stock[p.item].qty += (p.type === 'Entrada' ? num : -num); stock[p.item].unit = unit || stock[p.item].unit; });
+    window.currentStockData = window.currentStockData || {}; window.currentStockData['Peças e Máquinas'] = stock;
+    for(var item in stock) { if(stock[item].qty <= 2) alertsCount++; }
+
+    var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px;align-items:center"><h2>⚙️ Logística de Peças (Máquinas/Veículos)</h2><div style="display:flex;gap:15px;align-items:center;"><div class="notif-bell" style="position:relative;cursor:pointer;font-size:1.5rem;padding:5px" onclick="openStockModal(\'Peças e Máquinas\')" title="Ver Stock Atual">🔔<span class="notif-badge" style="display:'+(alertsCount>0?'block':'none')+'">'+alertsCount+'</span></div><button class="btn btn-primary btn-sm" onclick="openModalPecas()">➕ Registar Movimento</button></div></div>';
+    html += '<div class="card"><input type="text" class="search-box" placeholder="🔍 Pesquisar peça, máquina..." oninput="Pager.search(\'tblPecas\', this.value)" style="margin-bottom:10px"><table id="tblPecas"><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Categoria</th><th>Peça / Item</th><th>Qtd</th><th>Para Máquina/Veículo</th><th>Levantado/Compra por</th><th>Autorizado Por</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table><div id="pager_tblPecas"></div></div>';
     document.getElementById('appContent').innerHTML = html;
     var renderRow = function(p) { var typeClass = p.type==='Entrada' ? 'bg-success' : 'bg-warning'; return '<tr><td>'+p.date+'<br><small>'+p.time+'</small></td><td><span class="badge '+typeClass+'">'+p.type+'</span></td><td>'+(p.cat||'-')+'</td><td><strong>'+p.item+'</strong></td><td>'+p.qty+'</td><td>'+(p.machine||'-')+'</td><td>'+(p.takenBy||p.supplier||'-')+'</td><td>'+(p.authBy||'-')+'</td><td>'+(p.type==='Entrada'?'<span class="text-danger">-'+fmt(p.cost)+'</span>':'-')+'</td><td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="openModalPecas(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delPecas(\''+p.id+'\')">🗑️</button></td></tr>'; };
     Pager.init('tblPecas', data.reverse(), 15, renderRow, 10);
@@ -726,8 +944,8 @@ async function openModalPecas(id) {
     var data = await DB.get('logistica_pecas'); var p = id ? data.find(x=>x.id===id) : {date:getTodayStr(), time:new Date().toLocaleTimeString('pt-AO',{hour:'2-digit',minute:'2-digit'}), type:'Saída', cat:'Filtros', item:'', qty:'', machine:'', takenBy:'', authBy:currentUser.name, supplier:'', cost:0};
     var catalog = await DB.get('catalog_items');
     var pecasItems = catalog.filter(c => c.cat === 'Peças e Máquinas');
-    if(pecasItems.length === 0) return showToast('RegistItens no Catálogo (Peças e Máquinas) primeiro!','danger');
-    var itemOpts = pecasItems.map(c => '<option value="'+c.name+'" '+(p.item===c.name?'selected':'')+'>'+c.name+(c.unit?' ('+c.unit+')':'')+'</option>').join('');
+    if(pecasItems.length === 0) return showToast('Registe itens no Catálogo (Peças e Máquinas) primeiro!','danger');
+    var itemOpts = buildGroupedSelect(pecasItems, p.item);
     var showSaida = (p.type === 'Saída') ? 'block' : 'none'; var showEntrada = (p.type === 'Entrada') ? 'block' : 'none';
     var formHtml = '<div class="form-row"><div><label>Data *</label><input type="text" id="lpDate" value="'+p.date+'"></div><div><label>Hora *</label><input type="time" id="lpTime" value="'+p.time+'"></div></div><div class="form-row"><div><label>Tipo *</label><select id="lpType" onchange="togglePecasFields()"><option value="Saída" '+(p.type==='Saída'?'selected':'')+'>Saída (Aplicação)</option><option value="Entrada" '+(p.type==='Entrada'?'selected':'')+'>Entrada (Compra)</option></select></div><div><label>Categoria *</label><select id="lpCat"><option '+(p.cat==='Filtros'?'selected':'')+'>Filtros</option><option '+(p.cat==='Óleos & Lubrificantes'?'selected':'')+'>Óleos & Lubrificantes</option><option '+(p.cat==='Motor'?'selected':'')+'>Motor</option><option '+(p.cat==='Travões'?'selected':'')+'>Travões</option><option '+(p.cat==='Elétrica'?'selected':'')+'>Elétrica</option><option '+(p.cat==='Pneus'?'selected':'')+'>Pneus</option><option '+(p.cat==='Outros'?'selected':'')+'>Outros</option></select></div></div><div class="form-row"><div><label>Peça (Catálogo) *</label><select id="lpItem">'+itemOpts+'</select></div><div><label>Quantidade *</label><input id="lpQty" value="'+p.qty+'"></div></div><div id="saidaFieldsLp" style="display:'+showSaida+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--danger);margin-bottom:10px">Aplicação na Máquina</h4><div class="form-row"><div><label>Aplicado em (Máquina) *</label><input id="lpMachine" value="'+p.machine+'" placeholder="Ex: Escavadora CAT 320"></div><div><label>Mecânico / Levantado Por *</label><input id="lpTaken" value="'+p.takenBy+'"></div></div><div class="form-row"><div><label>Autorizado Por *</label><input id="lpAuth" value="'+p.authBy+'"></div></div></div><div id="entradaFieldsLp" style="display:'+showEntrada+';border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:10px"><h4 style="color:var(--success);margin-bottom:10px">Dados da Compra</h4><div class="form-row"><div><label>Fornecedor</label><input id="lpSupplier" value="'+p.supplier+'"></div><div><label>Custo (Kz)</label><input type="number" id="lpCost" value="'+p.cost+'"></div></div></div>';
     modal(id?'Editar Movimento':'Registar Peça', formHtml, async function() { var obj = {date:val('lpDate'), time:val('lpTime'), type:val('lpType'), cat:val('lpCat'), item:val('lpItem'), qty:val('lpQty'), machine:val('lpMachine'), takenBy:val('lpTaken'), authBy:val('lpAuth'), supplier:val('lpSupplier'), cost:parseFloat(val('lpCost'))||0}; if(!obj.item||!obj.qty) return showToast('Item e Qtd obrigatórios','danger'); if(obj.type === 'Saída' && (!obj.machine || !obj.takenBy || !obj.authBy)) return showToast('Para SAÍDAS: Máquina, Mecânico e Autorização obrigatórios!','danger'); if(obj.type === 'Entrada' && !obj.supplier) return showToast('Para ENTRADAS: Informe o Fornecedor','danger'); if(id) { await DB.update('logistica_pecas', id, obj); showToast('Atualizado!'); } else { obj.id='lp'+Date.now(); await DB.insert('logistica_pecas', obj); showToast('Registado!'); } closeModal(); loadLogisticaPecas(); },'Salvar','btn-primary');
@@ -1049,7 +1267,7 @@ async function saveConfig() {
     await DB.save('company_config', [obj]); showToast('Configurações salvas!'); 
 }
 async function exportBackup() {
-    var tables = ['users','catalog_items','fuel_logs','provisions_logs','construcao_logs','bens_diversos_logs','logistica_pecas','epis_logs','licenses_logs','contractors_logs','shift_logs','security_logs','attendance_logs','employees','equipment','maintenance_logs','finance_logs','patrimony_logs','audit_logs','suppliers','production_logs','company_config','hr_advances','health_logs','medical_stock_logs'];
+    var tables = ['users','catalog_items','fuel_logs','provisions_logs','construcao_logs','bens_diversos_logs','logistica_pecas','epis_logs','licenses_logs','contractors_logs','shift_logs','security_logs','attendance_logs','vacation_logs','employees','equipment','maintenance_logs','finance_logs','patrimony_logs','audit_logs','suppliers','production_logs','company_config','hr_advances','health_logs','medical_stock_logs'];
     var backup = {}; for(var i=0; i<tables.length; i++) { backup[tables[i]] = await DB.get(tables[i]); }
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
     var link = document.createElement('a'); link.href = dataStr; link.download = "Backup_Mina_Jaliezer_"+getTodayStr().replace(/\//g,'-')+".json"; document.body.appendChild(link); link.click(); link.remove(); showToast('Backup descarregado!','info');
@@ -1089,6 +1307,7 @@ function loadReports() {
     if(role === 'admin' || role === 'dir_geral') {
         options.push('<option value="stock_map">Mapa de Requisições e Stock</option>');
         options.push('<option value="saude">Relatório de Saúde e Medicina</option>');
+        options.push('<option value="dre">DRE (Demonstração de Resultados)</option>');
         options.push('<option value="production">Relatório de Produção</option>'); options.push('<option value="fuel">Relatório de Combustível</option>'); options.push('<option value="provisions">Relatório de Alimentação</option>'); options.push('<option value="construcao">Relatório de Construção Civil</option>'); options.push('<option value="bens_diversos">Relatório de Bens Diversos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); options.push('<option value="epis">Relatório de EPIs</option>'); options.push('<option value="seguranca">Relatório de Segurança</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="licenses">Relatório de Licenças</option>'); options.push('<option value="contractors">Relatório de Contratos</option>'); options.push('<option value="shift_reports">Relatório de Turnos</option>'); options.push('<option value="finance">Relatório Financeiro</option>'); options.push('<option value="general">Relatório Geral e Lucro</option>');
     } else if(role === 'dir_transporte') { options.push('<option value="fuel">Relatório de Combustível</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_alimentar') { options.push('<option value="stock_map">Mapa de Requisições e Stock</option>'); options.push('<option value="provisions">Relatório de Alimentação</option>'); } else if(role === 'dir_construcao') { options.push('<option value="stock_map">Mapa de Requisições e Stock</option>'); options.push('<option value="construcao">Relatório de Construção Civil</option>'); options.push('<option value="equipment">Relatório de Equipamentos</option>'); options.push('<option value="logistica_pecas">Relatório de Peças e Máquinas</option>'); } else if(role === 'dir_rh') { options.push('<option value="saude">Relatório de Saúde e Medicina</option>'); options.push('<option value="finance">Relatório Financeiro (Salários)</option>'); options.push('<option value="epis">Relatório de EPIs</option>'); }
     var html = '<div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;gap:10px"><h2>📈 Central de Relatórios</h2><div style="display:flex;gap:10px"><button class="btn btn-success btn-sm" onclick="exportPDF()">📄 Gerar PDF</button><button class="btn btn-info btn-sm" onclick="exportExcel()">📊 Exportar Excel</button></div></div><div class="card"><h3>Selecionar Relatório</h3><div class="form-row"><div><label>Tipo de Relatório *</label><select id="reportType" onchange="generateReport()"><option value="">-- Escolha um Relatório --</option>'+options.join('')+'</select></div></div></div><div id="reportPrintArea" class="card" style="background:#fff;color:#000;display:none"></div>';
@@ -1130,6 +1349,37 @@ async function generateReport() {
             html += '<tr><td>'+p.date+'</td><td>'+p.type+'</td><td>'+p.item+'</td><td>'+p.qty+'</td><td>'+who+'</td><td>'+(p.type==='Entrada'?fmt(p.cost):'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="delMedStock(\''+p.id+'\')">🗑️</button></td></tr>'; 
         }); 
         html += '<tr class="total-row"><td colspan="5">TOTAL GASTO (COMPRAS MÉDICAS)</td><td>'+fmt(tCostMed)+'</td><td></td></tr></tbody></table>'; 
+    }
+    else if(type === 'dre') {
+        var fuel = await DB.get('fuel_logs'), emp = await DB.get('employees'), fin = await DB.get('finance_logs'), prov = await DB.get('provisions_logs'), constLogs = await DB.get('construcao_logs'), pecas = await DB.get('logistica_pecas'); 
+        var totRec = fin.filter(f=>f.type==='Entrada' && f.status==='Pago').reduce((a,b)=>a+(b.val||0),0);
+        var totFuel = fuel.filter(f=>f.type==='Entrada').reduce((a,b)=>a+(b.val||0),0);
+        var totSal = emp.reduce((a,b)=>a+(b.salary||0),0);
+        var totFinSai = fin.filter(f=>f.type==='Saída' && f.status==='Pago').reduce((a,b)=>a+(b.val||0),0);
+        var totProv = prov.filter(p=>p.type==='Entrada').reduce((a,b)=>a+(b.cost||0),0);
+        var totConst = constLogs.filter(c=>c.type==='Entrada').reduce((a,b)=>a+(b.cost||0),0);
+        var totPecas = pecas.filter(p=>p.type==='Entrada').reduce((a,b)=>a+(b.cost||0),0);
+        
+        var custosOperacionais = totFuel + totProv + totConst + totPecas;
+        var lucroBruto = totRec - custosOperacionais;
+        var despAdministrativas = totFinSai;
+        var irtEstimado = calcIRT(lucroBruto);
+        var segSocial = totSal * 0.03;
+        var lucroLiquido = lucroBruto - totSal - despAdministrativas - irtEstimado - segSocial;
+
+        html += '<h3>Demonstração de Resultados do Exercício (DRE)</h3><table><thead><tr><th>Descrição</th><th class="text-right">Valor (Kz)</th></tr></thead><tbody>';
+        html += '<tr><td><strong>(+) RECEITA OPERACIONAL BRUTA</strong></td><td class="text-right text-success">'+fmt(totRec)+'</td></tr>';
+        html += '<tr><td>(-) Combustível e Lubrificantes</td><td class="text-right text-danger">'+fmt(totFuel)+'</td></tr>';
+        html += '<tr><td>(-) Alimentação e Consumo</td><td class="text-right text-danger">'+fmt(totProv)+'</td></tr>';
+        html += '<tr><td>(-) Materiais de Construção</td><td class="text-right text-danger">'+fmt(totConst)+'</td></tr>';
+        html += '<tr><td>(-) Peças e Máquinas</td><td class="text-right text-danger">'+fmt(totPecas)+'</td></tr>';
+        html += '<tr class="total-row" style="background-color:#e6e6e6;"><td>= LUCRO BRUTO</td><td class="text-right">'+fmt(lucroBruto)+'</td></tr>';
+        html += '<tr><td>(-) Despesas Administrativas e Financeiras</td><td class="text-right text-danger">'+fmt(despAdministrativas)+'</td></tr>';
+        html += '<tr><td>(-) Salários e Ordenados</td><td class="text-right text-danger">'+fmt(totSal)+'</td></tr>';
+        html += '<tr><td>(-) Segurança Social (Encargo Patronal 3%)</td><td class="text-right text-danger">'+fmt(segSocial)+'</td></tr>';
+        html += '<tr><td>(-) IRT (Estimativa sobre Lucro)</td><td class="text-right text-danger">'+fmt(irtEstimado)+'</td></tr>';
+        html += '<tr class="total-row"><td>= LUCRO LÍQUIDO DO EXERCÍCIO</td><td class="text-right">'+fmt(lucroLiquido)+'</td></tr>';
+        html += '</tbody></table>';
     }
     else if(type === 'production') { var data = await DB.get('production_logs'); html += '<h3>Produção</h3><table><thead><tr><th>Data/Hora</th><th>Poço</th><th>Material</th><th>Vol (m³)</th><th>Quilates</th><th>Teor</th><th>Resp.</th><th>Ações</th></tr></thead><tbody>'; data.forEach(p => { var volMatch = p.qty.match(/\d+/); var vol = volMatch ? parseFloat(volMatch[0]) : 0; var teor = p.yield && vol > 0 ? (p.yield / vol).toFixed(3) : '-'; html += '<tr><td>'+p.date+' '+p.time+'</td><td>'+p.well+'</td><td>'+p.material+'</td><td>'+p.qty+'</td><td>'+(p.yield||'-')+'</td><td>'+teor+'</td><td>'+p.responsible+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalProd(\''+p.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delProd(\''+p.id+'\')">🗑️</button></td></tr>'; }); html += '</tbody></table>'; } 
     else if(type === 'fuel') { var data = await DB.get('fuel_logs'); var entradas = data.filter(f=>f.type==='Entrada'); var saidas = data.filter(f=>f.type==='Saída').sort((a,b)=>parseDate(a.date)-parseDate(b.date)); html += '<h3>Combustível</h3><h4>1. Compras</h4><table><thead><tr><th>Data</th><th>Combustível</th><th>Litros</th><th>Valor (Kz)</th><th>Ações</th></tr></thead><tbody>'; var totFuelVal = 0, totFuelLit = 0; entradas.forEach(f => { totFuelVal += (f.val||0); totFuelLit += (f.litros||0); html += '<tr><td>'+f.date+'</td><td>'+f.fuelType+'</td><td>'+f.litros+' L</td><td>'+fmt(f.val)+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalFuel(\''+f.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delFuel(\''+f.id+'\')">🗑️</button></td></tr>'; }); html += '<tr class="total-row"><td colspan="2">TOTAL COMPRAS</td><td>'+fmt(totFuelLit)+' L</td><td>'+fmt(totFuelVal)+'</td><td></td></tr></tbody></table>'; html += '<h4>2. Consumos por Veículo</h4>'; var groupedSaidas = {}; saidas.forEach(f => { var n = f.equipment || '-'; if(!groupedSaidas[n]) groupedSaidas[n] = []; groupedSaidas[n].push(f); }); var totConsLit = 0, totConsVal = 0; for(var n in groupedSaidas) { var eE = groupedSaidas[n]; var eL = 0, eV = 0; var P = 420; html += '<h5>🚗 '+n+'</h5><table><thead><tr><th>Data</th><th>Func</th><th>Horóm</th><th>Litros</th><th>Valor (Kz)</th><th>Ações</th></tr></thead><tbody>'; eE.forEach(f => { var vS = f.litros * P; eL += f.litros; eV += vS; html += '<tr><td>'+f.date+'</td><td>'+f.empName+'</td><td>'+(f.hours||'-')+'</td><td>'+f.litros+'</td><td>'+fmt(vS)+'</td><td><button class="btn btn-warning btn-sm" onclick="openModalFuel(\''+f.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="delFuel(\''+f.id+'\')">🗑️</button></td></tr>'; }); html += '<tr class="total-row"><td colspan="3">TOTAL '+n+'</td><td>'+fmt(eL)+' L</td><td>'+fmt(eV)+'</td><td></td></tr></tbody></table>'; totConsLit += eL; totConsVal += eV; } html += '<div class="summary-box" style="margin-top:15px; text-align:right; font-size:14px;"><strong>TOTAL GERAL DE CONSUMOS:</strong> '+fmt(totConsLit)+' Litros | <strong>'+fmt(totConsVal)+' Kz</strong></div>'; } 
@@ -1351,7 +1601,7 @@ async function exportExcel() {
         var data = await DB.get('finance_logs'); var totEnt = data.filter(f=>f.type==='Entrada').reduce((a,b)=>a+(b.val||0),0); var totSai = data.filter(f=>f.type==='Saída').reduce((a,b)=>a+(b.val||0),0); var saldo = totEnt - totSai;
         html += '<table style="width:100%; border-collapse:collapse; font-family:Arial; font-size:12px;"><tr><td colspan="5" style="background-color:#2c3e50; color:#fff; padding:8px; font-weight:bold;">RELATÓRIO FINANCEIRO</td></tr><tr class="tbl-head"><td style="padding:5px;">Data</td><td>Descrição</td><td>Tipo</td><td>Estado</td><td>Valor (Kz)</td></tr>';
         data.forEach(f => { var valClass = f.type === 'Entrada' ? 'bg-success' : 'bg-danger'; html += '<tr class="tbl-body '+valClass+'"><td style="padding:5px;">'+f.date+'</td><td>'+f.desc+'</td><td>'+f.type+'</td><td>'+f.status+'</td><td>'+fmt(f.val)+'</td></tr>'; });
-        html += '<tr class="total-row"><td colspan="4" style="padding:5px; text-align:right;">TOTAL ENTRADAS</td><td style="text-align:right;">'+fmt(totEnt)+'</td></tr><tr class="total-row"><td colspan="4" style="padding:5px;text-align:right;">TOTAL SAÍDAS</td><td style="text-align:right;">'+fmt(totSai)+'</td></tr><tr class="total-row" style="background-color:#1a1a1a; color:#fff;"><td colspan="4" style="padding:5px; text-align:right;">SALDO FINAL</td><td style="text-align:right;">'+fmt(saldo)+'</td></tr></table>';
+        html += '<tr class="total-row"><td colspan="4" style="padding:5px; text-align:right;">TOTAL ENTRADAS</td><td style="text-align:right;">'+fmt(totEnt)+'</td></tr><tr class="total-row"><td colspan="4" style="padding:5px; text-align:right;">TOTAL SAÍDAS</td><td style="text-align:right;">'+fmt(totSai)+'</td></tr><tr class="total-row" style="background-color:#1a1a1a; color:#fff;"><td colspan="4" style="padding:5px; text-align:right;">SALDO FINAL</td><td style="text-align:right;">'+fmt(saldo)+'</td></tr></table>';
     } else {
         var data = []; var headers = []; var tCost = 0;
         if(type === 'production') { data = await DB.get('production_logs'); headers = ['Data', 'Poço', 'Material', 'Volume', 'Quilates', 'Responsável']; }
