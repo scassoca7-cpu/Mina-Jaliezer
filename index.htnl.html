@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ERP - Mina Jaliezer (Nuvem Pro - Versão Definitiva)</title>
-<meta name="theme-color" content="#f4f5f7">
+<meta name="theme-color" content="#1f2937">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Jaliezer ERP">
-<link id="manifest-placeholder" rel="manifest">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -125,6 +127,7 @@ th{color:var(--text-muted);font-size:.75rem;text-transform:uppercase;background:
         </div>
         <div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap">
             <select id="dashMonthFilter" onchange="loadDashboard()" style="width:auto;padding:6px"></select>
+            <button id="installAppBtn" class="btn btn-outline btn-sm" style="display:none" onclick="installApp()" title="Instalar esta app no dispositivo">⬇️ Instalar App</button>
             <div class="notif-bell" onclick="showAlertsModal()" title="Ver Alertas">🔔<span id="alertBadge" class="notif-badge">0</span></div>
             <span style="font-size:.8rem;color:var(--primary);text-transform:uppercase;font-weight:700" id="currentUserRole"></span>
             <span id="currentUserName" style="font-size:.9rem;color:var(--text-muted)">Administrador</span>
@@ -327,8 +330,27 @@ var Pager = {
 };
 
 /* ==================== PWA & OFFLINE ==================== */
-var manifest = { "name": "ERP Mina Jaliezer", "short_name": "Jaliezer", "start_url": ".", "display": "standalone", "background_color": "#ffffff", "theme_color": "#f4f5f7", "icons": [{"src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23ffffff'/%3E%3Ctext x='50%25' y='50%25' font-size='100' text-anchor='middle' dy='.35em' fill='%239a7614' font-family='sans-serif'%3E%E2%9B%8F%EF%B8%8F%3C/text%3E%3C/svg%3E", "sizes": "192x192", "type": "image/svg+xml"}] };
-var stringManifest = JSON.stringify(manifest); var blob = new Blob([stringManifest], {type: 'application/json'}); var manifestURL = URL.createObjectURL(blob); document.querySelector('#manifest-placeholder').setAttribute('href', manifestURL);
+/* O manifest.json e o icon-*.png são ficheiros próprios (ver pasta pwa/) —
+   têm de estar alojados ao lado deste ficheiro (mesmo servidor/pasta) para a
+   instalação funcionar corretamente no PC e no telemóvel. */
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js').catch(function(e){ console.warn('Service worker não registado:', e); });
+    });
+}
+var deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    var btn = document.getElementById('installAppBtn');
+    if (btn) btn.style.display = 'inline-flex';
+});
+function installApp() {
+    if (!deferredInstallPrompt) { showToast('Este navegador já tem a app instalada, ou não suporta instalação direta. No iPhone/iPad use Partilhar → Adicionar ao Ecrã Principal.', 'info'); return; }
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(function() { deferredInstallPrompt = null; var btn = document.getElementById('installAppBtn'); if (btn) btn.style.display = 'none'; });
+}
+window.addEventListener('appinstalled', function() { showToast('App instalada com sucesso!', 'success'); var btn = document.getElementById('installAppBtn'); if (btn) btn.style.display = 'none'; });
 window.addEventListener('online', () => { showToast('Ligação restaurada! A sincronizar...', 'success'); DB.syncPending().then(() => { updateOfflineBanner(); if(currentNav) navigate(currentNav); }); });
 window.addEventListener('offline', () => { updateOfflineBanner(); showToast('Sem internet. Modo offline ativo — pode continuar a trabalhar normalmente.', 'danger'); });
 
@@ -1878,7 +1900,7 @@ async function exportExcel() {
 
 /* ==================== INICIALIZAÇÃO ==================== */
 window.onload = async function() {
-    var loginHtml = '<div id="loginOverlay"><div class="login-box"><h1 style="font-family:Inter;color:var(--primary);margin-bottom:10px">MINA JALIEZER</h1><p style="color:var(--text-muted);margin-bottom:30px">Controlo Operacional (Nuvem Pro)</p><input type="email" id="loginUser" placeholder="Email" style="margin-bottom:15px"><input type="password" id="loginPass" placeholder="Palavra-passe" style="margin-bottom:20px"><button class="btn btn-primary" style="width:100%" onclick="login()">Entrar</button></div></div>';
+    var loginHtml = '<div id="loginOverlay"><div class="login-box"><h1 style="font-family:Inter;color:var(--primary);margin-bottom:10px">MINA JALIEZER</h1><p style="color:var(--text-muted);margin-bottom:30px">Controlo Operacional (Nuvem Pro)</p><input type="email" id="loginUser" placeholder="Email" style="margin-bottom:15px"><input type="password" id="loginPass" placeholder="Palavra-passe" style="margin-bottom:20px"><button class="btn btn-primary" style="width:100%" onclick="login()">Entrar</button><p style="color:var(--text-muted);font-size:.7rem;margin-top:18px">📱 iPhone/iPad: toque em Partilhar e depois "Adicionar ao Ecrã Principal" para instalar.</p></div></div>';
     document.body.insertAdjacentHTML('beforeend', loginHtml);
     try {
         updateOfflineBanner();
